@@ -1,8 +1,9 @@
-import type { DessertRepository } from "../../domain/repositories/dessert-repository";
-import { InMemoryDessertRepository } from "../persistence/in-memory-dessert-repository";
-import { buildDessertSeed } from "../persistence/dessert-seed";
-import { ListAvailableDesserts } from "../../application/use-cases/list-available-desserts";
-import { GetDessertById } from "../../application/use-cases/get-dessert-by-id";
+import type { ProductRepository } from "../../domain/repositories/product-repository";
+import { InMemoryProductRepository } from "../persistence/in-memory-product-repository";
+import { buildProductSeed } from "../persistence/product-seed";
+import { ListAvailableProducts } from "../../application/use-cases/list-available-products";
+import { ListFeaturedProducts } from "../../application/use-cases/list-featured-products";
+import { GetProductById } from "../../application/use-cases/get-product-by-id";
 
 /*
  * Composition root for the catalog module. This is the single place that knows
@@ -12,12 +13,16 @@ import { GetDessertById } from "../../application/use-cases/get-dessert-by-id";
  */
 
 // One repository instance per server runtime, seeded once at module load.
-const dessertRepository: DessertRepository = new InMemoryDessertRepository(buildDessertSeed());
+const productRepository: ProductRepository = new InMemoryProductRepository(buildProductSeed());
 
-/** Builds the "list available desserts" use case with its dependencies wired. */
-export const makeListAvailableDesserts = (): ListAvailableDesserts =>
-  new ListAvailableDesserts(dessertRepository);
+/** Builds the "list available products" use case with its dependencies wired. */
+export const makeListAvailableProducts = (): ListAvailableProducts =>
+  new ListAvailableProducts(productRepository);
 
-/** Builds the "get dessert by id" use case with its dependencies wired. */
-export const makeGetDessertById = (): GetDessertById =>
-  new GetDessertById(dessertRepository);
+/** Builds the "list featured products" use case with its dependencies wired. */
+export const makeListFeaturedProducts = (): ListFeaturedProducts =>
+  new ListFeaturedProducts(productRepository);
+
+/** Builds the "get product by id" use case with its dependencies wired. */
+export const makeGetProductById = (): GetProductById =>
+  new GetProductById(productRepository);

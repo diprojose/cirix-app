@@ -1,7 +1,7 @@
 /**
  * Identifier is the base for typed entity identities. It wraps a primitive
  * string value and compares by that value, so two identifiers of the same
- * concrete type holding the same value are equal. Subclasses (e.g. `DessertId`)
+ * concrete type holding the same value are equal. Subclasses (e.g. `ProductId`)
  * give each aggregate its own nominal id type that cannot be mixed up with
  * another aggregate's id.
  */

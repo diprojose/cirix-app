@@ -1,11 +1,11 @@
 import { DomainError } from "@/shared/domain/domain-error";
 
-/** Raised when a dessert is requested by an id that has no match. */
-export class DessertNotFoundError extends DomainError {
-  readonly code = "catalog/dessert-not-found";
+/** Raised when a product is requested by an id that has no match. */
+export class ProductNotFoundError extends DomainError {
+  readonly code = "catalog/product-not-found";
 
   constructor(id: string) {
-    super(`Dessert with id "${id}" was not found.`);
+    super(`Product with id "${id}" was not found.`);
   }
 }
 
@@ -14,7 +14,12 @@ export class InvalidPriceError extends DomainError {
   readonly code = "catalog/invalid-price";
 }
 
-/** Raised when a dessert is built with invalid attributes (e.g. an empty name). */
-export class InvalidDessertError extends DomainError {
-  readonly code = "catalog/invalid-dessert";
+/** Raised when a product is built with invalid attributes (e.g. an empty name). */
+export class InvalidProductError extends DomainError {
+  readonly code = "catalog/invalid-product";
+}
+
+/** Raised when a product is assigned a department outside the known set. */
+export class InvalidDepartmentError extends DomainError {
+  readonly code = "catalog/invalid-department";
 }

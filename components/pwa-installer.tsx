@@ -63,7 +63,7 @@ export function PwaInstaller() {
           await installEvent.userChoice;
           setInstallEvent(null);
         }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-[#e0669a] px-5 py-2.5 text-sm font-medium text-white shadow-lg"
+        className="fixed bottom-[6.5rem] left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#e0669a] px-5 py-2.5 text-sm font-medium text-white shadow-lg md:bottom-6"
       >
         Instalar app
       </button>
@@ -72,7 +72,7 @@ export function PwaInstaller() {
 
   if (isIOS) {
     return (
-      <p className="fixed bottom-4 left-1/2 w-[min(90vw,22rem)] -translate-x-1/2 rounded-xl bg-neutral-900/90 px-4 py-2.5 text-center text-xs text-white shadow-lg">
+      <p className="fixed bottom-[6.5rem] left-1/2 z-50 w-[min(90vw,22rem)] -translate-x-1/2 rounded-xl bg-neutral-900/90 px-4 py-2.5 text-center text-xs text-white shadow-lg md:bottom-6">
         Para instalar: toca Compartir y luego «Agregar a la pantalla de inicio».
       </p>
     );
