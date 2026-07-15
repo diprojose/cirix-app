@@ -2,22 +2,18 @@
 
 import { useMemo, useState } from "react";
 import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
-import type { DepartmentName } from "@/modules/catalog/domain/value-objects/department";
-import {
-  DEPARTMENT_ORDER,
-  departmentLabel,
-  type DepartmentFilter,
-} from "./departments";
+import { DEPARTMENT_ORDER, type DepartmentFilter } from "./departments";
 import { DepartmentChips } from "./department-chips";
 import { ProductCard } from "./product-card";
 import { FeaturedCard } from "./featured-card";
 
 /**
  * CatalogBrowser is the client wrapper that owns the department filter and
- * renders the shared, responsive catalog: a "Destacados" row plus the product
- * grid. It is the single source of the filter state for both horizons — the
- * mobile app column and the wide desktop grid share this one instance, so
- * chip taps filter instantly without a server round-trip.
+ * renders the shared, responsive catalog in the reference's two-section shape:
+ * a "Destacados" (Top Product) row plus a "Más pedidos" (Most Ordered) grid.
+ * It is the single source of the filter state for both horizons — the mobile
+ * app column and the wide desktop grid share this one instance, so chip taps
+ * filter both instantly without a server round-trip.
  */
 export function CatalogBrowser({
   products,
@@ -36,6 +32,8 @@ export function CatalogBrowser({
 
   const visibleFeatured =
     selected === "all" ? featured : featured.filter((p) => p.department === selected);
+  const visibleProducts =
+    selected === "all" ? products : products.filter((p) => p.department === selected);
 
   return (
     <div className="mx-auto w-full max-w-[26rem] px-5 md:max-w-6xl md:px-8">
@@ -56,47 +54,23 @@ export function CatalogBrowser({
         </section>
       )}
 
-      {selected === "all" ? (
-        departments.map((department) => (
-          <DepartmentSection
-            key={department}
-            department={department}
-            products={products.filter((p) => p.department === department)}
-          />
-        ))
-      ) : (
-        <section className="mt-4">
-          <SectionHeader title={departmentLabel(selected)} />
-          <ProductGrid products={products.filter((p) => p.department === selected)} />
-        </section>
-      )}
+      <section className="mt-4" aria-label="Más pedidos">
+        <SectionHeader title="Más pedidos" />
+        <ProductGrid products={visibleProducts} />
+      </section>
     </div>
-  );
-}
-
-/** One department block: its header plus the grid of its products. */
-function DepartmentSection({
-  department,
-  products,
-}: {
-  department: DepartmentName;
-  products: ProductDto[];
-}) {
-  if (products.length === 0) return null;
-  return (
-    <section className="mt-4">
-      <SectionHeader title={departmentLabel(department)} />
-      <ProductGrid products={products} />
-    </section>
   );
 }
 
 /** Responsive product grid: two columns on mobile widening on larger screens. */
 function ProductGrid({ products }: { products: ProductDto[] }) {
+  if (products.length === 0) {
+    return <p className="py-8 text-center text-sm text-text-muted">No hay productos por ahora.</p>;
+  }
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product, index) => (
+        <ProductCard key={product.id} product={product} index={index} />
       ))}
     </div>
   );
@@ -107,7 +81,7 @@ function SectionHeader({ title }: { title: string }) {
   return (
     <div className="mb-3 flex items-baseline justify-between">
       <h2 className="text-lg font-semibold tracking-tight text-text">{title}</h2>
-      <span className="text-sm font-medium text-accent">Ver todo</span>
+      <span className="text-sm font-medium text-cta">Ver todo</span>
     </div>
   );
 }

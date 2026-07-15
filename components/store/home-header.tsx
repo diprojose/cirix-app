@@ -23,7 +23,7 @@ export function HomeHeader({ viewer }: { viewer: ViewerDto }) {
         <div className="flex flex-col leading-tight">
           {viewer.authenticated ? (
             <>
-              <span className="text-xs text-text-muted">Hola de nuevo</span>
+              <span className="text-xs text-text-muted">Buenos días</span>
               <span className="text-sm font-semibold capitalize text-text">{displayName}</span>
             </>
           ) : (

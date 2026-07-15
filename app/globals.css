@@ -14,6 +14,10 @@
   --color-brand-900: oklch(0.37 0.102 357);
   --color-brand-950: oklch(0.28 0.072 358);
 
+  /* ---- Violet tints (tonal product-card surfaces, pair with --color-cta) ---- */
+  --color-violet-50: oklch(0.972 0.014 288);
+  --color-violet-100: oklch(0.942 0.03 288);
+
   /* ---- Tinted neutrals (sugar) ---- */
   --color-sugar-0: oklch(0.995 0.003 350); /* surface / cards */
   --color-sugar-50: oklch(0.982 0.006 350); /* page background */
@@ -43,6 +47,9 @@
   --color-on-accent: var(--color-sugar-0); /* text over accent-fill */
   --color-danger: oklch(0.585 0.21 25); /* swipe-to-delete only */
   --color-on-danger: var(--color-sugar-0);
+  --color-cta: oklch(0.64 0.17 288); /* violet CTA — product primary action + qty badge */
+  --color-cta-strong: oklch(0.55 0.19 289); /* CTA gradient end / press */
+  --color-on-cta: oklch(0.99 0.005 285); /* text/icon over the violet CTA */
 
   /* ---- Radii ---- */
   --radius-sm: 0.75rem; /* 12 — inner info chips, price pill */
@@ -56,6 +63,7 @@
   --shadow-card: 0 10px 30px -12px oklch(0.6 0.14 348 / 0.22);
   --shadow-float: 0 14px 34px -10px oklch(0.5 0.13 340 / 0.26);
   --shadow-accent: 0 12px 26px -8px oklch(0.53 0.162 354 / 0.45);
+  --shadow-cta: 0 12px 26px -8px oklch(0.55 0.19 289 / 0.45); /* violet CTA glow */
 
   /* ---- Motion ---- */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);

@@ -6,7 +6,6 @@ import {
 import { TopNav } from "@/components/store/top-nav";
 import { HomeHeader } from "@/components/store/home-header";
 import { SearchBar } from "@/components/store/search-bar";
-import { PremiumBanner } from "@/components/store/premium-banner";
 import { CatalogBrowser } from "@/components/store/catalog-browser";
 import { BottomNav } from "@/components/store/bottom-nav";
 import { SiteFooter } from "@/components/store/site-footer";
@@ -49,13 +48,8 @@ export default async function Home() {
         <SearchBar className="mt-4" />
       </div>
 
-      {/* Tier-aware subscription entry, shared by both horizons. */}
-      <div className="mx-auto mt-4 w-full max-w-[26rem] px-5 md:mt-6 md:max-w-6xl md:px-8">
-        <PremiumBanner viewer={viewer} />
-      </div>
-
       {/* Shared catalog: one client-side filter drives both layouts. */}
-      <main className="mt-2 flex-1 pb-28 md:pb-12">
+      <main className="mt-4 flex-1 pb-28 md:pb-12">
         <CatalogBrowser products={products} featured={featured} />
       </main>
 

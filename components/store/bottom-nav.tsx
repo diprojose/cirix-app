@@ -43,7 +43,7 @@ function NavItem({
       <span
         aria-current="page"
         aria-label={label}
-        className="grid h-12 w-12 place-items-center rounded-pill bg-accent-fill text-on-accent shadow-accent"
+        className="grid h-12 w-12 place-items-center rounded-pill bg-cta text-on-cta shadow-cta"
       >
         {icon}
       </span>
