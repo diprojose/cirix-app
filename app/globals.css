@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ---- Brand ramp (pink) ---- */
+  --color-brand-50: oklch(0.971 0.013 350);
+  --color-brand-100: oklch(0.94 0.03 350);
+  --color-brand-200: oklch(0.898 0.055 350);
+  --color-brand-300: oklch(0.835 0.088 350);
+  --color-brand-400: oklch(0.755 0.125 350);
+  --color-brand-500: oklch(0.68 0.155 350); /* #e0669a — brand base */
+  --color-brand-600: oklch(0.61 0.17 352); /* ~ #d1508a (current hover) */
+  --color-brand-700: oklch(0.53 0.162 354);
+  --color-brand-800: oklch(0.445 0.132 356);
+  --color-brand-900: oklch(0.37 0.102 357);
+  --color-brand-950: oklch(0.28 0.072 358);
+
+  /* ---- Tinted neutrals (sugar) ---- */
+  --color-sugar-0: oklch(0.995 0.003 350); /* surface / cards */
+  --color-sugar-50: oklch(0.982 0.006 350); /* page background */
+  --color-sugar-100: oklch(0.962 0.007 348);
+  --color-sugar-200: oklch(0.922 0.008 346); /* hairline borders */
+  --color-sugar-300: oklch(0.862 0.009 344);
+  --color-sugar-400: oklch(0.72 0.01 340); /* inactive icons / placeholder */
+  --color-sugar-500: oklch(0.605 0.012 338); /* muted text / subtitle */
+  --color-sugar-600: oklch(0.5 0.013 336);
+  --color-sugar-700: oklch(0.4 0.014 334); /* body */
+  --color-sugar-800: oklch(0.305 0.014 332);
+  --color-sugar-900: oklch(0.235 0.015 330); /* titles */
+  --color-sugar-950: oklch(0.18 0.013 328); /* near-black: filter, active chip, "+" */
+
+  /* ---- Semantic layer (SWAPPABLE — retheme by editing here) ---- */
+  --color-bg: var(--color-sugar-50);
+  --color-surface: var(--color-sugar-0);
+  --color-border: var(--color-sugar-200);
+  --color-text: var(--color-sugar-900);
+  --color-text-muted: var(--color-sugar-500);
+  --color-ink: var(--color-sugar-950); /* near-black controls */
+  --color-accent: var(--color-brand-500); /* brand / vibrant surfaces */
+  --color-accent-strong: var(--color-brand-600); /* hover / press */
+  --color-accent-fill: var(--color-brand-700); /* CTA fill with white text (AA) */
+  --color-accent-soft: var(--color-brand-100); /* decorative surfaces */
+  --color-accent-subtle: var(--color-brand-50); /* faint fills */
+  --color-on-accent: var(--color-sugar-0); /* text over accent-fill */
+  --color-danger: oklch(0.585 0.21 25); /* swipe-to-delete only */
+  --color-on-danger: var(--color-sugar-0);
+
+  /* ---- Radii ---- */
+  --radius-sm: 0.75rem; /* 12 — inner info chips, price pill */
+  --radius-md: 1rem; /* 16 — thumbnails, small cards */
+  --radius-lg: 1.5rem; /* 24 — product cards, line items */
+  --radius-xl: 2rem; /* 32 — featured card, summary, hero */
+  --radius-pill: 62.4375rem; /* full pill: buttons, chips, nav, stepper */
+
+  /* ---- Shadows (diffuse, pink-tinted) ---- */
+  --shadow-xs: 0 1px 2px oklch(0.68 0.155 350 / 0.08);
+  --shadow-card: 0 10px 30px -12px oklch(0.6 0.14 348 / 0.22);
+  --shadow-float: 0 14px 34px -10px oklch(0.5 0.13 340 / 0.26);
+  --shadow-accent: 0 12px 26px -8px oklch(0.53 0.162 354 / 0.45);
+
+  /* ---- Motion ---- */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Typography ---- */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Light by decision (not by default): the store commits to a bright, airy
+   scene so desserts look appetizing. No dark ramp for now. */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
 }
