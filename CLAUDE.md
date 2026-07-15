@@ -49,6 +49,59 @@ Dos grandes áreas funcionales:
 
 ---
 
+## Arquitectura: hexagonal + DDD
+
+Todo el código de negocio sigue **arquitectura hexagonal (puertos y adaptadores) con DDD**. La capa `app/` de Next es solo la capa de entrega (adaptadores primarios); el dominio **no conoce el framework**. `modules/catalog/` es la implementación de referencia — copiar su estructura para cada contexto nuevo.
+
+### Módulos (bounded contexts)
+
+Cada área funcional es un **módulo** en `modules/<context>/` con tres capas fijas, más un **shared kernel** transversal en `shared/`. Todo se importa con el alias `@/*` (raíz).
+
+```
+modules/<context>/
+  domain/          # entidades, value objects, puertos (contratos), errores — TS puro
+  application/     # use cases, DTOs — orquesta el dominio
+  infrastructure/  # adapters concretos (repos), mappers, composition root (di/)
+shared/
+  domain/          # Result, DomainError, Entity, AggregateRoot, ValueObject, Identifier
+  application/      # UseCase
+```
+
+> **`modules/catalog/` es la plantilla.** Los contextos pendientes — `ordering` (pedidos/checkout), `subscription`, `recipes` — se crean copiándola. `recipes` debe proteger el acceso por suscripción **en el servidor** (ver "Suscripción a recetas").
+
+### Regla de dependencias (obligatoria)
+
+Las dependencias apuntan **solo hacia adentro**: `app/ → infrastructure/ → application/ → domain/`.
+
+- `domain/` **no** importa de `application/`, `infrastructure/`, `app/`, `react` ni `next`. Es TS puro.
+- `application/` importa **solo** su `domain/` + el shared kernel. Depende de **interfaces** de repositorio, nunca de implementaciones.
+- `infrastructure/` implementa los puertos declarados en `domain/`. Sustituir un adapter (in-memory → base de datos) **no debe tocar** dominio ni aplicación.
+
+### Patrón repositorio + inversión de dependencias
+
+- El **contrato** (puerto) es una `interface` en `domain/repositories/`.
+- La **implementación** (adapter) va en `infrastructure/persistence/`. El adapter de referencia es **in-memory**.
+- **DI = composition root manual** en `infrastructure/di/<context>-container.ts`: único lugar que instancia adapters concretos y los **inyecta por constructor** a los use cases, vía factories `make…()`. Sin decoradores ni `reflect-metadata` (compatible con Turbopack y RSC).
+
+### Abstracciones del kernel
+
+- **`Result<T, E>`** (`shared/domain/result.ts`): unión discriminada de objetos planos `{ ok: true, value } | { ok: false, error }`. Los use cases **devuelven `Result`**, no lanzan excepciones, para fallos de negocio esperados. Helpers `ok` / `err` / `isOk` / `isErr`.
+- **`UseCase<TInput, TOutput>`** (`shared/application/use-case.ts`): `execute(input): Promise<Result<TOutput, DomainError>>`.
+- **`DomainError`** (`shared/domain/domain-error.ts`): base de errores de negocio, con `code` estable para mapear a HTTP/UI en el borde.
+- Bloques tácticos DDD: `Entity`, `AggregateRoot`, `ValueObject`, `Identifier`.
+
+### Borde RSC (serialización)
+
+`Result`, DTOs y errores que **crucen el borde server→client** deben ser **objetos planos serializables**. Las instancias de clase (entidades, value objects, `DomainError`) se quedan del lado servidor: los use cases devuelven **DTOs** (`application/dtos/`) y los errores se mapean a `{ code, message }` en el adaptador primario antes de cruzar al cliente.
+
+### Verificación de arquitectura
+
+- `npx tsc --noEmit` y `npm run build` sin errores.
+- Ningún archivo bajo `domain/` o `application/` importa `next`, `react` ni `infrastructure/`.
+- Reemplazar el adapter en `di/<context>-container.ts` no requiere tocar `domain/` ni `application/`.
+
+---
+
 ## Regla de oro: la instalabilidad no se rompe
 
 Cualquier cambio que toque el manifest, el service worker, los iconos o los meta tags **debe mantener la PWA instalable en Android y iOS y navegable en web**. Si un cambio afecta a estos artefactos, verificar con la checklist de abajo antes de dar la tarea por terminada.
@@ -176,6 +229,15 @@ app/
   icon.png              # icono base 512 (favicon PNG)
   favicon.ico           # favicon clásico
   offline/page.tsx      # fallback offline servido por el SW
+  menu/page.tsx         # adapter primario: Server Component → use case del catálogo
+shared/                 # shared kernel (agnóstico de dominio)
+  domain/               # Result, DomainError, Entity, AggregateRoot, ValueObject, Identifier
+  application/          # UseCase
+modules/                # bounded contexts (hexagonal + DDD)
+  catalog/              # módulo de referencia (postres)
+    domain/             # Dessert, Money, DessertId, DessertRepository (puerto), errores
+    application/        # use cases + DessertDto
+    infrastructure/     # InMemoryDessertRepository, seed, di/catalog-container.ts
 components/
   pwa-installer.tsx     # 'use client': registra el SW + botón instalar (Android) + hint iOS
 public/
