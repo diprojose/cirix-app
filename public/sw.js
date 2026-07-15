@@ -9,12 +9,22 @@
  *
  * Bump CACHE_VERSION on any change so old caches are purged on activation.
  */
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `mixmag-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 
 // App-shell resources cached up front so the app opens without a network.
 const PRECACHE_URLS = ["/", OFFLINE_URL, "/manifest.webmanifest"];
+
+// Private/subscriber routes whose responses must never be cached (authenticated
+// content and recipes). These are served network-only.
+const PRIVATE_PATH_PREFIXES = ["/premium", "/recetas", "/pedidos"];
+
+function isPrivatePath(pathname) {
+  return PRIVATE_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -38,14 +48,35 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
   // Only handle same-origin GET requests; let everything else hit the network.
-  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
+  if (request.method !== "GET" || url.origin !== self.location.origin) {
     return;
   }
 
-  // Navigations: network-first, fall back to cache, then the offline page.
+  // Never cache API traffic (auth session, and any future authenticated APIs).
+  if (url.pathname.startsWith("/api/")) {
+    return;
+  }
+
+  // Navigations.
   if (request.mode === "navigate") {
+    // Private/subscriber pages: network-only, never cached. Offline → offline page.
+    if (isPrivatePath(url.pathname)) {
+      event.respondWith(
+        (async () => {
+          try {
+            return await fetch(request);
+          } catch {
+            return (await caches.match(OFFLINE_URL)) || Response.error();
+          }
+        })()
+      );
+      return;
+    }
+
+    // Public pages: network-first, cache for offline, fall back to cache/offline.
     event.respondWith(
       (async () => {
         try {

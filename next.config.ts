@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         ],
       },
+      {
+        // Authentication endpoints must never be cached by any layer.
+        source: "/api/auth/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
     ];
   },
 };
