@@ -1,6 +1,6 @@
 # mixmag
 
-**mixmag** es una **tienda virtual de postres hechos por pedido**, construida como aplicación web progresiva (**PWA**) con Next.js. Incluye además una **sección de suscripción** donde las personas suscritas acceden a las recetas de los pasteleros (video tutoriales, imágenes y recetas paso a paso).
+**mixmag** es una **tienda virtual por encargo** —postres artesanales y también artículos de supermercado / alimenticios— construida como aplicación web progresiva (**PWA**) con Next.js. Incluye además una **sección de suscripción** donde las personas suscritas acceden a las recetas de los pasteleros (video tutoriales, imágenes y recetas paso a paso).
 
 El desarrollo está **enfocado en la experiencia mobile (mobile-first)**: el móvil es el escenario principal y se diseña y prueba primero para él. El escritorio es secundario — debe funcionar y verse correctamente, pero no manda las decisiones de diseño.
 
@@ -18,12 +18,14 @@ El objetivo central del proyecto es que la aplicación:
 
 Dos grandes áreas funcionales:
 
-### 1. Tienda de postres por pedido
+### 1. Tienda por encargo (postres + supermercado)
 
-- **Catálogo** de postres (con imágenes de alta calidad — clave en el rubro).
-- **Pedido por encargo:** los postres se hacen a pedido, no hay stock inmediato. El flujo contempla fecha de entrega/retiro, personalización y confirmación del pastelero.
+- **Catálogo de productos** organizado por **departamento** (`Postres`, `Supermercado`; ampliable), con imágenes de alta calidad — clave en el rubro.
+- **Todo por encargo:** los productos se hacen/preparan a pedido, **no hay stock ni inventario**. El flujo contempla fecha de entrega/retiro, personalización y confirmación del pastelero.
 - **Carrito y checkout** pensados para móvil (formularios cortos, pocos pasos).
 - Estados del pedido claros para el cliente (recibido, en preparación, listo, entregado).
+
+> El agregado del catálogo es `Product` (raíz), clasificado por el value object `Department` y con `imageUrl` opcional. La home (`app/page.tsx`) es su adaptador primario y se organiza por departamento.
 
 ### 2. Suscripción a recetas
 
@@ -229,16 +231,18 @@ app/
   icon.png              # icono base 512 (favicon PNG)
   favicon.ico           # favicon clásico
   offline/page.tsx      # fallback offline servido por el SW
+  page.tsx              # adapter primario: home pública (catálogo por departamento, mobile+web)
   menu/page.tsx         # adapter primario: Server Component → use case del catálogo
 shared/                 # shared kernel (agnóstico de dominio)
   domain/               # Result, DomainError, Entity, AggregateRoot, ValueObject, Identifier
   application/          # UseCase
 modules/                # bounded contexts (hexagonal + DDD)
-  catalog/              # módulo de referencia (postres)
-    domain/             # Dessert, Money, DessertId, DessertRepository (puerto), errores
-    application/        # use cases + DessertDto
-    infrastructure/     # InMemoryDessertRepository, seed, di/catalog-container.ts
+  catalog/              # módulo de referencia (productos: postres + supermercado)
+    domain/             # Product, Money, ProductId, Department, ProductRepository (puerto), errores
+    application/        # use cases (list available/featured, get by id) + ProductDto
+    infrastructure/     # InMemoryProductRepository, seed, di/catalog-container.ts
 components/
+  store/                # componentes presentacionales de tienda (cards, chips, navs, thumb)
   pwa-installer.tsx     # 'use client': registra el SW + botón instalar (Android) + hint iOS
 public/
   sw.js                 # service worker (offline + push-ready)

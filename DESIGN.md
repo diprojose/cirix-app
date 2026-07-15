@@ -138,7 +138,7 @@ Convención transversal: touch target ≥ **44px**, foco visible (`ring` 2px `ac
 - Fondo `bg` con degradado sutil rosa al tope opcional (`accent-subtle → bg`).
 - **Sin barra de estado falsa** (el "9:41 / señal / batería" es chrome del mockup).
 - Safe areas: `env(safe-area-inset-top)` en header, `env(safe-area-inset-bottom)` en nav/CTA.
-- Desktop (≥ md): columna centrada; filas de cards pueden expandir a grid 2–3 col. Mobile manda.
+- **Dos horizontes (una sola URL responsive):** en **móvil/PWA** se usa este shell de app (header, search, chips, cards, `BottomNav` flotante, safe-areas, ajustes `display-mode: standalone`). En **escritorio/web (≥ md)** se conmuta al **paquete web completo**: `TopNav` superior (logo + buscador + enlaces + cuenta), grilla multi-columna ancha (2–4 col) y `SiteFooter`; el `BottomNav` se oculta. Los primitivos (cards, chips, thumb) se comparten; cambia la composición y el cromo por breakpoint. Mobile manda las decisiones de diseño.
 
 ### 4.2 `HomeHeader`
 Avatar (44px círculo, `object-cover`) + texto (`caption` muted "Buenos días" + `title` nombre) a la izquierda; **botón campana** a la derecha (44px círculo, `surface`, `shadow-xs`, icono `ink`, punto `accent` opcional de notificación).
@@ -153,7 +153,7 @@ Píldora `radius-pill`, `surface`, altura 48px, `shadow-xs`. Lupa `sugar-400` + 
 Fila scroll horizontal, `gap-2`, sin scrollbar. Chips `radius-pill`, ~40px, `px-4`.
 - **Activo:** `bg-ink` + texto blanco (+ thumbnail 28px circular opcional).
 - **Inactivo:** `surface` + texto `sugar-700` + borde `border`.
-- Contenido estático (repostería): `Todos · Tortas · Cheesecakes · Galletas · Cupcakes`. Filtro solo visual hasta que exista `category` en el dominio.
+- Los chips reflejan el **departamento** del dominio: `Todos · Postres · Supermercado` (ampliable). **Filtran de verdad**, en cliente: el catálogo se carga una vez y se filtra al instante. Un eje fino por `category` dentro de un departamento queda como extensión futura.
 
 ### 4.6 `SectionHeader`
 Título `h-section` (`text`) + link "Ver todo" a la derecha (`label`, color `accent`, sin subrayado, hover `accent-strong`).
@@ -170,7 +170,7 @@ Ancho ~160px (scroll) o grid 2-col. `radius-lg`. **Variación tonal** (en vez de
 ### 4.9 `BottomNav` (flotante)
 `fixed` inferior, centrada, `max-w`, píldora `radius-pill`, `surface`, `shadow-float`, respeta `safe-area-inset-bottom`, ~64px. 4 ítems: **Inicio · Favoritos · Carrito · Perfil** (iconos 24px).
 - **Activo:** círculo 48px relleno `accent-fill` + icono blanco + leve elevación. **Inactivo:** icono `sugar-400`.
-- Rutas al implementar: `/ · /favoritos · /cart · /account`. En Detalle/Carrito se oculta (el CTA ocupa el borde inferior).
+- Rutas al implementar: `/ · /favoritos · /cart · /account`. En Detalle/Carrito se oculta (el CTA ocupa el borde inferior). **Solo móvil:** de `md` en adelante se oculta y el rol de navegación lo toman el `TopNav` web + `SiteFooter` (ver §4.1). Hoy solo `Inicio` está enlazado; el resto es presentacional hasta que existan sus rutas.
 
 ### 4.10 `PrimaryButton` (CTA)
 Píldora `radius-pill`, ancho completo, altura **56px**, texto `on-accent` (`label` 16/600). **Relleno accesible:** degradado `accent-strong → brand-800` (o plano `accent-fill`), `shadow-accent`.
