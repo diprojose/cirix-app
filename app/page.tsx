@@ -10,6 +10,7 @@ import { PromoHero } from "@/components/store/promo-hero";
 import { CatalogBrowser } from "@/components/store/catalog-browser";
 import { BottomNav } from "@/components/store/bottom-nav";
 import { SiteFooter } from "@/components/store/site-footer";
+import { COLUMN, CONTAINER } from "@/components/store/layout";
 
 /**
  * Home is the public storefront and the catalog's primary (driving) adapter. It
@@ -28,7 +29,7 @@ export default async function Home() {
 
   if (!productsResult.ok) {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-[26rem] flex-col items-center justify-center gap-2 px-5 text-center">
+      <main className={`${COLUMN} flex min-h-dvh flex-col items-center justify-center gap-2 text-center`}>
         <p className="text-base font-semibold text-text">No se pudo cargar la tienda.</p>
         <p className="text-sm text-text-muted">Vuelve a intentarlo en un momento.</p>
       </main>
@@ -52,7 +53,7 @@ export default async function Home() {
       <TopNav viewer={viewer} />
 
       {/* Mobile / PWA horizon: app header + search (hidden from md up). */}
-      <div className="mx-auto w-full max-w-[26rem] px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden">
+      <div className={`${COLUMN} pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden`}>
         <HomeHeader viewer={viewer} />
         <SearchBar className="mt-4" />
       </div>
@@ -60,7 +61,7 @@ export default async function Home() {
       <main className="flex-1 pb-28 md:pb-12">
         {/* Top focal anchor, shared by both horizons. */}
         {heroProduct && (
-          <div className="mx-auto mt-5 w-full max-w-[26rem] px-5 md:mt-8 md:max-w-6xl md:px-8">
+          <div className={`${CONTAINER} mt-5 md:mt-8`}>
             <PromoHero product={heroProduct} />
           </div>
         )}

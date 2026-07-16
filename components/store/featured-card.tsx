@@ -31,7 +31,7 @@ export function FeaturedCard({
 
   return (
     <article
-      className={`relative flex h-56 w-[19.5rem] shrink-0 snap-start flex-col justify-between rounded-[2rem] p-6 shadow-card transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:hover:-translate-y-1 hover:shadow-float ${surface}`}
+      className={`relative flex h-56 w-[86%] max-w-[20rem] shrink-0 snap-start flex-col justify-between rounded-[2rem] p-6 shadow-card transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:hover:-translate-y-1 hover:shadow-float ${surface}`}
     >
       {/* Decorative blob, clipped to the card so only the image bleeds out. */}
       <div

@@ -134,7 +134,7 @@ Prosa (descripciones) capada a 65–75ch. Precios/montos siempre `tabular-nums`,
 Convención transversal: touch target ≥ **44px**, foco visible (`ring` 2px `accent` con offset), estados `default/hover/active/focus/disabled` en todo lo interactivo. Ubicación sugerida: `components/store/*` (presentacionales; `"use client"` solo donde hay interacción).
 
 ### 4.1 `AppScreen` (shell)
-- Columna mobile centrada: `max-w-[26rem]` (≈420px), `mx-auto`, `px-5` (20px).
+- Columna mobile centrada: `max-w-[26rem]` (≈420px), `mx-auto`, `px-3` (12px). Gutter estrecho para que el contenido respire ancho; los carruseles sangran hasta el borde (`-mx-3 px-3`). Tokens centralizados en `components/store/layout.ts` (`COLUMN` / `CONTAINER` / `BLEED`) para no derivar entre archivos.
 - Fondo `bg` con degradado sutil rosa al tope opcional (`accent-subtle → bg`).
 - **Sin barra de estado falsa** (el "9:41 / señal / batería" es chrome del mockup).
 - Safe areas: `env(safe-area-inset-top)` en header, `env(safe-area-inset-bottom)` en nav/CTA.
@@ -159,13 +159,13 @@ Fila scroll horizontal, `gap-2`, sin scrollbar. Chips `radius-pill`, ~40px, `px-
 Título `h-section` (`text`) + link "Ver todo" a la derecha (`label`, color `accent`, sin subrayado, hover `accent-strong`).
 
 ### 4.7 `FeaturedCard` (destacada)
-`radius-xl` (32), fondo `accent-soft` con **blob decorativo** (SVG/gradiente `brand-200` baja opacidad, `absolute`, `overflow-hidden`).
+`radius-xl` (32), fondo `accent-soft` con **blob decorativo** (SVG/gradiente `brand-200` baja opacidad, `absolute`, `overflow-hidden`). En Home vive en un **carrusel** (`Shelf` de 1 fila): ancho responsive `w-[86%] max-w-[20rem]` para que asome la siguiente tarjeta (peek) con snap obligatorio.
 - Izquierda: chip-tag opcional ("Nuevo"), **título** (`display`, 2 líneas, `text`), **precio** (`title`, `text`).
 - Derecha: **imagen** placeholder (§4.18, `object-contain`, ~140px, desbordando el borde inferior).
 - Inferior: **"Agregar"** (píldora `surface`, texto `ink`, `shadow-card`) + **favorito** (44px círculo `surface`, corazón; toggle relleno `accent`).
 
 ### 4.8 `ProductCard` (compacta)
-Ancho ~160px (scroll) o grid 2-col. `radius-lg`. **Variación tonal** (en vez del rosa+lavanda de la referencia): alternar `accent-soft` (brand-100) y `sugar-100`. Imagen placeholder arriba (desbordando), **nombre** (`title`), **precio pill** abajo-izq (`surface`, `label`, tabular-nums), **botón "+"** abajo-der (36–40px círculo `bg-accent-fill`, "+" blanco, press `scale-95`).
+En Home vive en un **carrusel de 2 filas** (`Shelf rows={2}`): columnas que se deslizan de lado en móvil (peek + snap), reflowing a la grilla ancha (`md:grid-cols-3 lg:grid-cols-4`) en escritorio. En `/menu` se usa en grilla directa. `radius-lg`. **Variación tonal** (en vez del rosa+lavanda de la referencia): alternar `accent-soft` (brand-100) y `sugar-100`. Imagen placeholder arriba (desbordando), **nombre** (`title`), **precio pill** abajo-izq (`surface`, `label`, tabular-nums), **botón "+"** abajo-der (36–40px círculo `bg-accent-fill`, "+" blanco, press `scale-95`).
 
 ### 4.9 `BottomNav` (flotante)
 `fixed` inferior, centrada, `max-w`, píldora `radius-pill`, `surface`, `shadow-float`, respeta `safe-area-inset-bottom`, ~64px. 4 ítems: **Inicio · Favoritos · Carrito · Perfil** (iconos 24px).

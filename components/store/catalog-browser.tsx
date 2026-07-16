@@ -7,10 +7,9 @@ import { DEPARTMENT_ORDER, type DepartmentFilter } from "./departments";
 import { DepartmentChips } from "./department-chips";
 import { ProductCard } from "./product-card";
 import { FeaturedCard } from "./featured-card";
+import { Shelf } from "./shelf";
+import { CONTAINER } from "./layout";
 import { ChevronRightIcon } from "./icons";
-
-/** Shared responsive gutter: the mobile app column, widening to the desktop grid. */
-const CONTAINER = "mx-auto w-full max-w-[26rem] px-5 md:max-w-6xl md:px-8";
 
 /**
  * CatalogBrowser is the client wrapper that owns the department filter and
@@ -60,11 +59,11 @@ export function CatalogBrowser({
             <SectionHeader title="Destacados" subtitle="Selección destacada" href="/menu" />
             {/* Top padding leaves room for the hero image that bleeds above each
                 card; the scroll container's overflow-y would otherwise clip it. */}
-            <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pt-8 pb-3 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden">
+            <Shelf padY="pt-8 pb-3">
               {visibleFeatured.map((product, index) => (
                 <FeaturedCard key={product.id} product={product} index={index} />
               ))}
-            </div>
+            </Shelf>
           </div>
         </section>
       )}
@@ -77,7 +76,11 @@ export function CatalogBrowser({
   );
 }
 
-/** Responsive product grid: two columns on mobile widening on larger screens. */
+/**
+ * Product shelf: a two-row horizontal carousel on mobile (columns scroll
+ * sideways, next column peeking), reflowing into the wide desktop grid from md
+ * up. Each card carries `snap-start` so swipes settle on a column.
+ */
 function ProductGrid({ products }: { products: ProductDto[] }) {
   if (products.length === 0) {
     return (
@@ -91,11 +94,16 @@ function ProductGrid({ products }: { products: ProductDto[] }) {
     );
   }
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+    <Shelf rows={2} padY="py-1">
       {products.map((product, index) => (
-        <ProductCard key={product.id} product={product} index={index} />
+        <ProductCard
+          key={product.id}
+          product={product}
+          index={index}
+          className="snap-start"
+        />
       ))}
-    </div>
+    </Shelf>
   );
 }
 

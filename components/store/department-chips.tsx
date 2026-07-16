@@ -2,6 +2,7 @@
 
 import type { DepartmentName } from "@/modules/catalog/domain/value-objects/department";
 import { departmentLabel, type DepartmentFilter } from "./departments";
+import { BLEED } from "./layout";
 
 /**
  * Photo shown behind the *active* chip (with a dark overlay for contrast),
@@ -35,7 +36,7 @@ export function DepartmentChips({
   ];
 
   return (
-    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden">
+    <div className={`${BLEED} flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden`}>
       {options.map((option) => {
         const isActive = option.key === selected;
         return (

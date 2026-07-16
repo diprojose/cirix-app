@@ -18,14 +18,23 @@ const CARD_TINTS = ["bg-violet-100", "bg-brand-100"] as const;
  * card presence against the pale page, and on pointer devices it lifts on hover.
  * The whole card links to the product detail page via a stretched link on the
  * title, while the "+" quick-add button stays above it (`z-10`) as an independent
- * control that adds one unit straight to the cart.
+ * control that adds one unit straight to the cart. `className` lets a carousel
+ * context add snap alignment without the card knowing about the scroller.
  */
-export function ProductCard({ product, index = 0 }: { product: ProductDto; index?: number }) {
+export function ProductCard({
+  product,
+  index = 0,
+  className = "",
+}: {
+  product: ProductDto;
+  index?: number;
+  className?: string;
+}) {
   const tint = CARD_TINTS[index % CARD_TINTS.length];
 
   return (
     <article
-      className={`relative flex flex-col overflow-hidden rounded-[1.25rem] p-3 shadow-[0_8px_20px_-12px_oklch(0.6_0.14_348/0.3)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:hover:-translate-y-1 hover:shadow-card ${tint}`}
+      className={`relative flex flex-col overflow-hidden rounded-[1.25rem] p-3 shadow-[0_8px_20px_-12px_oklch(0.6_0.14_348/0.3)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:hover:-translate-y-1 hover:shadow-card ${tint} ${className}`}
     >
       <ProductThumb
         id={product.id}
