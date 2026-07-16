@@ -232,7 +232,6 @@ app/
   favicon.ico           # favicon clásico
   offline/page.tsx      # fallback offline servido por el SW
   page.tsx              # adapter primario: home pública (catálogo por departamento, mobile+web)
-  menu/page.tsx         # adapter primario: Server Component → use case del catálogo
 shared/                 # shared kernel (agnóstico de dominio)
   domain/               # Result, DomainError, Entity, AggregateRoot, ValueObject, Identifier
   application/          # UseCase

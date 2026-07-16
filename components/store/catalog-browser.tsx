@@ -41,7 +41,7 @@ export function CatalogBrowser({
     selected === "all" ? products : products.filter((p) => p.department === selected);
 
   return (
-    <div className="mt-6 md:mt-8">
+    <div id="catalogo" className="mt-6 scroll-mt-4 md:mt-8">
       <div className={CONTAINER}>
         <DepartmentChips
           departments={departments}
@@ -56,7 +56,7 @@ export function CatalogBrowser({
           aria-label="Destacados"
         >
           <div className={CONTAINER}>
-            <SectionHeader title="Destacados" subtitle="Selección destacada" href="/menu" />
+            <SectionHeader title="Destacados" subtitle="Selección destacada" />
             {/* Top padding leaves room for the hero image that bleeds above each
                 card; the scroll container's overflow-y would otherwise clip it. */}
             <Shelf padY="pt-8 pb-3">
@@ -69,7 +69,7 @@ export function CatalogBrowser({
       )}
 
       <section className={`mt-8 md:mt-10 ${CONTAINER}`} aria-label="Más pedidos">
-        <SectionHeader title="Más pedidos" href="/menu" />
+        <SectionHeader title="Más pedidos" />
         <ProductGrid products={visibleProducts} />
       </section>
     </div>
@@ -108,8 +108,11 @@ function ProductGrid({ products }: { products: ProductDto[] }) {
 }
 
 /**
- * Section title with an optional subtitle and a real "Ver todo" link (accent
- * colour with a chevron, not muted dead text) pointing at the full menu.
+ * Section title with an optional subtitle and an optional "Ver todo" link (accent
+ * colour with a chevron). The link only renders when an `href` is given: the home
+ * already shows the whole catalog (filtered by the department chips), so its
+ * sections carry no "Ver todo" — the affordance stays available for any future
+ * filtered/standalone listing that does need it.
  */
 function SectionHeader({
   title,
@@ -118,7 +121,7 @@ function SectionHeader({
 }: {
   title: string;
   subtitle?: string;
-  href: string;
+  href?: string;
 }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-3">
@@ -126,13 +129,15 @@ function SectionHeader({
         <h2 className="text-lg font-semibold tracking-tight text-text md:text-xl">{title}</h2>
         {subtitle && <p className="mt-0.5 text-sm text-text-muted">{subtitle}</p>}
       </div>
-      <Link
-        href={href}
-        className="inline-flex shrink-0 items-center gap-0.5 rounded-pill py-1 pl-2 text-sm font-semibold text-accent transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-      >
-        Ver todo
-        <ChevronRightIcon className="h-4 w-4" />
-      </Link>
+      {href && (
+        <Link
+          href={href}
+          className="inline-flex shrink-0 items-center gap-0.5 rounded-pill py-1 pl-2 text-sm font-semibold text-accent transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        >
+          Ver todo
+          <ChevronRightIcon className="h-4 w-4" />
+        </Link>
+      )}
     </div>
   );
 }

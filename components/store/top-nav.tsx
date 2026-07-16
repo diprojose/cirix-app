@@ -32,9 +32,6 @@ export function TopNav({ viewer }: { viewer: ViewerDto }) {
           <Link href="/" className="hover:text-accent">
             Inicio
           </Link>
-          <Link href="/menu" className="hover:text-accent">
-            Menú
-          </Link>
           <Link href="/premium" className="hover:text-accent">
             Premium
           </Link>

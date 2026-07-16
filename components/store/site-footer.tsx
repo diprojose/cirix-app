@@ -16,8 +16,8 @@ export function SiteFooter() {
           </p>
         </div>
         <nav className="grid grid-cols-2 gap-x-12 gap-y-2">
-          <Link href="/menu" className="hover:text-accent">
-            Menú
+          <Link href="/" className="hover:text-accent">
+            Tienda
           </Link>
           <Link href="/premium" className="hover:text-accent">
             Recetas premium

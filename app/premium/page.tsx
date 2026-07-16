@@ -89,10 +89,10 @@ export default async function PremiumPage({
 
       <footer className="mt-2 flex items-center justify-between text-sm">
         <Link
-          href="/menu"
+          href="/"
           className="font-medium underline underline-offset-4"
         >
-          Volver al menú
+          Volver a la tienda
         </Link>
         {viewer.authenticated && <SignOutButton />}
       </footer>

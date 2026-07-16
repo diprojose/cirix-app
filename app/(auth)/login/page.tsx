@@ -41,8 +41,8 @@ export default async function LoginPage({
 
       <p className="text-center text-xs text-zinc-500 dark:text-zinc-500">
         ¿Solo mirando?{" "}
-        <Link href="/menu" className="font-medium underline underline-offset-4">
-          Explora el menú
+        <Link href="/" className="font-medium underline underline-offset-4">
+          Explora la tienda
         </Link>{" "}
         sin iniciar sesión.
       </p>

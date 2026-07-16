@@ -8,7 +8,8 @@ import { ChevronRightIcon, ClockIcon } from "./icons";
  * brand band that opens the home with identity before the browsing catalog. It
  * spotlights the shop's star product photo (bleeding out of the frame over
  * layered decorative blobs) beside an honest made-to-order tag, a value-prop
- * headline and one solid call to action to the full menu. It is presentational
+ * headline and one solid call to action that scrolls down to the catalog. It is
+ * presentational
  * and shared by both horizons: a compact card in the mobile app column and a
  * wider two-column band on desktop, adapting purely by breakpoint. The airy pink
  * surface carries dark ink text (well past AA) while the accent-fill CTA keeps
@@ -55,10 +56,10 @@ export function PromoHero({ product }: { product: ProductDto }) {
         </p>
 
         <Link
-          href="/menu"
+          href="#catalogo"
           className="mt-5 inline-flex min-h-[44px] items-center gap-1.5 rounded-pill bg-accent-fill px-5 text-sm font-semibold text-on-accent shadow-accent transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-brand-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-brand-100 md:mt-6 md:text-base"
         >
-          Ver el menú
+          Ver productos
           <ChevronRightIcon className="h-4 w-4" />
         </Link>
       </div>
