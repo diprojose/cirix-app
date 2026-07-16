@@ -12,8 +12,9 @@ import { ProductThumb } from "@/components/store/product-thumb";
 import { ProductCard } from "@/components/store/product-card";
 import { BackButton } from "@/components/store/back-button";
 import { ShareButton } from "@/components/store/share-button";
-import { QuantityStepper } from "@/components/store/quantity-stepper";
-import { AddToCartButton } from "@/components/store/add-to-cart-button";
+import { ProductPurchaseProvider } from "@/components/cart/product-purchase-provider";
+import { PurchaseQuantityStepper } from "@/components/cart/purchase-quantity-stepper";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { ExpandableText } from "@/components/store/expandable-text";
 import { IngredientsRow } from "@/components/store/ingredients-row";
 import { departmentLabel } from "@/components/store/departments";
@@ -80,6 +81,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     .slice(0, MAX_RELATED);
 
   return (
+    <ProductPurchaseProvider product={product}>
     <div className="flex min-h-dvh flex-col bg-bg">
       {/* Desktop / web horizon: top navigation bar (hidden below md). */}
       <TopNav viewer={viewer} />
@@ -115,7 +117,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <h1 className="text-2xl font-bold leading-tight text-text">{product.name}</h1>
               <p className="mt-0.5 text-sm text-text-muted">{department}</p>
             </div>
-            <QuantityStepper className="mt-1 shrink-0" />
+            <PurchaseQuantityStepper className="mt-1 shrink-0" />
           </div>
 
           {/* Delivery / rating chips (example content — not modelled yet). */}
@@ -155,7 +157,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
           {/* Desktop inline CTA; mobile uses the fixed bottom bar below. */}
           <div className="mt-8 hidden md:block">
-            <AddToCartButton available={product.available} />
+            <AddToCartButton />
             {!product.available && (
               <p className="mt-2 text-sm font-medium text-danger">No disponible por ahora.</p>
             )}
@@ -181,9 +183,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
       {/* Mobile / PWA horizon: fixed "Agregar al carrito" CTA (fades into page). */}
       <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-bg via-bg to-transparent pt-6 md:hidden">
         <div className="mx-auto w-full max-w-[26rem] px-5 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-          <AddToCartButton available={product.available} />
+          <AddToCartButton />
         </div>
       </div>
     </div>
+    </ProductPurchaseProvider>
   );
 }

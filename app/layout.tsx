@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/components/cart/cart-provider";
 import { PwaInstaller } from "@/components/pwa-installer";
 
 // Poppins is the product typeface (geometric, rounded, friendly). Weights map
@@ -50,7 +51,7 @@ export default function RootLayout({
       className={`${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
+        <CartProvider>{children}</CartProvider>
         <PwaInstaller />
       </body>
     </html>

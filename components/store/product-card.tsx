@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
 import { formatPrice } from "@/lib/format/money";
+import { QuickAddButton } from "@/components/cart/quick-add-button";
 import { ProductThumb } from "./product-thumb";
-import { PlusIcon } from "./icons";
 
 /*
  * Alternating tonal card surfaces (violet / pink), matching the reference
@@ -17,8 +17,8 @@ const CARD_TINTS = ["bg-violet-100", "bg-brand-100"] as const;
  * a price pill and a violet add control. A soft pink-tinted shadow gives the
  * card presence against the pale page, and on pointer devices it lifts on hover.
  * The whole card links to the product detail page via a stretched link on the
- * title, while the "+" button stays above it (`z-10`) as an independent control,
- * presentational until the cart module exists.
+ * title, while the "+" quick-add button stays above it (`z-10`) as an independent
+ * control that adds one unit straight to the cart.
  */
 export function ProductCard({ product, index = 0 }: { product: ProductDto; index?: number }) {
   const tint = CARD_TINTS[index % CARD_TINTS.length];
@@ -46,13 +46,7 @@ export function ProductCard({ product, index = 0 }: { product: ProductDto; index
         <span className="inline-flex h-9 items-center rounded-pill bg-surface px-3 text-xs font-bold tabular-nums text-text shadow-xs">
           {formatPrice(product.priceCents, product.currency)}
         </span>
-        <button
-          type="button"
-          aria-label={`Agregar ${product.name}`}
-          className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-cta text-on-cta shadow-cta transition-transform duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta-strong"
-        >
-          <PlusIcon className="h-5 w-5" />
-        </button>
+        <QuickAddButton product={product} />
       </div>
     </article>
   );

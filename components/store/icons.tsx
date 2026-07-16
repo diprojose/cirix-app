@@ -141,3 +141,14 @@ export function ClockIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function TrashIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M5 7h14" />
+      <path d="M9 7V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5V7" />
+      <path d="M6.5 7 7.5 20h9l1-13" />
+      <path d="M10 11v5.5M14 11v5.5" />
+    </Icon>
+  );
+}

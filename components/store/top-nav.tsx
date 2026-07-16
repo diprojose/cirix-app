@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ViewerDto } from "@/modules/iam/application/dtos/viewer-dto";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { SearchIcon } from "./icons";
+import { CartBadge } from "@/components/cart/cart-badge";
+import { BagIcon, SearchIcon } from "./icons";
 
 /**
  * TopNav is the desktop/web navigation bar (hidden below `md`, where the mobile
@@ -38,6 +39,15 @@ export function TopNav({ viewer }: { viewer: ViewerDto }) {
             Premium
           </Link>
         </nav>
+
+        <Link
+          href="/cart"
+          aria-label="Carrito"
+          className="relative grid h-11 w-11 place-items-center rounded-pill text-text transition-colors hover:bg-sugar-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+        >
+          <BagIcon className="h-6 w-6" />
+          <CartBadge />
+        </Link>
 
         {viewer.authenticated ? (
           <div className="flex items-center gap-3">
