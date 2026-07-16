@@ -8,7 +8,7 @@ import { SearchIcon, SlidersIcon } from "./icons";
 export function SearchBar({ className }: { className?: string }) {
   return (
     <div className={`flex items-center gap-2 ${className ?? ""}`}>
-      <div className="flex h-12 flex-1 items-center gap-2 rounded-pill bg-surface px-4 shadow-xs">
+      <div className="flex h-12 flex-1 items-center gap-2 rounded-pill bg-surface px-4 shadow-xs transition-shadow focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-bg">
         <SearchIcon className="h-5 w-5 shrink-0 text-sugar-400" />
         <input
           type="search"
@@ -20,7 +20,7 @@ export function SearchBar({ className }: { className?: string }) {
       <button
         type="button"
         aria-label="Filtros"
-        className="grid h-12 w-12 shrink-0 place-items-center rounded-pill bg-ink text-on-accent"
+        className="grid h-12 w-12 shrink-0 place-items-center rounded-pill bg-ink text-on-accent transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         <SlidersIcon className="h-5 w-5" />
       </button>

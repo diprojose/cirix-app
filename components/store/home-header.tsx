@@ -15,7 +15,7 @@ export function HomeHeader({ viewer }: { viewer: ViewerDto }) {
     <header className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
         <div
-          className="grid h-11 w-11 place-items-center rounded-pill bg-accent-soft text-xl"
+          className="grid h-12 w-12 place-items-center rounded-pill bg-accent-soft text-2xl"
           aria-hidden="true"
         >
           🧁
@@ -29,7 +29,10 @@ export function HomeHeader({ viewer }: { viewer: ViewerDto }) {
           ) : (
             <>
               <span className="text-xs text-text-muted">Bienvenido a mixmag</span>
-              <Link href="/login" className="text-sm font-semibold text-accent">
+              <Link
+                href="/login"
+                className="w-fit rounded-sm text-sm font-semibold text-accent transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              >
                 Inicia sesión
               </Link>
             </>
@@ -39,7 +42,7 @@ export function HomeHeader({ viewer }: { viewer: ViewerDto }) {
       <button
         type="button"
         aria-label="Notificaciones"
-        className="relative grid h-11 w-11 place-items-center rounded-pill bg-surface text-ink shadow-xs"
+        className="relative grid h-11 w-11 place-items-center rounded-pill bg-surface text-ink shadow-xs transition-colors hover:bg-sugar-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         <BellIcon className="h-5 w-5" />
         <span

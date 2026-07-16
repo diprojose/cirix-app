@@ -3,13 +3,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, HeartIcon, BagIcon, UserIcon } from "./icons";
+import { HomeIcon, HeartIcon, BagIcon, UserIcon, PlusIcon } from "./icons";
 
 /**
  * BottomNav is the floating mobile tab bar (hidden from `md` up, where the web
  * TopNav takes over). "Inicio" is the only wired destination for now; Favoritos,
  * Carrito and Perfil are presentational placeholders (their routes don't exist
- * yet) so nothing 404s. It sits above the safe-area inset.
+ * yet) so nothing 404s. A trailing "+" quick-add sits in its own light circle,
+ * mirroring the reference. It sits above the safe-area inset.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -21,6 +22,14 @@ export function BottomNav() {
         <NavItem label="Favoritos" icon={<HeartIcon className="h-6 w-6" />} />
         <NavItem label="Carrito" icon={<BagIcon className="h-6 w-6" />} />
         <NavItem label="Perfil" icon={<UserIcon className="h-6 w-6" />} />
+        <button
+          type="button"
+          aria-label="Agregar (próximamente)"
+          title="Próximamente"
+          className="grid h-12 w-12 place-items-center rounded-pill bg-sugar-100 text-ink transition-colors hover:bg-sugar-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+        >
+          <PlusIcon className="h-6 w-6" />
+        </button>
       </div>
     </nav>
   );
@@ -55,7 +64,7 @@ function NavItem({
       <Link
         href={href}
         aria-label={label}
-        className="grid h-12 w-12 place-items-center rounded-pill text-sugar-400 transition-colors hover:text-text"
+        className="grid h-12 w-12 place-items-center rounded-pill text-sugar-400 transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
       >
         {icon}
       </Link>
@@ -67,7 +76,7 @@ function NavItem({
       type="button"
       aria-label={`${label} (próximamente)`}
       title="Próximamente"
-      className="grid h-12 w-12 place-items-center rounded-pill text-sugar-400"
+      className="grid h-12 w-12 place-items-center rounded-pill text-sugar-400 transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
     >
       {icon}
     </button>

@@ -30,7 +30,9 @@ function gradientFor(id: string): string {
  * has a real `imageUrl` it uses `next/image`; otherwise it falls back to a
  * deterministic brand gradient with the department emoji — so the storefront
  * looks complete before any photos exist, and swaps to real images the moment
- * `imageUrl` is populated, with no other change.
+ * `imageUrl` is populated, with no other change. `imageClassName` overrides how
+ * the real image fits its box (default: contained with padding); the hero passes
+ * an unpadded value so the product fills and bleeds out of its frame.
  */
 export function ProductThumb({
   id,
@@ -38,6 +40,7 @@ export function ProductThumb({
   department,
   imageUrl,
   className,
+  imageClassName = "object-contain p-2",
   sizes = "(max-width: 768px) 50vw, 200px",
 }: {
   id: string;
@@ -45,12 +48,13 @@ export function ProductThumb({
   department: DepartmentName;
   imageUrl: string;
   className?: string;
+  imageClassName?: string;
   sizes?: string;
 }) {
   return (
     <div className={`relative overflow-hidden ${className ?? ""}`}>
       {imageUrl ? (
-        <Image src={imageUrl} alt={name} fill sizes={sizes} className="object-contain p-2" />
+        <Image src={imageUrl} alt={name} fill sizes={sizes} className={imageClassName} />
       ) : (
         <div
           className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${gradientFor(id)}`}

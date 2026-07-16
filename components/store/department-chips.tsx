@@ -44,7 +44,7 @@ export function DepartmentChips({
             type="button"
             onClick={() => onSelect(option.key)}
             aria-pressed={isActive}
-            className={`relative shrink-0 overflow-hidden rounded-pill px-4 py-2 text-sm font-medium transition-colors ${
+            className={`relative shrink-0 overflow-hidden rounded-pill px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${
               isActive
                 ? "text-white shadow-card"
                 : "border border-border bg-surface text-text hover:bg-sugar-100"
