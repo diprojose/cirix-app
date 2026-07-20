@@ -25,6 +25,14 @@ import {
   makeUpdateRecipe,
   makeDeleteRecipe,
 } from "@/modules/recipes/infrastructure/di/recipes-container";
+import {
+  makeAccruePurchaseReward,
+  makeReverseOrderRewards,
+  makeSaveRewardRules,
+  makeReleaseDueRewards,
+  makeExpireRewards,
+  makeAdjustBalanceManually,
+} from "@/modules/rewards/infrastructure/di/rewards-container";
 
 /*
  * Admin server actions (primary adapters for operator use cases). Every action
@@ -67,6 +75,21 @@ export async function advanceOrderAction(
   if (!result.ok) {
     failTo(`/admin/orders/${orderId}`, result.error.message);
   }
+
+  // Reward side-effects hang off the lifecycle: confirming an order accrues its
+  // credit (idempotently), cancelling it reverses that credit. Both are
+  // best-effort — the order transition already succeeded, so a rewards hiccup
+  // must not fail the operator's action, and idempotency makes a retry safe.
+  if (action === "confirm") {
+    await makeAccruePurchaseReward().execute({
+      orderId,
+      customerUid: result.value.customerUid,
+      marginCents: result.value.marginCents,
+    });
+  } else if (action === "cancel") {
+    await makeReverseOrderRewards().execute({ orderId });
+  }
+
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);
@@ -85,10 +108,18 @@ export async function saveProductAction(formData: FormData): Promise<void> {
     failTo(backPath, "El precio debe ser un número no negativo (en dólares).");
   }
 
+  // Cost is optional (empty ⇒ 0) and operator-only; it never reaches the store.
+  const costRaw = String(formData.get("cost") ?? "").trim().replace(",", ".");
+  const cost = costRaw === "" ? 0 : Number.parseFloat(costRaw);
+  if (!Number.isFinite(cost) || cost < 0) {
+    failTo(backPath, "El costo debe ser un número no negativo (en dólares).");
+  }
+
   const input = {
     name: String(formData.get("name") ?? ""),
     description: String(formData.get("description") ?? ""),
     priceCents: Math.round(price * 100),
+    costCents: Math.round(cost * 100),
     currency: "USD",
     department: String(formData.get("department") ?? ""),
     imageUrl: String(formData.get("imageUrl") ?? ""),
@@ -230,4 +261,74 @@ export async function revokePremiumByEmailAction(formData: FormData): Promise<vo
   await makeRevokePremium().execute({ uid: resolved.value.uid });
   revalidatePath("/admin/premium");
   redirect("/admin/premium?revoked=" + encodeURIComponent(resolved.value.email));
+}
+
+/** Saves the operator's reward configuration (earn rate, holdback, expiry, cap). */
+export async function saveRewardRulesAction(formData: FormData): Promise<void> {
+  const viewer = await requireOperator();
+
+  const numberField = (name: string): number =>
+    Number.parseFloat(String(formData.get(name) ?? "").replace(",", "."));
+  const intField = (name: string): number =>
+    Number.parseInt(String(formData.get(name) ?? "").trim(), 10);
+
+  const result = await makeSaveRewardRules().execute({
+    operatorId: viewer.uid ?? "operator",
+    earnRatePctOfMargin: numberField("earnRatePctOfMargin"),
+    holdbackDays: intField("holdbackDays"),
+    expiryDays: intField("expiryDays"),
+    maxRedeemPctOfOrder: numberField("maxRedeemPctOfOrder"),
+  });
+  if (!result.ok) {
+    failTo("/admin/rewards", result.error.message);
+  }
+
+  revalidatePath("/admin/rewards");
+  redirect("/admin/rewards?saved=1");
+}
+
+/** Runs the rewards maintenance jobs on demand (release holdbacks, expire credit). */
+export async function runRewardsMaintenanceAction(): Promise<void> {
+  await requireOperator();
+
+  const released = await makeReleaseDueRewards().execute();
+  const expired = await makeExpireRewards().execute();
+  const releasedCount = released.ok ? released.value.releasedCount : 0;
+  const expiredCount = expired.ok ? expired.value.expiredCount : 0;
+
+  revalidatePath("/admin/rewards");
+  redirect(`/admin/rewards?released=${releasedCount}&expired=${expiredCount}`);
+}
+
+/** Applies a manual wallet credit/debit to the customer behind an email (audited). */
+export async function adjustBalanceAction(formData: FormData): Promise<void> {
+  const viewer = await requireOperator();
+
+  const email = String(formData.get("email") ?? "");
+  const reason = String(formData.get("reason") ?? "");
+  const amount = Number.parseFloat(String(formData.get("amount") ?? "").replace(",", "."));
+  if (!Number.isFinite(amount) || amount === 0) {
+    failTo(
+      "/admin/rewards",
+      "El monto debe ser distinto de cero (en dólares; usa negativo para debitar)."
+    );
+  }
+
+  const resolved = await makeResolveUserByEmail().execute({ email });
+  if (!resolved.ok) {
+    failTo("/admin/rewards", `No existe una cuenta registrada con "${email}".`);
+  }
+
+  const result = await makeAdjustBalanceManually().execute({
+    operatorId: viewer.uid ?? "operator",
+    customerUid: resolved.value.uid,
+    amountCents: Math.round(amount * 100),
+    reason,
+  });
+  if (!result.ok) {
+    failTo("/admin/rewards", result.error.message);
+  }
+
+  revalidatePath("/admin/rewards");
+  redirect("/admin/rewards?adjusted=" + encodeURIComponent(resolved.value.email));
 }

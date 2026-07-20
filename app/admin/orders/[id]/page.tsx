@@ -125,6 +125,14 @@ export default async function AdminOrderDetailPage({
                 : formatPrice(order.deliveryFeeCents, order.currency)}
             </span>
           </p>
+          {order.discountCents > 0 && (
+            <p className="flex justify-between">
+              <span className="text-text-muted">Crédito aplicado</span>
+              <span className="font-medium tabular-nums text-cta-strong">
+                −{formatPrice(order.discountCents, order.currency)}
+              </span>
+            </p>
+          )}
           <p className="flex justify-between text-base font-bold text-text">
             <span>Total</span>
             <span className="tabular-nums">

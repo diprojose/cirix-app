@@ -89,6 +89,7 @@ export class PlaceOrder implements UseCase<PlaceOrderInput, OrderDto> {
         productId: product.id.value,
         name: product.name,
         unitPriceCents: product.price.amountCents,
+        unitCostCents: product.costCents,
         currency: product.price.currency,
         imageUrl: product.imageUrl,
         quantity: item.quantity,

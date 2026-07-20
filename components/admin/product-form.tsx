@@ -60,21 +60,39 @@ export function ProductForm({ product }: { product?: ProductDto }) {
         </label>
 
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-text">Departamento</span>
-          <select
-            name="department"
-            required
-            defaultValue={product?.department ?? DEPARTMENT_ORDER[0]}
+          <span className="text-sm font-medium text-text">Costo (US$)</span>
+          <input
+            type="number"
+            name="cost"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            defaultValue={product ? (product.costCents / 100).toFixed(2) : ""}
+            placeholder="12.00"
             className={FIELD_CLASS}
-          >
-            {DEPARTMENT_ORDER.map((department) => (
-              <option key={department} value={department}>
-                {departmentLabel(department)}
-              </option>
-            ))}
-          </select>
+          />
         </label>
       </div>
+      <p className="-mt-2 text-xs text-text-muted">
+        El costo es interno (no se muestra al cliente); define el margen sobre el que se
+        calculan las recompensas.
+      </p>
+
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium text-text">Departamento</span>
+        <select
+          name="department"
+          required
+          defaultValue={product?.department ?? DEPARTMENT_ORDER[0]}
+          className={FIELD_CLASS}
+        >
+          {DEPARTMENT_ORDER.map((department) => (
+            <option key={department} value={department}>
+              {departmentLabel(department)}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-text">URL de imagen (opcional)</span>

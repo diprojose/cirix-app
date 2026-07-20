@@ -51,7 +51,11 @@ export type OrderDto = {
   currency: string;
   subtotalCents: number;
   deliveryFeeCents: number;
+  /** Wallet credit applied at checkout, in minor units. */
+  discountCents: number;
   totalCents: number;
+  /** Order margin (Σ price−cost per line), the base for rewards accrual. */
+  marginCents: number;
 };
 
 /** Maps an Order aggregate to its serializable DTO. */
@@ -91,5 +95,7 @@ export const toOrderDto = (order: Order): OrderDto => ({
   currency: order.currency,
   subtotalCents: order.subtotalCents,
   deliveryFeeCents: order.deliveryFeeCents,
+  discountCents: order.discountCents,
   totalCents: order.totalCents,
+  marginCents: order.marginCents,
 });

@@ -8,8 +8,8 @@ import { HomeIcon, HeartIcon, BagIcon, UserIcon, PlusIcon } from "./icons";
 
 /**
  * BottomNav is the floating mobile tab bar (hidden from `md` up, where the web
- * TopNav takes over). "Inicio" and "Carrito" are wired destinations; Favoritos
- * and Perfil remain presentational placeholders (their routes don't exist yet) so
+ * TopNav takes over). "Inicio", "Carrito" and "Billetera" are wired destinations;
+ * Favoritos remains a presentational placeholder (its route doesn't exist yet) so
  * nothing 404s. The cart tab carries a live item-count badge. A trailing "+"
  * quick-add sits in its own light circle, mirroring the reference. It sits above
  * the safe-area inset.
@@ -29,7 +29,12 @@ export function BottomNav() {
           icon={<BagIcon className="h-6 w-6" />}
           badge={<CartBadge />}
         />
-        <NavItem label="Perfil" icon={<UserIcon className="h-6 w-6" />} />
+        <NavItem
+          label="Billetera"
+          href="/billetera"
+          active={pathname === "/billetera"}
+          icon={<UserIcon className="h-6 w-6" />}
+        />
         <button
           type="button"
           aria-label="Agregar (próximamente)"

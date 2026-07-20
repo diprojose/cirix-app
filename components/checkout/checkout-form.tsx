@@ -23,9 +23,13 @@ const FIELD_CLASS =
 export function CheckoutForm({
   zones,
   exchangeRate,
+  availableCreditCents,
+  maxRedeemPctOfOrder,
 }: {
   zones: DeliveryZone[];
   exchangeRate: ExchangeRateDto | null;
+  availableCreditCents: number;
+  maxRedeemPctOfOrder: number;
 }) {
   const { cart, ready, clear } = useCart();
   const router = useRouter();
@@ -36,6 +40,7 @@ export function CheckoutForm({
   const [zoneId, setZoneId] = useState(zones[0]?.id ?? "");
   const [scheduledDate, setScheduledDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [useCredit, setUseCredit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,7 +72,16 @@ export function CheckoutForm({
   const selectedZone = zones.find((zone) => zone.id === zoneId) ?? null;
   const deliveryFeeCents =
     deliveryKind === "delivery" ? (selectedZone?.feeCents ?? 0) : 0;
-  const totalCents = cart.subtotalCents + deliveryFeeCents;
+
+  // Credit preview: capped to the balance, the per-order cap and the subtotal.
+  // The server re-clamps on submit, so this is UX only.
+  const hasCredit = availableCreditCents > 0;
+  const redeemCapCents = Math.floor((maxRedeemPctOfOrder / 100) * cart.subtotalCents);
+  const discountCents =
+    useCredit && hasCredit
+      ? Math.min(availableCreditCents, redeemCapCents, cart.subtotalCents)
+      : 0;
+  const totalCents = cart.subtotalCents + deliveryFeeCents - discountCents;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -87,6 +101,7 @@ export function CheckoutForm({
         deliveryKind === "pickup" ? { kind: "pickup" } : { kind: "delivery", zoneId },
       scheduledDate,
       notes,
+      redeemCredit: useCredit && hasCredit,
     });
 
     if (!result.ok) {
@@ -198,6 +213,26 @@ export function CheckoutForm({
         </label>
       </section>
 
+      {/* Wallet credit: signed-in customers can pay part of the order with it. */}
+      {hasCredit && (
+        <section className="rounded-2xl bg-surface p-4 shadow-xs">
+          <label className="flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              <span className="block text-sm font-bold text-text">Usar mi crédito</span>
+              <span className="block text-xs text-text-muted">
+                Tienes {formatPrice(availableCreditCents, currency)} disponibles
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={useCredit}
+              onChange={(event) => setUseCredit(event.target.checked)}
+              className="h-6 w-6 shrink-0 accent-[oklch(0.64_0.17_288)]"
+            />
+          </label>
+        </section>
+      )}
+
       {/* Order summary in both currencies. */}
       <section className="space-y-2 rounded-2xl bg-surface p-4 shadow-xs">
         <h2 className="text-sm font-bold text-text">Resumen</h2>
@@ -207,6 +242,11 @@ export function CheckoutForm({
         <SummaryRow label={deliveryKind === "pickup" ? "Retiro en tienda" : "Delivery"}>
           {deliveryFeeCents === 0 ? "Gratis" : formatPrice(deliveryFeeCents, currency)}
         </SummaryRow>
+        {discountCents > 0 && (
+          <SummaryRow label="Crédito aplicado">
+            −{formatPrice(discountCents, currency)}
+          </SummaryRow>
+        )}
         <div className="border-t border-border pt-2">
           <SummaryRow label="Total" strong>
             {formatPrice(totalCents, currency)}

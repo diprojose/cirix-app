@@ -11,6 +11,8 @@ type ProductDocument = {
   name: string;
   description: string;
   priceCents: number;
+  /** Optional: documents written before rewards default to 0 cost on restore. */
+  costCents?: number;
   currency: string;
   department: string;
   imageUrl: string;
@@ -117,6 +119,7 @@ function toDocument(product: Product): ProductDocument {
     name: product.name,
     description: product.description,
     priceCents: product.price.amountCents,
+    costCents: product.costCents,
     currency: product.price.currency,
     department: product.department.value,
     imageUrl: product.imageUrl,

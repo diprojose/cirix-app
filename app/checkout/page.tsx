@@ -7,6 +7,10 @@ import { BackButton } from "@/components/store/back-button";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { makeListDeliveryZones } from "@/modules/ordering/infrastructure/di/ordering-container";
 import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
+import {
+  makeGetWallet,
+  makeGetRewardRules,
+} from "@/modules/rewards/infrastructure/di/rewards-container";
 
 export const metadata: Metadata = {
   title: "Finalizar pedido",
@@ -28,6 +32,20 @@ export default async function CheckoutPage() {
   const rateResult = await makeGetExchangeRate().execute();
   const exchangeRate = rateResult.ok ? rateResult.value : null;
 
+  // Signed-in customers may pay part of the order with their wallet credit. We
+  // pass the available balance and the per-order cap so the form can preview the
+  // discount; the server action re-clamps both authoritatively on submit.
+  let availableCreditCents = 0;
+  let maxRedeemPctOfOrder = 0;
+  if (viewer.authenticated && viewer.uid) {
+    const [walletResult, rulesResult] = await Promise.all([
+      makeGetWallet().execute({ customerUid: viewer.uid }),
+      makeGetRewardRules().execute(),
+    ]);
+    availableCreditCents = walletResult.ok ? walletResult.value.availableCents : 0;
+    maxRedeemPctOfOrder = rulesResult.ok ? rulesResult.value.maxRedeemPctOfOrder : 0;
+  }
+
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
       {/* Desktop / web horizon: top navigation bar (hidden below md). */}
@@ -47,7 +65,12 @@ export default async function CheckoutPage() {
           <h1 className="mb-4 hidden text-2xl font-bold text-text md:block">
             Finalizar pedido
           </h1>
-          <CheckoutForm zones={zones} exchangeRate={exchangeRate} />
+          <CheckoutForm
+            zones={zones}
+            exchangeRate={exchangeRate}
+            availableCreditCents={availableCreditCents}
+            maxRedeemPctOfOrder={maxRedeemPctOfOrder}
+          />
         </div>
       </main>
 

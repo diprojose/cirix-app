@@ -12,6 +12,8 @@ export type ProductDto = {
   name: string;
   description: string;
   priceCents: number;
+  /** Unit cost in minor units; internal (operator-only), feeds the rewards margin. */
+  costCents: number;
   currency: string;
   department: DepartmentName;
   imageUrl: string;
@@ -25,6 +27,7 @@ export const toProductDto = (product: Product): ProductDto => ({
   name: product.name,
   description: product.description,
   priceCents: product.price.amountCents,
+  costCents: product.costCents,
   currency: product.price.currency,
   department: product.department.value,
   imageUrl: product.imageUrl,

@@ -209,6 +209,14 @@ function SummaryCard({ order }: { order: OrderDto }) {
               : formatPrice(order.deliveryFeeCents, order.currency)}
           </span>
         </p>
+        {order.discountCents > 0 && (
+          <p className="flex justify-between">
+            <span className="text-text-muted">Crédito aplicado</span>
+            <span className="font-medium tabular-nums text-cta-strong">
+              −{formatPrice(order.discountCents, order.currency)}
+            </span>
+          </p>
+        )}
         <p className="flex justify-between text-base">
           <span className="font-bold text-text">Total</span>
           <span className="font-bold tabular-nums text-text">

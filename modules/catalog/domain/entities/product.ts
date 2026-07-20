@@ -4,13 +4,14 @@ import type { DomainError } from "@/shared/domain/domain-error";
 import { ProductId } from "../value-objects/product-id";
 import { Money } from "../value-objects/money";
 import { Department } from "../value-objects/department";
-import { InvalidProductError } from "../errors/catalog-errors";
+import { InvalidPriceError, InvalidProductError } from "../errors/catalog-errors";
 
 /** Props backing a {@link Product} aggregate. */
 type ProductProps = {
   name: string;
   description: string;
   price: Money;
+  costCents: number;
   department: Department;
   imageUrl: string;
   featured: boolean;
@@ -23,6 +24,7 @@ export type CreateProductInput = {
   name: string;
   description: string;
   priceCents: number;
+  costCents?: number;
   currency?: string;
   department: string;
   imageUrl?: string;
@@ -54,6 +56,14 @@ export class Product extends AggregateRoot<ProductProps, ProductId> {
       return priceResult;
     }
 
+    // Cost is the unit cost of goods, in the same currency as the price. It is
+    // optional (defaults to 0 for legacy products) and only feeds the rewards
+    // margin calculation — it is never shown to shoppers.
+    const costCents = input.costCents ?? 0;
+    if (!Number.isInteger(costCents) || costCents < 0) {
+      return err(new InvalidPriceError("Product cost must be a non-negative integer number of cents."));
+    }
+
     const departmentResult = Department.create(input.department);
     if (!departmentResult.ok) {
       return departmentResult;
@@ -64,6 +74,7 @@ export class Product extends AggregateRoot<ProductProps, ProductId> {
       name,
       description: input.description.trim(),
       price: priceResult.value,
+      costCents,
       department: departmentResult.value,
       imageUrl: input.imageUrl?.trim() ?? "",
       featured: input.featured ?? false,
@@ -82,6 +93,17 @@ export class Product extends AggregateRoot<ProductProps, ProductId> {
 
   get price(): Money {
     return this.props.price;
+  }
+
+  /** Unit cost of goods in minor units (same currency as the price); 0 when
+   * unknown. Internal only — it feeds the rewards margin, never the storefront. */
+  get costCents(): number {
+    return this.props.costCents;
+  }
+
+  /** Unit margin in minor units: price minus cost, floored at 0. */
+  get marginCents(): number {
+    return Math.max(0, this.props.price.amountCents - this.props.costCents);
   }
 
   get department(): Department {

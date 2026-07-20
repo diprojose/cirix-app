@@ -11,6 +11,7 @@ type OrderLineProps = {
   readonly productId: string;
   readonly name: string;
   readonly unitPriceCents: number;
+  readonly unitCostCents: number;
   readonly currency: string;
   readonly imageUrl: string;
   readonly quantity: number;
@@ -21,6 +22,8 @@ export type CreateOrderLineInput = {
   productId: string;
   name: string;
   unitPriceCents: number;
+  /** Frozen unit cost; optional so v1 order documents restore with 0. */
+  unitCostCents?: number;
   currency: string;
   imageUrl?: string;
   quantity: number;
@@ -57,6 +60,13 @@ export class OrderLine extends ValueObject<OrderLineProps> {
       );
     }
 
+    const unitCostCents = input.unitCostCents ?? 0;
+    if (!Number.isInteger(unitCostCents) || unitCostCents < 0) {
+      return err(
+        new InvalidOrderLineError("Unit cost must be a non-negative integer in cents.")
+      );
+    }
+
     const currency = input.currency.trim().toUpperCase();
     if (currency.length !== 3) {
       return err(new InvalidOrderLineError("Currency must be a 3-letter ISO-4217 code."));
@@ -79,6 +89,7 @@ export class OrderLine extends ValueObject<OrderLineProps> {
         productId,
         name,
         unitPriceCents: input.unitPriceCents,
+        unitCostCents,
         currency,
         imageUrl: input.imageUrl?.trim() ?? "",
         quantity: input.quantity,
@@ -98,6 +109,11 @@ export class OrderLine extends ValueObject<OrderLineProps> {
     return this.props.unitPriceCents;
   }
 
+  /** Frozen unit cost in minor units; 0 when the product had no cost recorded. */
+  get unitCostCents(): number {
+    return this.props.unitCostCents;
+  }
+
   get currency(): string {
     return this.props.currency;
   }
@@ -113,5 +129,10 @@ export class OrderLine extends ValueObject<OrderLineProps> {
   /** The line total in minor units: unit price times quantity. */
   get lineTotalCents(): number {
     return this.props.unitPriceCents * this.props.quantity;
+  }
+
+  /** The line margin in minor units: (price − cost) times quantity, floored at 0. */
+  get lineMarginCents(): number {
+    return Math.max(0, this.props.unitPriceCents - this.props.unitCostCents) * this.props.quantity;
   }
 }

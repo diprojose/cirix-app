@@ -11,6 +11,7 @@ import { PaymentReport, type RestorePaymentReportInput } from "./payment-report"
 import {
   CorruptOrderSnapshotError,
   EmptyOrderError,
+  InvalidDiscountError,
   InvalidOrderTransitionError,
   MixedCurrencyError,
   PaymentReportNotFoundError,
@@ -40,6 +41,7 @@ type OrderProps = {
   exchangeRate: FrozenExchangeRate | null;
   status: OrderStatus;
   payments: PaymentReport[];
+  discountCents: number;
   customerUid: string | null;
   createdAt: string;
 };
@@ -67,6 +69,7 @@ export type RestoreOrderInput = {
   exchangeRate: FrozenExchangeRate | null;
   status: string;
   payments: RestorePaymentReportInput[];
+  discountCents?: number;
   customerUid: string | null;
   createdAt: string;
 };
@@ -107,6 +110,7 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
         exchangeRate: input.exchangeRate,
         status: "received",
         payments: [],
+        discountCents: 0,
         customerUid: input.customerUid ?? null,
         createdAt: new Date().toISOString(),
       })
@@ -172,6 +176,7 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
         exchangeRate: input.exchangeRate,
         status: input.status,
         payments,
+        discountCents: input.discountCents ?? 0,
         customerUid: input.customerUid,
         createdAt: input.createdAt,
       })
@@ -223,6 +228,22 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
         ),
       })
     );
+  }
+
+  /**
+   * Applies a wallet-credit discount to the order, set once at checkout. The
+   * amount must be a whole, non-negative number of cents that does not exceed
+   * the subtotal — credit can zero the goods but never the delivery fee or go
+   * negative. Returns a new Order; the aggregate never mutates in place.
+   */
+  applyDiscount(discountCents: number): Result<Order, DomainError> {
+    if (!Number.isInteger(discountCents) || discountCents < 0) {
+      return err(new InvalidDiscountError("Discount must be a non-negative integer of cents."));
+    }
+    if (discountCents > this.subtotalCents) {
+      return err(new InvalidDiscountError("Discount cannot exceed the order subtotal."));
+    }
+    return ok(new Order(this._id, { ...this.props, discountCents }));
   }
 
   /** Operator verified payment and the baker accepted the order. */
@@ -312,13 +333,28 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
     return this.props.lines.reduce((total, line) => total + line.lineTotalCents, 0);
   }
 
+  /**
+   * Sum of every line margin (price − cost), in minor units, excluding delivery
+   * and tax. This is the base the rewards context accrues a percentage of
+   * (BR-01). Lines whose product had no recorded cost contribute their full
+   * price as margin — capture costs to make the accrual accurate.
+   */
+  get marginCents(): number {
+    return this.props.lines.reduce((total, line) => total + line.lineMarginCents, 0);
+  }
+
   /** The frozen delivery fee, in minor units. */
   get deliveryFeeCents(): number {
     return this.props.delivery.feeCents;
   }
 
-  /** Grand total: subtotal plus delivery fee. Tax lines will extend this later. */
+  /** Wallet credit applied to this order at checkout, in minor units. */
+  get discountCents(): number {
+    return this.props.discountCents;
+  }
+
+  /** Grand total: subtotal plus delivery fee, minus any credit discount. */
   get totalCents(): number {
-    return this.subtotalCents + this.deliveryFeeCents;
+    return this.subtotalCents + this.deliveryFeeCents - this.props.discountCents;
   }
 }

@@ -5,7 +5,12 @@ import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing
 import {
   makePlaceOrder,
   makeReportPayment,
+  makeApplyOrderDiscount,
 } from "@/modules/ordering/infrastructure/di/ordering-container";
+import {
+  makeGetWallet,
+  makeRedeemReward,
+} from "@/modules/rewards/infrastructure/di/rewards-container";
 import type { PlaceOrderItemInput } from "@/modules/ordering/application/use-cases/place-order";
 
 /** What the checkout form submits. Prices are intentionally absent. */
@@ -16,6 +21,8 @@ export type PlaceOrderActionInput = {
   delivery: { kind: "pickup" } | { kind: "delivery"; zoneId: string };
   scheduledDate: string;
   notes?: string;
+  /** When true, apply the signed-in customer's available wallet credit. */
+  redeemCredit?: boolean;
 };
 
 /** Serializable outcome for the client form. */
@@ -69,7 +76,44 @@ export async function placeOrderAction(
   if (!result.ok) {
     return { ok: false, message: ERROR_MESSAGES[result.error.code] ?? GENERIC_ERROR };
   }
+
+  // Optional wallet redemption (US-B2): only for a signed-in customer who asked
+  // for it. The rewards use case is the single authority that clamps the amount
+  // to the customer's real balance and the per-order cap; whatever it actually
+  // redeems is then recorded as the order's discount so the total matches. This
+  // runs after placement (the order is already safely created) — a rewards
+  // hiccup must not lose the order.
+  if (input.redeemCredit && viewer.authenticated && viewer.uid) {
+    await applyWalletCredit(viewer.uid, result.value.id, result.value.subtotalCents);
+  }
+
   return { ok: true, orderId: result.value.id };
+}
+
+/** Redeems the customer's available credit against a placed order, capped by rules. */
+async function applyWalletCredit(
+  customerUid: string,
+  orderId: string,
+  orderSubtotalCents: number
+): Promise<void> {
+  const walletResult = await makeGetWallet().execute({ customerUid });
+  const availableCents = walletResult.ok ? walletResult.value.availableCents : 0;
+  if (availableCents <= 0) {
+    return;
+  }
+
+  const redeemed = await makeRedeemReward().execute({
+    customerUid,
+    orderId,
+    requestedCents: availableCents,
+    orderSubtotalCents,
+  });
+  if (redeemed.ok && redeemed.value.redeemedCents > 0) {
+    await makeApplyOrderDiscount().execute({
+      orderId,
+      discountCents: redeemed.value.redeemedCents,
+    });
+  }
 }
 
 /** What the payment report form submits. */
