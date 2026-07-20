@@ -1,5 +1,7 @@
 "use client";
 
+import { CloseIcon } from "@/components/store/icons";
+
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -91,7 +93,7 @@ export function PwaInstaller() {
             await installEvent.userChoice;
             setInstallEvent(null);
           }}
-          className="rounded-full bg-[#e0669a] px-5 py-2.5 text-sm font-medium text-white shadow-lg"
+          className="inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Instalar app
         </button>
@@ -103,7 +105,7 @@ export function PwaInstaller() {
   if (isIOS) {
     return (
       <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex w-[min(92vw,24rem)] -translate-x-1/2 items-center gap-2 md:bottom-6">
-        <p className="flex-1 rounded-xl bg-neutral-900/90 px-4 py-2.5 text-center text-xs text-white shadow-lg">
+        <p className="flex-1 rounded-lg bg-ink/90 px-4 py-2.5 text-center text-caption text-on-accent shadow-float">
           Para instalar: toca Compartir y luego «Agregar a la pantalla de inicio».
         </p>
         <DismissButton onClick={dismiss} />
@@ -121,11 +123,9 @@ function DismissButton({ onClick }: { onClick: () => void }) {
       type="button"
       aria-label="Cerrar"
       onClick={onClick}
-      className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-neutral-900/90 text-white shadow-lg"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-pill bg-ink/90 text-on-accent shadow-float transition-colors hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" aria-hidden="true">
-        <path d="M6 6l12 12M18 6 6 18" />
-      </svg>
+      <CloseIcon className="h-4 w-4" />
     </button>
   );
 }

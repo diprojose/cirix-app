@@ -34,7 +34,7 @@ export function AddToCartButton({ className }: { className?: string }) {
   const label = !product.available
     ? "No disponible"
     : justAdded
-      ? "¡Agregado! ✓"
+      ? "¡Agregado!"
       : "Agregar al carrito";
 
   return (
@@ -42,7 +42,10 @@ export function AddToCartButton({ className }: { className?: string }) {
       type="button"
       disabled={!product.available}
       onClick={handleClick}
-      className={`flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-base font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98] disabled:from-sugar-300 disabled:to-sugar-300 disabled:text-sugar-500 disabled:shadow-none disabled:active:scale-100 ${className ?? ""}`}
+      // The label swaps to a confirmation; announce it so the feedback is not
+      // sighted-only.
+      aria-live="polite"
+      className={`flex h-14 w-full items-center justify-center rounded-pill bg-action-fill text-title font-semibold text-on-action shadow-action transition-[background-color,transform] duration-200 ease-out-quint hover:bg-action-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none disabled:active:scale-100 ${className ?? ""}`}
     >
       {label}
     </button>

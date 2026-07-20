@@ -3,7 +3,7 @@ import { saveCouponAction } from "@/app/admin/actions";
 
 /** Shared input styling for the coupon fields (matches the product form). */
 const FIELD_CLASS =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta";
+  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 /** Default value shown for the amount field, given the coupon's discount type. */
 function defaultValue(coupon?: CouponDto): string {
@@ -134,14 +134,14 @@ export function CouponForm({ coupon }: { coupon?: CouponDto }) {
           type="checkbox"
           name="active"
           defaultChecked={coupon?.active ?? false}
-          className="h-5 w-5 accent-[oklch(0.64_0.17_288)]"
+          className="h-5 w-5 accent-action-fill"
         />
         Activo (publicado)
       </label>
 
       <button
         type="submit"
-        className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
+        className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
       >
         {coupon ? "Guardar cambios" : "Crear cupón"}
       </button>

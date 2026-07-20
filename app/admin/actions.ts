@@ -14,17 +14,7 @@ import {
   makeDeleteProduct,
 } from "@/modules/catalog/infrastructure/di/catalog-container";
 import { makeSetManualExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
-import {
-  makeGrantPremium,
-  makeRevokePremium,
-  makeResolveUserByEmail,
-} from "@/modules/iam/infrastructure/di/iam-container";
-import { makeMarkPremiumRequestGranted } from "@/modules/subscription/infrastructure/di/subscription-container";
-import {
-  makeCreateRecipe,
-  makeUpdateRecipe,
-  makeDeleteRecipe,
-} from "@/modules/recipes/infrastructure/di/recipes-container";
+import { makeResolveUserByEmail } from "@/modules/iam/infrastructure/di/iam-container";
 import {
   makeAccruePurchaseReward,
   makeReverseOrderRewards,
@@ -195,59 +185,6 @@ export async function deleteProductAction(id: string): Promise<void> {
   revalidatePath("/");
 }
 
-/** Creates or updates a recipe from the admin form (hidden `id` ⇒ update). */
-export async function saveRecipeAction(formData: FormData): Promise<void> {
-  await requireOperator();
-
-  const id = String(formData.get("id") ?? "").trim();
-  const backPath = id ? `/admin/recipes/${id}` : "/admin/recipes/new";
-
-  const durationRaw = String(formData.get("durationMinutes") ?? "").trim();
-  const durationMinutes = durationRaw ? Number.parseInt(durationRaw, 10) : null;
-
-  // Ingredients and steps arrive one per line from their textareas.
-  const toLines = (value: FormDataEntryValue | null): string[] =>
-    String(value ?? "")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-  const input = {
-    title: String(formData.get("title") ?? ""),
-    description: String(formData.get("description") ?? ""),
-    difficulty: String(formData.get("difficulty") ?? ""),
-    durationMinutes,
-    ingredients: toLines(formData.get("ingredients")),
-    steps: toLines(formData.get("steps")),
-    imageUrl: String(formData.get("imageUrl") ?? ""),
-    videoUrl: String(formData.get("videoUrl") ?? ""),
-    published: formData.get("published") === "on",
-  };
-
-  const result = id
-    ? await makeUpdateRecipe().execute({ id, ...input })
-    : await makeCreateRecipe().execute(input);
-  if (!result.ok) {
-    failTo(backPath, result.error.message);
-  }
-
-  revalidatePath("/admin/recipes");
-  revalidatePath("/recipes");
-  redirect("/admin/recipes");
-}
-
-/** Deletes a recipe (operator action; prefer unpublishing). */
-export async function deleteRecipeAction(id: string): Promise<void> {
-  await requireOperator();
-
-  const result = await makeDeleteRecipe().execute({ id });
-  if (!result.ok) {
-    failTo("/admin/recipes", result.error.message);
-  }
-  revalidatePath("/admin/recipes");
-  revalidatePath("/recipes");
-}
-
 /** Sets the operator's manual USD→VES rate. */
 export async function setManualRateAction(formData: FormData): Promise<void> {
   await requireOperator();
@@ -261,50 +198,6 @@ export async function setManualRateAction(formData: FormData): Promise<void> {
   }
   revalidatePath("/admin/settings");
   redirect("/admin/settings?saved=1");
-}
-
-/** Grants premium to the user behind an email (optionally closing a request). */
-export async function grantPremiumByEmailAction(formData: FormData): Promise<void> {
-  await requireOperator();
-
-  const email = String(formData.get("email") ?? "");
-  const requestId = String(formData.get("requestId") ?? "").trim();
-
-  const resolved = await makeResolveUserByEmail().execute({ email });
-  if (!resolved.ok) {
-    failTo("/admin/premium", `No existe una cuenta registrada con "${email}".`);
-  }
-
-  const granted = await makeGrantPremium().execute({ uid: resolved.value.uid });
-  if (!granted.ok) {
-    failTo("/admin/premium", granted.error.message);
-  }
-  if (requestId) {
-    await makeMarkPremiumRequestGranted().execute({ requestId });
-  }
-
-  revalidatePath("/admin/premium");
-  redirect(
-    "/admin/premium?granted=" +
-      encodeURIComponent(resolved.value.email) +
-      "&until=" +
-      encodeURIComponent(granted.value.premiumUntil.slice(0, 10))
-  );
-}
-
-/** Removes the premium claim from the user behind an email. */
-export async function revokePremiumByEmailAction(formData: FormData): Promise<void> {
-  await requireOperator();
-
-  const email = String(formData.get("email") ?? "");
-  const resolved = await makeResolveUserByEmail().execute({ email });
-  if (!resolved.ok) {
-    failTo("/admin/premium", `No existe una cuenta registrada con "${email}".`);
-  }
-
-  await makeRevokePremium().execute({ uid: resolved.value.uid });
-  revalidatePath("/admin/premium");
-  redirect("/admin/premium?revoked=" + encodeURIComponent(resolved.value.email));
 }
 
 /** Saves the operator's reward configuration (earn rate, holdback, expiry, cap). */

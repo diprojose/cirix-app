@@ -19,7 +19,7 @@ export function FeedbackBanner({
   }
   if (success) {
     return (
-      <p className="mb-4 rounded-xl bg-cta/10 px-4 py-3 text-sm font-medium text-cta-strong">
+      <p className="mb-4 rounded-xl bg-action-fill/10 px-4 py-3 text-sm font-medium text-action-strong">
         {success}
       </p>
     );

@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Recompensas" };
 
 /** Shared input styling, matching the other admin forms. */
 const FIELD_CLASS =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta";
+  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 type SearchParams = {
   error?: string;
@@ -147,7 +147,7 @@ export default async function AdminRewardsPage({
           </div>
           <button
             type="submit"
-            className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
+            className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
           >
             Guardar configuración
           </button>

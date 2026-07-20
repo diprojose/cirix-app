@@ -54,13 +54,13 @@ export function GoogleSignInButton({
         type="button"
         onClick={handleSignIn}
         disabled={loading}
-        className="flex min-h-[44px] w-full items-center justify-center gap-3 rounded-full border border-black/[.12] bg-white px-5 py-3 text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50 disabled:opacity-60 dark:border-white/[.16] dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+        className="flex min-h-11 w-full items-center justify-center gap-3 rounded-pill border border-border bg-surface px-5 py-3 text-label font-medium text-text shadow-xs transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none"
       >
         <GoogleGlyph />
         {loading ? "Conectando…" : "Continuar con Google"}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-label text-danger">
           {error}
         </p>
       )}

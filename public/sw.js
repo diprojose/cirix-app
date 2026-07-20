@@ -9,7 +9,7 @@
  *
  * Bump CACHE_VERSION on any change so old caches are purged on activation.
  */
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `mixmag-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 
@@ -18,7 +18,7 @@ const PRECACHE_URLS = ["/", OFFLINE_URL, "/manifest.webmanifest"];
 
 // Private/subscriber routes whose responses must never be cached (authenticated
 // content and recipes). These are served network-only.
-const PRIVATE_PATH_PREFIXES = ["/premium", "/recetas", "/pedidos"];
+const PRIVATE_PATH_PREFIXES = ["/billetera", "/checkout", "/orders", "/admin"];
 
 function isPrivatePath(pathname) {
   return PRIVATE_PATH_PREFIXES.some(

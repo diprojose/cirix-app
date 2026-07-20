@@ -53,7 +53,7 @@ export default async function AdminCouponsPage({
         <h1 className="text-xl font-bold text-text">Cupones ({coupons.length})</h1>
         <Link
           href="/admin/coupons/new"
-          className="rounded-pill bg-gradient-to-r from-cta to-cta-strong px-4 py-2 text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-95"
+          className="rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-4 py-2 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
         >
           + Nuevo
         </Link>
@@ -76,8 +76,8 @@ export default async function AdminCouponsPage({
                   <span
                     className={`ml-2 rounded-pill px-2 py-0.5 text-[10px] font-semibold ${
                       coupon.active
-                        ? "bg-cta/15 text-cta-strong"
-                        : "bg-sugar-200 text-text-muted"
+                        ? "bg-action-fill/15 text-action-strong"
+                        : "bg-stone-200 text-text-muted"
                     }`}
                   >
                     {coupon.active ? "Activo" : "Inactivo"}
@@ -88,7 +88,7 @@ export default async function AdminCouponsPage({
 
               <Link
                 href={`/admin/coupons/${coupon.id}`}
-                className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-sugar-100"
+                className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-stone-100"
               >
                 Editar
               </Link>

@@ -1,55 +1,46 @@
 import Link from "next/link";
 import type { ViewerDto } from "@/modules/iam/application/dtos/viewer-dto";
-import { BellIcon } from "./icons";
+import { WalletBadge } from "./wallet-badge";
 
 /**
- * HomeHeader is the mobile app header: an avatar, a tier-aware greeting and a
- * notifications bell. Guests get a prompt to sign in; signed-in viewers are
- * greeted by the local part of their email. It is presentational and receives
- * the resolved {@link ViewerDto} from the server.
+ * HomeHeader is the mobile app header: the wordmark plus, for signed-in
+ * customers, their reward balance. The old notification bell lived here with a
+ * permanently-lit unread dot and no destination; the balance replaces it,
+ * because on a storefront whose point is a retention loop the balance is the
+ * one number worth the corner.
+ *
+ * `wallet` is `null` for guests, who get a sign-in prompt instead.
  */
-export function HomeHeader({ viewer }: { viewer: ViewerDto }) {
-  const displayName = viewer.email ? viewer.email.split("@")[0] : null;
-
+export function HomeHeader({
+  viewer,
+  wallet,
+}: {
+  viewer: ViewerDto;
+  wallet: { availableCents: number; currency: string; streakWeeks: number } | null;
+}) {
   return (
     <header className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <div
-          className="grid h-12 w-12 place-items-center rounded-pill bg-accent-soft text-2xl"
-          aria-hidden="true"
-        >
-          🧁
-        </div>
-        <div className="flex flex-col leading-tight">
-          {viewer.authenticated ? (
-            <>
-              <span className="text-xs text-text-muted">Buenos días</span>
-              <span className="text-sm font-semibold capitalize text-text">{displayName}</span>
-            </>
-          ) : (
-            <>
-              <span className="text-xs text-text-muted">Bienvenido a mixmag</span>
-              <Link
-                href="/login"
-                className="w-fit rounded-sm text-sm font-semibold text-accent transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-              >
-                Inicia sesión
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-      <button
-        type="button"
-        aria-label="Notificaciones"
-        className="relative grid h-11 w-11 place-items-center rounded-pill bg-surface text-ink shadow-xs transition-colors hover:bg-sugar-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      <Link
+        href="/"
+        className="rounded-sm text-h-section font-bold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
-        <BellIcon className="h-5 w-5" />
-        <span
-          className="absolute right-2.5 top-2.5 h-2 w-2 rounded-pill bg-accent"
-          aria-hidden="true"
+        mixmag
+      </Link>
+
+      {wallet ? (
+        <WalletBadge
+          availableCents={wallet.availableCents}
+          currency={wallet.currency}
+          streakWeeks={wallet.streakWeeks}
         />
-      </button>
+      ) : (
+        <Link
+          href="/login"
+          className="inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-4 text-label font-semibold text-on-accent transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        >
+          {viewer.authenticated ? "Mi cuenta" : "Iniciar sesión"}
+        </Link>
+      )}
     </header>
   );
 }

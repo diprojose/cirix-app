@@ -11,7 +11,8 @@ import type { ReferralState } from "@/modules/referrals/domain/value-objects/ref
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
-import { BackButton } from "@/components/store/back-button";
+import { SubHeader } from "@/components/store/sub-header";
+import { CONTAINER_READ } from "@/components/store/layout";
 import { ReferralLinkCard } from "@/components/store/referral-link-card";
 
 export const metadata: Metadata = {
@@ -57,15 +58,11 @@ export default async function ReferralsPage() {
     <div className="flex min-h-dvh flex-col bg-bg">
       <TopNav viewer={navViewer} />
 
-      <div className="mx-auto flex w-full max-w-[26rem] items-center gap-3 px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden">
-        <BackButton />
-        <p className="flex-1 text-center text-base font-semibold text-text">Invita y gana</p>
-        <span className="h-10 w-10" aria-hidden="true" />
-      </div>
+      <SubHeader title="Invita y gana" />
 
       <main className="flex-1 pb-28 md:pb-12">
-        <div className="mx-auto w-full max-w-[26rem] space-y-6 px-5 pt-4 md:max-w-2xl md:pt-8">
-          <h1 className="hidden text-2xl font-bold text-text md:block">Invita y gana</h1>
+        <div className={`${CONTAINER_READ} space-y-6 pt-4 md:pt-8`}>
+          <h2 className="hidden text-display font-bold text-text md:block">Invita y gana</h2>
 
           {url ? (
             <ReferralLinkCard url={url} />
@@ -92,7 +89,7 @@ export default async function ReferralsPage() {
                       {STATE_LABELS[referral.state]}
                     </span>
                     {referral.rewardCents !== null && referral.rewardCents > 0 && (
-                      <span className="text-sm font-bold tabular-nums text-cta-strong">
+                      <span className="text-sm font-bold tabular-nums text-action-strong">
                         +{formatPrice(referral.rewardCents, "USD")}
                       </span>
                     )}

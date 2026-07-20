@@ -20,7 +20,7 @@ export function CartBadge() {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute -right-1 -top-1 grid h-[1.15rem] min-w-[1.15rem] place-items-center rounded-pill bg-cta px-1 text-[0.65rem] font-bold leading-none text-on-cta shadow-cta ring-2 ring-surface"
+      className="pointer-events-none absolute -right-1 -top-1 grid h-[1.15rem] min-w-[1.15rem] place-items-center rounded-pill bg-action-fill px-1 text-[0.65rem] font-bold leading-none text-on-action shadow-action ring-2 ring-surface"
     >
       {label}
     </span>

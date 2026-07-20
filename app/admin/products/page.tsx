@@ -34,7 +34,7 @@ export default async function AdminProductsPage({
         <h1 className="text-xl font-bold text-text">Productos ({products.length})</h1>
         <Link
           href="/admin/products/new"
-          className="rounded-pill bg-gradient-to-r from-cta to-cta-strong px-4 py-2 text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-95"
+          className="rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-4 py-2 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
         >
           + Nuevo
         </Link>
@@ -46,7 +46,7 @@ export default async function AdminProductsPage({
             key={product.id}
             className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-xs"
           >
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-sugar-100">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-stone-100">
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
@@ -66,7 +66,7 @@ export default async function AdminProductsPage({
               <p className="truncate text-sm font-semibold text-text">
                 {product.name}
                 {product.featured && (
-                  <span className="ml-2 rounded-pill bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-brand-800">
+                  <span className="ml-2 rounded-pill bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-strong">
                     Destacado
                   </span>
                 )}
@@ -80,8 +80,8 @@ export default async function AdminProductsPage({
             <span
               className={`shrink-0 rounded-pill px-2.5 py-1 text-xs font-semibold ${
                 product.available
-                  ? "bg-cta/15 text-cta-strong"
-                  : "bg-sugar-200 text-text-muted"
+                  ? "bg-action-fill/15 text-action-strong"
+                  : "bg-stone-200 text-text-muted"
               }`}
             >
               {product.available ? "Visible" : "Oculto"}
@@ -89,7 +89,7 @@ export default async function AdminProductsPage({
 
             <Link
               href={`/admin/products/${product.id}`}
-              className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-sugar-100"
+              className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-stone-100"
             >
               Editar
             </Link>

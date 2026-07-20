@@ -3,12 +3,16 @@ import { err, ok, type Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import { InvalidDepartmentError } from "../errors/catalog-errors";
 
-/** The closed set of departments a {@link Product} can belong to. */
-export type DepartmentName = "postres" | "supermercado";
+/**
+ * The closed set of departments a {@link Product} can belong to. The MVP
+ * catalog is fresh produce only, so a single department is enough; real grocery
+ * aisles (dairy, pantry, frozen…) are a future extension that only needs new
+ * members here plus their labels.
+ */
+export type DepartmentName = "supermercado";
 
 /** Human-readable label per department, used at the UI edge. */
 const DEPARTMENT_LABELS: Record<DepartmentName, string> = {
-  postres: "Postres",
   supermercado: "Supermercado",
 };
 
@@ -19,7 +23,7 @@ type DepartmentProps = {
 
 /**
  * Department is the immutable value object classifying a {@link Product} into a
- * top-level section of the catalog (e.g. "Postres" or "Supermercado"). It is the
+ * top-level section of the catalog (today only "Supermercado"). It is the
  * axis the storefront organizes and filters by. Its factory rejects unknown
  * names, so an invalid department can never reach the domain.
  */
@@ -49,6 +53,6 @@ export class Department extends ValueObject<DepartmentProps> {
 
   /** Type guard narrowing an arbitrary string to a known department name. */
   private static isDepartmentName(value: string): value is DepartmentName {
-    return value === "postres" || value === "supermercado";
+    return value === "supermercado";
   }
 }

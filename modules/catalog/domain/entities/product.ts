@@ -34,7 +34,7 @@ export type CreateProductInput = {
 
 /**
  * Product is the catalog aggregate root: an item the shop offers, made to order
- * (there is no stock). It spans every department — desserts and grocery/food
+ * (there is no stock). It is classified by department — grocery/produce
  * items alike — and owns its invariants (a non-empty name, a valid {@link Money}
  * price and a known {@link Department}), so an invalid Product can never be
  * constructed.

@@ -46,7 +46,7 @@ export default async function AdminOrdersPage() {
               <li key={order.id}>
                 <Link
                   href={`/admin/orders/${order.id}`}
-                  className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-xs transition-colors hover:bg-sugar-100"
+                  className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-xs transition-colors hover:bg-stone-100"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-text">
@@ -61,7 +61,7 @@ export default async function AdminOrdersPage() {
                         : `Delivery ${order.delivery.zoneName ?? ""}`}{" "}
                       · {order.scheduledDate}
                       {pendingPayments > 0 && (
-                        <span className="ml-2 font-semibold text-cta-strong">
+                        <span className="ml-2 font-semibold text-action-strong">
                           {pendingPayments} pago(s) por verificar
                         </span>
                       )}

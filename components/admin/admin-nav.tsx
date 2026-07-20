@@ -7,8 +7,6 @@ import { usePathname } from "next/navigation";
 const TABS = [
   { href: "/admin/orders", label: "Pedidos" },
   { href: "/admin/products", label: "Productos" },
-  { href: "/admin/recipes", label: "Recetas" },
-  { href: "/admin/premium", label: "Premium" },
   { href: "/admin/coupons", label: "Cupones" },
   { href: "/admin/rewards", label: "Recompensas" },
   { href: "/admin/fraude", label: "Fraude" },
@@ -34,7 +32,7 @@ export function AdminNav() {
             className={`shrink-0 rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
               active
                 ? "bg-ink text-on-accent"
-                : "text-text-muted hover:bg-sugar-100 hover:text-text"
+                : "text-text-muted hover:bg-stone-100 hover:text-text"
             }`}
           >
             {tab.label}

@@ -8,7 +8,8 @@ import { makeListEligibleCoupons } from "@/modules/coupons/infrastructure/di/cou
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
-import { BackButton } from "@/components/store/back-button";
+import { SubHeader } from "@/components/store/sub-header";
+import { CONTAINER_READ } from "@/components/store/layout";
 import { WalletView } from "@/components/store/wallet-view";
 import { RewardsPerks } from "@/components/store/rewards-perks";
 
@@ -51,15 +52,11 @@ export default async function WalletPage() {
     <div className="flex min-h-dvh flex-col bg-bg">
       <TopNav viewer={navViewer} />
 
-      <div className="mx-auto flex w-full max-w-[26rem] items-center gap-3 px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden">
-        <BackButton />
-        <p className="flex-1 text-center text-base font-semibold text-text">Mi billetera</p>
-        <span className="h-10 w-10" aria-hidden="true" />
-      </div>
+      <SubHeader title="Mi billetera" />
 
       <main className="flex-1 pb-28 md:pb-12">
-        <div className="mx-auto w-full max-w-[26rem] px-5 pt-4 md:max-w-2xl md:pt-8">
-          <h1 className="mb-4 hidden text-2xl font-bold text-text md:block">Mi billetera</h1>
+        <div className={`${CONTAINER_READ} pt-4 md:pt-8`}>
+          <h2 className="mb-4 hidden text-display font-bold text-text md:block">Mi billetera</h2>
           <WalletView wallet={wallet} />
           <div className="mt-6">
             <RewardsPerks profile={profile} coupons={eligibleCoupons} />
@@ -67,21 +64,21 @@ export default async function WalletPage() {
           <div className="mt-6 space-y-2">
             <Link
               href="/referidos"
-              className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-sugar-100"
+              className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-stone-100"
             >
               <span className="text-sm font-semibold text-text">
                 Invita amigos y gana crédito
               </span>
-              <span className="text-cta-strong" aria-hidden="true">
+              <span className="text-action-strong" aria-hidden="true">
                 →
               </span>
             </Link>
             <Link
               href="/notificaciones"
-              className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-sugar-100"
+              className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-stone-100"
             >
               <span className="text-sm font-semibold text-text">Notificaciones</span>
-              <span className="text-cta-strong" aria-hidden="true">
+              <span className="text-action-strong" aria-hidden="true">
                 →
               </span>
             </Link>

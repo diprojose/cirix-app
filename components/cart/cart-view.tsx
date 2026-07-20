@@ -1,27 +1,26 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, formatVes } from "@/lib/format/money";
+import { formatPrice } from "@/lib/format/money";
 import { QuantityStepper } from "@/components/store/quantity-stepper";
+import { ProductThumb } from "@/components/store/product-thumb";
 import { BagIcon, TrashIcon } from "@/components/store/icons";
 import { MAX_QUANTITY } from "@/modules/cart/domain/value-objects/quantity";
 import type { CartLineDto } from "@/modules/cart/application/dtos/cart-dto";
 import { useCart } from "./cart-provider";
 
+/** Primary CTA treatment, shared by the checkout link and the empty-state link. */
+const CTA =
+  "flex h-14 w-full items-center justify-center rounded-pill bg-action-fill text-title font-semibold text-on-action shadow-action transition-[background-color,transform] duration-200 ease-out-quint hover:bg-action-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
+
 /**
  * CartView is the client body of the `/cart` page. It renders straight from the
  * cart context: a loading skeleton until the cart has hydrated from storage (so
- * the empty state never flashes), then either an empty state or the line list plus
- * an order summary. The checkout CTA hands off to `/checkout`, where the ordering
- * context takes over.
+ * the empty state never flashes), then either an empty state or the line list
+ * plus an order summary. The checkout CTA hands off to `/checkout`, where the
+ * ordering context takes over.
  */
-export function CartView({
-  vesPerUsd = null,
-}: {
-  /** Current BCV rate for the bolívar subtotal reference; `null` hides it. */
-  vesPerUsd?: number | null;
-}) {
+export function CartView() {
   const { cart, ready, changeQuantity, removeItem, clear } = useCart();
 
   if (!ready) {
@@ -47,34 +46,26 @@ export function CartView({
         ))}
       </ul>
 
-      <div className="rounded-2xl bg-surface p-4 shadow-xs">
+      <div className="rounded-lg border border-border bg-surface p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-text-muted">Subtotal</span>
-          <span className="text-lg font-bold tabular-nums text-text">
+          <span className="text-body text-text-muted">Subtotal</span>
+          <span className="text-price-lg font-bold tabular-nums text-text">
             {formatPrice(cart.subtotalCents, currency)}
           </span>
         </div>
-        {vesPerUsd !== null && (
-          <p className="text-right text-sm font-medium tabular-nums text-text-muted">
-            {formatVes(cart.subtotalCents, vesPerUsd)}
-          </p>
-        )}
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-caption text-text-muted">
           El envío y los detalles de entrega se calculan al finalizar el pedido.
         </p>
       </div>
 
-      <div className="space-y-3">
-        <Link
-          href="/checkout"
-          className="flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-base font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
-        >
+      <div className="space-y-2">
+        <Link href="/checkout" className={CTA}>
           Finalizar pedido
         </Link>
         <button
           type="button"
           onClick={() => void clear()}
-          className="w-full py-1 text-center text-sm font-medium text-text-muted underline-offset-2 transition-colors hover:text-danger hover:underline"
+          className="flex min-h-11 w-full items-center justify-center rounded-pill text-label font-medium text-text-muted transition-colors hover:bg-stone-100 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Vaciar carrito
         </button>
@@ -94,49 +85,38 @@ function CartLineRow({
   onRemove: () => void;
 }) {
   return (
-    <li className="flex gap-3 rounded-2xl bg-surface p-3 shadow-xs">
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-sugar-100">
-        {line.imageUrl ? (
-          <Image
-            src={line.imageUrl}
-            alt={line.name}
-            fill
-            sizes="80px"
-            className="object-contain p-1.5"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-2xl" aria-hidden="true">
-            🧁
-          </div>
-        )}
-      </div>
+    <li className="flex gap-3 rounded-lg border border-border bg-surface p-3">
+      <ProductThumb
+        id={line.productId}
+        name={line.name}
+        imageUrl={line.imageUrl}
+        className="h-20 w-20 shrink-0 rounded-md bg-accent-subtle"
+        imageClassName="object-contain p-1.5"
+        sizes="80px"
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-text">
+          <h3 className="line-clamp-2 text-title font-semibold leading-snug text-text">
             {line.name}
           </h3>
           <button
             type="button"
             onClick={onRemove}
             aria-label={`Quitar ${line.name}`}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-pill text-sugar-400 transition-colors hover:bg-sugar-100 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+            className="-mr-1 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-pill text-text-muted transition-colors hover:bg-stone-100 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
           >
-            <TrashIcon className="h-4 w-4" />
+            <TrashIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <p className="mt-0.5 text-xs tabular-nums text-text-muted">
+        <p className="mt-0.5 text-caption tabular-nums text-text-muted">
           {formatPrice(line.unitPriceCents, line.currency)} c/u
         </p>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-          <QuantityStepper
-            value={line.quantity}
-            onChange={onQuantityChange}
-            max={MAX_QUANTITY}
-          />
-          <span className="text-sm font-bold tabular-nums text-text">
+          <QuantityStepper value={line.quantity} onChange={onQuantityChange} max={MAX_QUANTITY} />
+          <span className="text-title font-bold tabular-nums text-text">
             {formatPrice(line.lineTotalCents, line.currency)}
           </span>
         </div>
@@ -149,19 +129,14 @@ function CartLineRow({
 function EmptyCart() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-      <div className="grid h-20 w-20 place-items-center rounded-pill bg-sugar-100 text-sugar-400">
+      <div className="grid h-20 w-20 place-items-center rounded-pill bg-stone-100 text-text-muted">
         <BagIcon className="h-10 w-10" />
       </div>
       <div>
-        <p className="text-lg font-bold text-text">Tu carrito está vacío</p>
-        <p className="mt-1 text-sm text-text-muted">
-          Agrega postres y productos para verlos aquí.
-        </p>
+        <p className="text-h-section font-bold text-text">Tu carrito está vacío</p>
+        <p className="mt-1 text-body text-text-muted">Agrega productos para verlos aquí.</p>
       </div>
-      <Link
-        href="/"
-        className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong px-6 text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
-      >
+      <Link href="/" className={`${CTA} h-12 max-w-xs`}>
         Explorar productos
       </Link>
     </div>
@@ -173,12 +148,12 @@ function CartSkeleton() {
   return (
     <ul className="space-y-3" aria-hidden="true">
       {[0, 1, 2].map((index) => (
-        <li key={index} className="flex gap-3 rounded-2xl bg-surface p-3 shadow-xs">
-          <div className="h-20 w-20 shrink-0 animate-pulse rounded-xl bg-sugar-100" />
+        <li key={index} className="flex gap-3 rounded-lg border border-border bg-surface p-3">
+          <div className="h-20 w-20 shrink-0 animate-pulse rounded-md bg-stone-100" />
           <div className="flex-1 space-y-2 py-1">
-            <div className="h-4 w-3/4 animate-pulse rounded bg-sugar-100" />
-            <div className="h-3 w-1/3 animate-pulse rounded bg-sugar-100" />
-            <div className="mt-4 h-8 w-24 animate-pulse rounded-pill bg-sugar-100" />
+            <div className="h-4 w-3/4 animate-pulse rounded-sm bg-stone-100" />
+            <div className="h-3 w-1/3 animate-pulse rounded-sm bg-stone-100" />
+            <div className="mt-4 h-9 w-24 animate-pulse rounded-pill bg-stone-100" />
           </div>
         </li>
       ))}

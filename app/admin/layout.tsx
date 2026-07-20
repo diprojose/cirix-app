@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </div>
           <Link
             href="/"
-            className="shrink-0 rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text transition-colors hover:bg-sugar-100"
+            className="shrink-0 rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text transition-colors hover:bg-stone-100"
           >
             ← Tienda
           </Link>

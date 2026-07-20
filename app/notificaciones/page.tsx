@@ -8,7 +8,8 @@ import {
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
-import { BackButton } from "@/components/store/back-button";
+import { SubHeader } from "@/components/store/sub-header";
+import { CONTAINER_READ } from "@/components/store/layout";
 import {
   saveNotificationPrefsAction,
   markNotificationsReadAction,
@@ -55,18 +56,14 @@ export default async function NotificationsPage({
     <div className="flex min-h-dvh flex-col bg-bg">
       <TopNav viewer={navViewer} />
 
-      <div className="mx-auto flex w-full max-w-[26rem] items-center gap-3 px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden">
-        <BackButton />
-        <p className="flex-1 text-center text-base font-semibold text-text">Notificaciones</p>
-        <span className="h-10 w-10" aria-hidden="true" />
-      </div>
+      <SubHeader title="Notificaciones" />
 
       <main className="flex-1 pb-28 md:pb-12">
-        <div className="mx-auto w-full max-w-[26rem] space-y-6 px-5 pt-4 md:max-w-2xl md:pt-8">
-          <h1 className="hidden text-2xl font-bold text-text md:block">Notificaciones</h1>
+        <div className={`${CONTAINER_READ} space-y-6 pt-4 md:pt-8`}>
+          <h2 className="hidden text-display font-bold text-text md:block">Notificaciones</h2>
 
           {saved && (
-            <p className="rounded-xl bg-cta/10 px-4 py-3 text-sm font-medium text-cta-strong">
+            <p className="rounded-xl bg-action-fill/10 px-4 py-3 text-sm font-medium text-action-strong">
               Preferencias guardadas.
             </p>
           )}
@@ -76,7 +73,7 @@ export default async function NotificationsPage({
               <h2 className="text-sm font-bold text-text">Avisos</h2>
               {hasUnread && (
                 <form action={markNotificationsReadAction}>
-                  <button type="submit" className="text-xs font-semibold text-cta-strong">
+                  <button type="submit" className="text-xs font-semibold text-action-strong">
                     Marcar leídas
                   </button>
                 </form>
@@ -92,7 +89,7 @@ export default async function NotificationsPage({
                   <li
                     key={notification.id}
                     className={`rounded-2xl px-4 py-3 shadow-xs ${
-                      notification.read ? "bg-surface" : "bg-cta/5 ring-1 ring-cta/20"
+                      notification.read ? "bg-surface" : "bg-action-fill/5 ring-1 ring-action-fill/20"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -142,7 +139,7 @@ function PrefRow({ name, label, checked }: { name: string; label: string; checke
         type="checkbox"
         name={name}
         defaultChecked={checked}
-        className="h-6 w-6 accent-[oklch(0.64_0.17_288)]"
+        className="h-6 w-6 accent-action-fill"
       />
     </label>
   );

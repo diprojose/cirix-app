@@ -1,47 +1,10 @@
 import { Product, type CreateProductInput } from "../../domain/entities/product";
 
 // Sample catalog content (Spanish product data — this is domain content, not
-// code). Every item is made to order; there is no stock. Images are local files
-// under /public/products so they work offline and need no remote config.
+// code). The MVP catalog is fresh produce only; stock is out of scope. Images
+// are local files under /public/products so they work offline and need no
+// remote config.
 const SEED_DATA: CreateProductInput[] = [
-  // ---- Postres (made-to-order desserts) ----
-  {
-    id: "11111111-1111-4111-8111-111111111111",
-    name: "Torta de chocolate",
-    description: "Bizcocho húmedo de chocolate con ganache y cerezas.",
-    priceCents: 2500,
-    costCents: 1200,
-    currency: "USD",
-    department: "postres",
-    imageUrl: "/products/torta-de-chocolate.png",
-    featured: true,
-    available: true,
-  },
-  {
-    id: "22222222-2222-4222-8222-222222222222",
-    name: "Cheesecake de frutos rojos",
-    description: "Base de galleta, relleno cremoso y frutos rojos frescos.",
-    priceCents: 2200,
-    costCents: 1100,
-    currency: "USD",
-    department: "postres",
-    imageUrl: "/products/cheesecake-de-fresa.png",
-    featured: true,
-    available: true,
-  },
-  {
-    id: "44444444-4444-4444-8444-444444444444",
-    name: "Cupcake de vainilla",
-    description: "Esponjoso, con buttercream y chispas de colores.",
-    priceCents: 1500,
-    costCents: 700,
-    currency: "USD",
-    department: "postres",
-    imageUrl: "/products/cupcakes-de-vainilla.png",
-    featured: true,
-    available: true,
-  },
-  // ---- Supermercado (fresh produce, also by order) ----
   {
     id: "77777777-7777-4777-8777-777777777777",
     name: "Tomates",

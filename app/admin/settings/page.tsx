@@ -72,7 +72,7 @@ export default async function AdminSettingsPage({
             step="0.0001"
             inputMode="decimal"
             placeholder="727.45"
-            className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta"
+            className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill"
           />
           <button
             type="submit"

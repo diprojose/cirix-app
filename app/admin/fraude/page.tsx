@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Fraude" };
 
 /** Shared input styling, matching the other admin forms. */
 const FIELD_CLASS =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta";
+  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 /**
  * Fraud review panel (US-F4, UC-24): the queue of pending alerts an analyst can
@@ -84,7 +84,7 @@ export default async function AdminFraudPage({
                   <form action={resolveFraudAlertAction.bind(null, alert.id, "approve")}>
                     <button
                       type="submit"
-                      className="rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-sugar-100"
+                      className="rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-stone-100"
                     >
                       Aprobar
                     </button>

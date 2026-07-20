@@ -1,10 +1,15 @@
 /**
  * Formats an integer amount of minor units (cents) plus an ISO-4217 currency
- * code into a localized currency string (Spanish locale). Kept at the UI edge so
- * DTOs stay currency-agnostic. Example: `formatPrice(2500, "USD") → "$25,00"`.
+ * code into a localized currency string. Kept at the UI edge so DTOs stay
+ * currency-agnostic. Example: `formatPrice(2500, "USD") → "$25.00"`.
+ *
+ * The locale is `es-US` rather than plain `es`: the market is Florida, so
+ * amounts follow US conventions ("$4.00") while the interface stays in Spanish.
+ * Plain `es` renders USD as "4,00 US$", which is both wrong for the market and
+ * nearly twice as wide, which matters in a three-column catalog cell.
  */
 export function formatPrice(cents: number, currency: string): string {
-  return new Intl.NumberFormat("es", {
+  return new Intl.NumberFormat("es-US", {
     style: "currency",
     currency,
   }).format(cents / 100);

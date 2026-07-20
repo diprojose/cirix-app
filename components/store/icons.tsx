@@ -152,3 +152,42 @@ export function TrashIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function CloseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+    </Icon>
+  );
+}
+
+export function WalletIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H17a1 1 0 0 1 1 1v1.5" />
+      <path d="M4 8.5V17a2 2 0 0 0 2 2h11a1 1 0 0 0 1-1v-2" />
+      <path d="M18 11.5h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1Z" />
+    </Icon>
+  );
+}
+
+/** Produce glyph: the catalog's placeholder when a product has no photo. */
+export function LeafIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M5 19c0-7 4.5-11.5 14-11.5C19 16 14.5 20 8.5 20 7 20 5.8 19.7 5 19Z" />
+      <path d="M5 19c2-4.5 5.2-7.5 9-9" />
+    </Icon>
+  );
+}
+
+export function RepeatIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5" />
+      <path d="M20 4.5v4h-4" />
+      <path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5" />
+      <path d="M4 19.5v-4h4" />
+    </Icon>
+  );
+}

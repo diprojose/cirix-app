@@ -23,10 +23,10 @@ const STATUS_LABELS: Record<LedgerStatus, string> = {
 
 /** Tailwind chip classes per status. */
 const STATUS_CLASSES: Record<LedgerStatus, string> = {
-  pending: "bg-sugar-100 text-text-muted",
-  available: "bg-cta/10 text-cta-strong",
+  pending: "bg-stone-100 text-text-muted",
+  available: "bg-action-fill/10 text-action-strong",
   reversed: "bg-danger/10 text-danger",
-  expired: "bg-sugar-100 text-sugar-400",
+  expired: "bg-stone-100 text-stone-400",
 };
 
 /** Formats an ISO date as a short Spanish date, or a dash when absent. */
@@ -48,7 +48,7 @@ function shortDate(iso: string | null): string {
 export function WalletView({ wallet }: { wallet: WalletDto }) {
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-br from-cta to-cta-strong p-5 text-on-cta shadow-cta">
+      <section className="rounded-2xl bg-gradient-to-br from-action-fill to-action-strong p-5 text-on-action shadow-action">
         <p className="text-xs font-medium uppercase tracking-wide opacity-90">
           Crédito disponible
         </p>
@@ -100,7 +100,7 @@ function WalletRow({ entry }: { entry: WalletEntryDto }) {
       <div className="flex flex-col items-end gap-1">
         <span
           className={`text-sm font-bold tabular-nums ${
-            positive ? "text-cta-strong" : "text-danger"
+            positive ? "text-action-strong" : "text-danger"
           }`}
         >
           {positive ? "+" : "−"}

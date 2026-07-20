@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatPrice, formatVes } from "@/lib/format/money";
+import { formatPrice } from "@/lib/format/money";
 import { useCart } from "@/components/cart/cart-provider";
 import { placeOrderAction, validateCouponAction } from "@/app/checkout/actions";
 import type { DeliveryZone } from "@/modules/ordering/domain/value-objects/delivery-method";
@@ -11,12 +11,12 @@ import type { ExchangeRateDto } from "@/modules/pricing/application/dtos/exchang
 
 /** Shared input styling for the checkout fields. */
 const FIELD_CLASS =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta";
+  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 /**
  * CheckoutForm is the client body of the `/checkout` page: it reads the cart
  * from context, collects contact, delivery and scheduling data, shows the
- * order summary in dollars and bolívares, and submits everything (product ids
+ * order summary, and submits everything (product ids
  * and quantities only — never prices) to the place-order server action. On
  * success it clears the cart and navigates to the order's status page.
  */
@@ -66,7 +66,7 @@ export function CheckoutForm({
         </p>
         <Link
           href="/"
-          className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong px-6 text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
+          className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-6 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
         >
           Explorar productos
         </Link>
@@ -232,7 +232,7 @@ export function CheckoutForm({
             className={FIELD_CLASS}
           />
           <span className="block text-xs text-text-muted">
-            Todo se prepara por encargo; el pastelero confirmará la fecha.
+            Elige el día en que quieres recibir o retirar tu mercado.
           </span>
         </label>
 
@@ -244,7 +244,7 @@ export function CheckoutForm({
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             placeholder="Personalización, dedicatoria, punto de referencia…"
-            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill"
           />
         </label>
       </section>
@@ -261,7 +261,7 @@ export function CheckoutForm({
             <button
               type="button"
               onClick={handleRemoveCoupon}
-              className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-sugar-100"
+              className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-stone-100"
             >
               Quitar
             </button>
@@ -309,7 +309,7 @@ export function CheckoutForm({
               type="checkbox"
               checked={useCredit}
               onChange={(event) => setUseCredit(event.target.checked)}
-              className="h-6 w-6 shrink-0 accent-[oklch(0.64_0.17_288)]"
+              className="h-6 w-6 shrink-0 accent-action-fill"
             />
           </label>
         </section>
@@ -333,17 +333,7 @@ export function CheckoutForm({
           <SummaryRow label="Total" strong>
             {formatPrice(totalCents, currency)}
           </SummaryRow>
-          {exchangeRate && (
-            <p className="text-right text-sm font-medium tabular-nums text-text-muted">
-              {formatVes(totalCents, exchangeRate.vesPerUsd)}
-            </p>
-          )}
         </div>
-        {exchangeRate && (
-          <p className="text-xs text-text-muted">
-            Tasa BCV del {exchangeRate.asOf}: {formatVes(100, exchangeRate.vesPerUsd)} por $1.
-          </p>
-        )}
       </section>
 
       {error && (
@@ -355,7 +345,7 @@ export function CheckoutForm({
       <button
         type="submit"
         disabled={submitting}
-        className="flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-base font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98] disabled:opacity-60"
+        className="flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong text-base font-semibold text-on-action shadow-action transition-transform active:scale-[0.98] disabled:opacity-60"
       >
         {submitting ? "Enviando pedido…" : "Confirmar pedido"}
       </button>
@@ -386,8 +376,8 @@ function DeliveryOption({
       onClick={onSelect}
       className={`flex min-h-[3.5rem] flex-col items-start justify-center rounded-xl border px-4 py-2 text-left transition-colors ${
         selected
-          ? "border-cta bg-cta/10 text-text"
-          : "border-border bg-surface text-text-muted hover:border-sugar-300"
+          ? "border-action-fill bg-action-fill/10 text-text"
+          : "border-border bg-surface text-text-muted hover:border-stone-300"
       }`}
     >
       <span className="text-sm font-semibold">{label}</span>

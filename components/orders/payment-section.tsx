@@ -13,7 +13,7 @@ type BusinessProfile = typeof BUSINESS_PROFILE;
 
 /** Shared input styling for the report fields. */
 const FIELD_CLASS =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta";
+  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 const METHODS: PaymentMethod[] = ["pago_movil", "transferencia", "zelle", "efectivo"];
 
@@ -71,7 +71,7 @@ export function PaymentSection({
             {payments.map((payment) => (
               <li
                 key={payment.id}
-                className="flex items-center justify-between gap-3 rounded-xl bg-sugar-100 px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-xl bg-stone-100 px-3 py-2"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-text">
@@ -104,8 +104,8 @@ export function PaymentSection({
                 onClick={() => setMethod(option)}
                 className={`flex min-h-[2.75rem] items-center justify-center rounded-xl border px-3 text-sm font-semibold transition-colors ${
                   method === option
-                    ? "border-cta bg-cta/10 text-text"
-                    : "border-border bg-surface text-text-muted hover:border-sugar-300"
+                    ? "border-action-fill bg-action-fill/10 text-text"
+                    : "border-border bg-surface text-text-muted hover:border-stone-300"
                 }`}
               >
                 {PAYMENT_METHOD_LABELS[option]}
@@ -218,7 +218,7 @@ function MethodInstructions({
 /** Key/value card listing where to pay. */
 function InstructionCard({ rows, hint }: { rows: [string, string][]; hint: string }) {
   return (
-    <div className="space-y-1.5 rounded-xl bg-sugar-100 px-4 py-3">
+    <div className="space-y-1.5 rounded-xl bg-stone-100 px-4 py-3">
       {rows.map(([label, value]) => (
         <p key={label} className="flex items-center justify-between gap-3 text-sm">
           <span className="text-text-muted">{label}</span>
@@ -234,7 +234,7 @@ function InstructionCard({ rows, hint }: { rows: [string, string][]; hint: strin
 function ReportStatusBadge({ status }: { status: PaymentReportDto["status"] }) {
   if (status === "verified") {
     return (
-      <span className="shrink-0 rounded-pill bg-cta/15 px-2.5 py-1 text-xs font-semibold text-cta-strong">
+      <span className="shrink-0 rounded-pill bg-action-fill/15 px-2.5 py-1 text-xs font-semibold text-action-strong">
         Verificado
       </span>
     );
@@ -247,7 +247,7 @@ function ReportStatusBadge({ status }: { status: PaymentReportDto["status"] }) {
     );
   }
   return (
-    <span className="shrink-0 rounded-pill bg-sugar-200 px-2.5 py-1 text-xs font-semibold text-text-muted">
+    <span className="shrink-0 rounded-pill bg-stone-200 px-2.5 py-1 text-xs font-semibold text-text-muted">
       Por verificar
     </span>
   );

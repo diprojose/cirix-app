@@ -40,13 +40,13 @@ export function RewardsPerks({
       <section className="space-y-2 rounded-2xl bg-surface p-4 shadow-xs">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-text">Tu racha</h2>
-          <span className="rounded-pill bg-sugar-100 px-2 py-0.5 text-[0.65rem] font-semibold text-text-muted">
+          <span className="rounded-pill bg-stone-100 px-2 py-0.5 text-[0.65rem] font-semibold text-text-muted">
             {SEGMENT_LABELS[profile.segment]}
           </span>
         </div>
-        <div className="h-2.5 w-full overflow-hidden rounded-pill bg-sugar-100">
+        <div className="h-2.5 w-full overflow-hidden rounded-pill bg-stone-100">
           <div
-            className="h-full rounded-pill bg-gradient-to-r from-cta to-cta-strong"
+            className="h-full rounded-pill bg-gradient-to-r from-action-fill to-action-strong"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -75,7 +75,7 @@ export function RewardsPerks({
                     </p>
                   )}
                 </div>
-                <span className="shrink-0 rounded-pill bg-cta/10 px-2.5 py-1 text-xs font-bold text-cta-strong">
+                <span className="shrink-0 rounded-pill bg-action-fill/10 px-2.5 py-1 text-xs font-bold text-action-strong">
                   {discountLabel(coupon)} OFF
                 </span>
               </li>
