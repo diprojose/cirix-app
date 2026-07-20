@@ -11,7 +11,14 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
  */
 
 // Route prefixes that require at least a signed-in user.
-const PRIVATE_PREFIXES = ["/premium", "/pedidos", "/recetas", "/billetera", "/referidos"];
+const PRIVATE_PREFIXES = [
+  "/premium",
+  "/pedidos",
+  "/recetas",
+  "/billetera",
+  "/referidos",
+  "/notificaciones",
+];
 
 function isPrivate(pathname: string): boolean {
   return PRIVATE_PREFIXES.some(

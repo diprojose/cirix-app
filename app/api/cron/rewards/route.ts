@@ -1,12 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { formatPrice } from "@/lib/format/money";
 import {
   makeReleaseDueRewards,
   makeExpireRewards,
+  makeListExpiringSoon,
 } from "@/modules/rewards/infrastructure/di/rewards-container";
 import {
   makeRecalculateSegments,
   makeGenerateWinBack,
 } from "@/modules/customers/infrastructure/di/customers-container";
+import { makeSendNotification } from "@/modules/notifications/infrastructure/di/notifications-container";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +43,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const expired = await makeExpireRewards().execute();
   const resegmented = await makeRecalculateSegments().execute();
   const winBack = await makeGenerateWinBack().execute();
+
+  // Notifications: credit that just became available (US-H1), and credit about to
+  // expire within a week (US-H2, deduped per line so reruns don't repeat it).
+  if (released.ok) {
+    for (const line of released.value.released) {
+      await makeSendNotification().execute({
+        customerUid: line.customerUid,
+        type: "credit_available",
+        title: "Crédito disponible",
+        body: `Tienes ${formatPrice(line.amountCents, "USD")} de crédito listo para usar.`,
+      });
+    }
+  }
+  const expiring = await makeListExpiringSoon().execute({ withinDays: 7 });
+  if (expiring.ok) {
+    for (const line of expiring.value) {
+      await makeSendNotification().execute({
+        customerUid: line.customerUid,
+        type: "credit_expiring",
+        title: "Crédito por expirar",
+        body: `${formatPrice(line.amountCents, "USD")} de tu crédito vence pronto.`,
+        dedupeKey: `expiring_${line.entryId}`,
+      });
+    }
+  }
 
   return NextResponse.json({
     releasedCount: released.ok ? released.value.releasedCount : null,

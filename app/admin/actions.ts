@@ -52,6 +52,8 @@ import {
   makeRaiseFraudAlert,
   makeResolveFraudAlert,
 } from "@/modules/fraud/infrastructure/di/fraud-container";
+import { makeSendNotification } from "@/modules/notifications/infrastructure/di/notifications-container";
+import { formatPrice } from "@/lib/format/money";
 
 /*
  * Admin server actions (primary adapters for operator use cases). Every action
@@ -109,10 +111,18 @@ export async function advanceOrderAction(
     // referrer's reward — unlocked on their second purchase (BR-08) — and folds
     // into their retention profile (RFM segment + weekly streak, BR-21/BR-25).
     if (result.value.customerUid) {
-      await makeRecordReferredPurchase().execute({
+      const referral = await makeRecordReferredPurchase().execute({
         referredUid: result.value.customerUid,
         orderId,
       });
+      if (referral.ok && referral.value.awarded && referral.value.referrerUid) {
+        await makeSendNotification().execute({
+          customerUid: referral.value.referrerUid,
+          type: "referral_reward",
+          title: "¡Ganaste recompensa!",
+          body: `Un referido tuyo desbloqueó ${formatPrice(referral.value.amountCents, "USD")} de crédito.`,
+        });
+      }
       await makeRecordConfirmedOrder().execute({
         customerUid: result.value.customerUid,
         orderTotalCents: result.value.totalCents,

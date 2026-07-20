@@ -12,6 +12,7 @@ import { RecordReferredPurchase } from "../../application/use-cases/record-refer
 import { GetMyReferrals } from "../../application/use-cases/get-my-referrals";
 import { ReverseReferralOnOrderCancel } from "../../application/use-cases/reverse-referral-on-order-cancel";
 import { BlockReferral } from "../../application/use-cases/block-referral";
+import { GetReferralFunnel } from "../../application/use-cases/get-referral-funnel";
 
 /*
  * Composition root for the referrals module. The single place that knows the
@@ -61,3 +62,7 @@ export const makeReverseReferralOnOrderCancel = (): ReverseReferralOnOrderCancel
 /** Builds the "block referral" use case (fraud review). */
 export const makeBlockReferral = (): BlockReferral =>
   new BlockReferral(referrals(), referrerRewarder());
+
+/** Builds the "get referral funnel" use case (KPIs). */
+export const makeGetReferralFunnel = (): GetReferralFunnel =>
+  new GetReferralFunnel(referrals());

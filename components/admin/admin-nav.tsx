@@ -12,6 +12,7 @@ const TABS = [
   { href: "/admin/coupons", label: "Cupones" },
   { href: "/admin/rewards", label: "Recompensas" },
   { href: "/admin/fraude", label: "Fraude" },
+  { href: "/admin/kpis", label: "KPIs" },
   { href: "/admin/settings", label: "Ajustes" },
 ];
 

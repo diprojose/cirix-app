@@ -11,8 +11,12 @@ export type RecordReferredPurchaseInput = {
   orderId: string;
 };
 
-/** Whether this purchase unlocked and paid the referrer's reward. */
-export type RecordReferredPurchaseResult = { awarded: boolean };
+/** Whether this purchase unlocked and paid the referrer's reward, and to whom. */
+export type RecordReferredPurchaseResult = {
+  awarded: boolean;
+  referrerUid: string | null;
+  amountCents: number;
+};
 
 /**
  * Advances a referral one confirmed purchase at a time (US-D3, US-D4, UC-14). A
@@ -36,19 +40,19 @@ export class RecordReferredPurchase
   ): Promise<Result<RecordReferredPurchaseResult, DomainError>> {
     const referral = await this.referrals.findByReferred(input.referredUid);
     if (referral === null) {
-      return ok({ awarded: false });
+      return ok({ awarded: false, referrerUid: null, amountCents: 0 });
     }
 
     if (referral.state === "registrado") {
       await this.referrals.save(referral.recordFirstPurchase(input.orderId));
-      return ok({ awarded: false });
+      return ok({ awarded: false, referrerUid: null, amountCents: 0 });
     }
 
     const isSecondPurchase =
       referral.state === "primera_compra" &&
       input.orderId !== referral.firstPurchaseOrderId;
     if (!isSecondPurchase) {
-      return ok({ awarded: false });
+      return ok({ awarded: false, referrerUid: null, amountCents: 0 });
     }
 
     // Second purchase: unlock the reward unless the referrer hit the monthly cap.
@@ -64,7 +68,11 @@ export class RecordReferredPurchase
         amountCents: rewardCents,
       });
     }
-    return ok({ awarded: rewardCents > 0 });
+    return ok({
+      awarded: rewardCents > 0,
+      referrerUid: referral.referrerUid,
+      amountCents: rewardCents,
+    });
   }
 
   /** Whether the referrer is below their rewarded-referrals cap for the current month. */

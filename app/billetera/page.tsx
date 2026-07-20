@@ -64,17 +64,28 @@ export default async function WalletPage() {
           <div className="mt-6">
             <RewardsPerks profile={profile} coupons={eligibleCoupons} />
           </div>
-          <Link
-            href="/referidos"
-            className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-sugar-100"
-          >
-            <span className="text-sm font-semibold text-text">
-              Invita amigos y gana crédito
-            </span>
-            <span className="text-cta-strong" aria-hidden="true">
-              →
-            </span>
-          </Link>
+          <div className="mt-6 space-y-2">
+            <Link
+              href="/referidos"
+              className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-sugar-100"
+            >
+              <span className="text-sm font-semibold text-text">
+                Invita amigos y gana crédito
+              </span>
+              <span className="text-cta-strong" aria-hidden="true">
+                →
+              </span>
+            </Link>
+            <Link
+              href="/notificaciones"
+              className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-sugar-100"
+            >
+              <span className="text-sm font-semibold text-text">Notificaciones</span>
+              <span className="text-cta-strong" aria-hidden="true">
+                →
+              </span>
+            </Link>
+          </div>
         </div>
       </main>
 

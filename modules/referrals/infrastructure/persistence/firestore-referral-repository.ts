@@ -54,6 +54,11 @@ export class FirestoreReferralRepository implements ReferralRepository {
     return doc ? restore(doc.id, doc.data() as ReferralDocument) : null;
   }
 
+  async findAll(limit: number): Promise<Referral[]> {
+    const snapshot = await this.firestore.collection(COLLECTION).limit(limit).get();
+    return snapshot.docs.map((doc) => restore(doc.id, doc.data() as ReferralDocument));
+  }
+
   async save(referral: Referral): Promise<void> {
     await this.firestore
       .collection(COLLECTION)

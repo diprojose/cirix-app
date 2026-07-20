@@ -17,6 +17,7 @@ import { GetLiabilityReport } from "../../application/use-cases/get-liability-re
 import { AccrueReferralReward } from "../../application/use-cases/accrue-referral-reward";
 import { ReverseReferralReward } from "../../application/use-cases/reverse-referral-reward";
 import { GrantPromotionalCredit } from "../../application/use-cases/grant-promotional-credit";
+import { ListExpiringSoon } from "../../application/use-cases/list-expiring-soon";
 
 /*
  * Composition root for the rewards module. The single place that knows the
@@ -87,3 +88,6 @@ export const makeReverseReferralReward = (): ReverseReferralReward =>
 /** Builds the "grant promotional credit" use case (streak bonus / win-back). */
 export const makeGrantPromotionalCredit = (): GrantPromotionalCredit =>
   new GrantPromotionalCredit(ledger());
+
+/** Builds the "list expiring soon" use case (expiry-warning notifications). */
+export const makeListExpiringSoon = (): ListExpiringSoon => new ListExpiringSoon(ledger());

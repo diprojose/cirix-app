@@ -9,6 +9,8 @@ import { RecalculateSegments } from "../../application/use-cases/recalculate-seg
 import { GenerateWinBack } from "../../application/use-cases/generate-win-back";
 import { GetCustomerSegment } from "../../application/use-cases/get-customer-segment";
 import { GetCustomerProfile } from "../../application/use-cases/get-customer-profile";
+import { GetSegmentDistribution } from "../../application/use-cases/get-segment-distribution";
+import { ListInactiveCustomers } from "../../application/use-cases/list-inactive-customers";
 
 /*
  * Composition root for the customers (retention) module. The single place that
@@ -49,3 +51,11 @@ export const makeGetCustomerSegment = (): GetCustomerSegment =>
 /** Builds the "get customer profile" use case (storefront progress). */
 export const makeGetCustomerProfile = (): GetCustomerProfile =>
   new GetCustomerProfile(profiles(), DEFAULT_RETENTION_CONFIG);
+
+/** Builds the "get segment distribution" use case (KPIs). */
+export const makeGetSegmentDistribution = (): GetSegmentDistribution =>
+  new GetSegmentDistribution(profiles());
+
+/** Builds the "list inactive customers" use case (escheatment report). */
+export const makeListInactiveCustomers = (): ListInactiveCustomers =>
+  new ListInactiveCustomers(profiles());

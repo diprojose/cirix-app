@@ -17,6 +17,9 @@ export interface ReferralRepository {
   /** The referral whose second (reward-triggering) purchase is this order, if any. */
   findBySecondPurchaseOrder(orderId: string): Promise<Referral | null>;
 
+  /** Every referral, bounded by the adapter (for the KPIs funnel). */
+  findAll(limit: number): Promise<Referral[]>;
+
   /** Inserts the referral or replaces the existing one for the same referred user. */
   save(referral: Referral): Promise<void>;
 }
