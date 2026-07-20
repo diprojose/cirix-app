@@ -16,6 +16,7 @@ import type { AppliedCouponDto } from "../dtos/coupon-dto";
 export type RedeemCouponInput = {
   code: string;
   customerUid: string | null;
+  customerSegment: string | null;
   orderId: string;
   orderSubtotalCents: number;
 };
@@ -47,6 +48,7 @@ export class RedeemCoupon implements UseCase<RedeemCouponInput, AppliedCouponDto
     const evaluation = coupon.evaluate({
       subtotalCents: input.orderSubtotalCents,
       nowIso: new Date().toISOString(),
+      customerSegment: input.customerSegment,
     });
     if (!evaluation.ok) {
       return evaluation;

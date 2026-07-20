@@ -11,6 +11,7 @@ import { RegisterReferral } from "../../application/use-cases/register-referral"
 import { RecordReferredPurchase } from "../../application/use-cases/record-referred-purchase";
 import { GetMyReferrals } from "../../application/use-cases/get-my-referrals";
 import { ReverseReferralOnOrderCancel } from "../../application/use-cases/reverse-referral-on-order-cancel";
+import { BlockReferral } from "../../application/use-cases/block-referral";
 
 /*
  * Composition root for the referrals module. The single place that knows the
@@ -56,3 +57,7 @@ export const makeGetMyReferrals = (): GetMyReferrals => new GetMyReferrals(refer
 /** Builds the "reverse referral on order cancel" use case. */
 export const makeReverseReferralOnOrderCancel = (): ReverseReferralOnOrderCancel =>
   new ReverseReferralOnOrderCancel(referrals(), referrerRewarder());
+
+/** Builds the "block referral" use case (fraud review). */
+export const makeBlockReferral = (): BlockReferral =>
+  new BlockReferral(referrals(), referrerRewarder());

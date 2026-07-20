@@ -8,6 +8,7 @@ import {
   CorruptCouponSnapshotError,
   CouponExpiredError,
   CouponInactiveError,
+  CouponSegmentMismatchError,
   InvalidCouponError,
   MinSpendNotMetError,
 } from "../errors/coupon-errors";
@@ -157,12 +158,21 @@ export class Coupon extends AggregateRoot<CouponProps, CouponId> {
   evaluate(context: {
     subtotalCents: number;
     nowIso: string;
+    customerSegment?: string | null;
   }): Result<number, DomainError> {
     if (!this.props.active) {
       return err(new CouponInactiveError());
     }
     if (this.props.expiresAt !== null && this.props.expiresAt < context.nowIso) {
       return err(new CouponExpiredError());
+    }
+    // Segment targeting (BR-14): a scoped coupon only serves that segment, and a
+    // guest (no segment) never matches one.
+    if (
+      this.props.segmentScope !== null &&
+      (context.customerSegment == null || context.customerSegment !== this.props.segmentScope)
+    ) {
+      return err(new CouponSegmentMismatchError());
     }
     if (context.subtotalCents < this.props.minSpendCents) {
       return err(new MinSpendNotMetError(this.props.minSpendCents));

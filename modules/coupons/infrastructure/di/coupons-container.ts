@@ -11,6 +11,7 @@ import { GetCouponById } from "../../application/use-cases/get-coupon-by-id";
 import { ValidateCoupon } from "../../application/use-cases/validate-coupon";
 import { RedeemCoupon } from "../../application/use-cases/redeem-coupon";
 import { ReverseCouponRedemption } from "../../application/use-cases/reverse-coupon-redemption";
+import { ListEligibleCoupons } from "../../application/use-cases/list-eligible-coupons";
 
 /*
  * Composition root for the coupons module. The single place that knows the
@@ -59,3 +60,7 @@ export const makeRedeemCoupon = (): RedeemCoupon =>
 /** Builds the "reverse coupon redemption" use case (on order cancel). */
 export const makeReverseCouponRedemption = (): ReverseCouponRedemption =>
   new ReverseCouponRedemption(redemptions());
+
+/** Builds the "list eligible coupons" use case (segment-targeted offers). */
+export const makeListEligibleCoupons = (): ListEligibleCoupons =>
+  new ListEligibleCoupons(coupons());

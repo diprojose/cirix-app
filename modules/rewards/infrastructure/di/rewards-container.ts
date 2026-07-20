@@ -16,6 +16,7 @@ import { SaveRewardRules } from "../../application/use-cases/save-reward-rules";
 import { GetLiabilityReport } from "../../application/use-cases/get-liability-report";
 import { AccrueReferralReward } from "../../application/use-cases/accrue-referral-reward";
 import { ReverseReferralReward } from "../../application/use-cases/reverse-referral-reward";
+import { GrantPromotionalCredit } from "../../application/use-cases/grant-promotional-credit";
 
 /*
  * Composition root for the rewards module. The single place that knows the
@@ -82,3 +83,7 @@ export const makeAccrueReferralReward = (): AccrueReferralReward =>
 /** Builds the "reverse referral reward" use case (claw back on 2nd-purchase cancel). */
 export const makeReverseReferralReward = (): ReverseReferralReward =>
   new ReverseReferralReward(ledger());
+
+/** Builds the "grant promotional credit" use case (streak bonus / win-back). */
+export const makeGrantPromotionalCredit = (): GrantPromotionalCredit =>
+  new GrantPromotionalCredit(ledger());

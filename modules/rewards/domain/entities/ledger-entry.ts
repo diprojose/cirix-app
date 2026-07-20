@@ -164,6 +164,41 @@ export class LedgerEntry extends AggregateRoot<LedgerEntryProps, LedgerEntryId> 
   }
 
   /**
+   * A retention bonus — a streak bonus (BR-25) or a win-back incentive (BR-17).
+   * Settled on creation (`available` right away) with a short expiry to nudge a
+   * return, and keyed by the caller so a repeated grant never doubles up (BR-11).
+   */
+  static promotion(input: {
+    entryId: string;
+    customerUid: string;
+    amountCents: number;
+    note: string;
+    expiresAt: string;
+  }): Result<LedgerEntry, DomainError> {
+    const uid = input.customerUid.trim();
+    if (uid.length === 0) {
+      return err(new InvalidLedgerEntryError("A ledger line requires a customer uid."));
+    }
+    if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {
+      return err(new InvalidLedgerEntryError("Promotional credit must be a positive integer of cents."));
+    }
+    return ok(
+      new LedgerEntry(LedgerEntryId.from(input.entryId), {
+        customerUid: uid,
+        amountCents: input.amountCents,
+        reason: "promotion",
+        status: "available",
+        sourceType: "promotion",
+        sourceId: input.entryId,
+        holdbackUntil: null,
+        expiresAt: input.expiresAt,
+        note: input.note.trim().slice(0, MAX_NOTE_LENGTH),
+        createdAt: new Date().toISOString(),
+      })
+    );
+  }
+
+  /**
    * An operator credit (positive) or debit (negative) for customer service. The
    * reason note is mandatory so every manual move is explainable (US-G3).
    */

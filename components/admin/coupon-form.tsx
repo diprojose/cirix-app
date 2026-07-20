@@ -104,6 +104,22 @@ export function CouponForm({ coupon }: { coupon?: CouponDto }) {
       </div>
 
       <label className="block space-y-1.5">
+        <span className="text-sm font-medium text-text">Segmento objetivo</span>
+        <select
+          name="segmentScope"
+          defaultValue={coupon?.segmentScope ?? ""}
+          className={FIELD_CLASS}
+        >
+          <option value="">Todos los clientes</option>
+          <option value="nuevo">Nuevos</option>
+          <option value="activo">Activos</option>
+          <option value="vip">VIP</option>
+          <option value="en_riesgo">En riesgo</option>
+          <option value="inactivo">Inactivos</option>
+        </select>
+      </label>
+
+      <label className="block space-y-1.5">
         <span className="text-sm font-medium text-text">Expira (opcional)</span>
         <input
           type="date"

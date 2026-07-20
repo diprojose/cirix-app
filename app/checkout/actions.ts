@@ -15,6 +15,7 @@ import {
   makeValidateCoupon,
   makeRedeemCoupon,
 } from "@/modules/coupons/infrastructure/di/coupons-container";
+import { makeGetCustomerSegment } from "@/modules/customers/infrastructure/di/customers-container";
 import type { PlaceOrderItemInput } from "@/modules/ordering/application/use-cases/place-order";
 
 /** What the checkout form submits. Prices are intentionally absent. */
@@ -101,6 +102,15 @@ export async function placeOrderAction(
   return { ok: true, orderId: result.value.id };
 }
 
+/** Resolves a customer's RFM segment for coupon targeting (null for guests). */
+async function resolveSegment(customerUid: string | null): Promise<string | null> {
+  if (!customerUid) {
+    return null;
+  }
+  const result = await makeGetCustomerSegment().execute({ customerUid });
+  return result.ok ? result.value.segment : null;
+}
+
 /** Redeems a coupon against a placed order (atomic) and records the discount. */
 async function applyCouponDiscount(
   code: string,
@@ -111,6 +121,7 @@ async function applyCouponDiscount(
   const redeemed = await makeRedeemCoupon().execute({
     code,
     customerUid,
+    customerSegment: await resolveSegment(customerUid),
     orderId,
     orderSubtotalCents,
   });
@@ -184,6 +195,7 @@ const COUPON_ERROR_MESSAGES: Record<string, string> = {
   "coupons/min-spend-not-met": "Tu compra no alcanza el mínimo de este cupón.",
   "coupons/usage-limit-reached": "Ya usaste este cupón el máximo de veces.",
   "coupons/already-used-on-order": "Este pedido ya tiene un cupón aplicado.",
+  "coupons/segment-mismatch": "Este cupón no está disponible para tu perfil.",
 };
 
 /** What the checkout coupon field submits to validate a code. */
@@ -207,10 +219,12 @@ export async function validateCouponAction(
   input: ValidateCouponActionInput
 ): Promise<CouponActionResult> {
   const viewer = await getViewer();
+  const customerUid = viewer.authenticated ? viewer.uid : null;
 
   const result = await makeValidateCoupon().execute({
     code: input.code,
-    customerUid: viewer.authenticated ? viewer.uid : null,
+    customerUid,
+    customerSegment: await resolveSegment(customerUid),
     orderSubtotalCents: input.subtotalCents,
   });
 

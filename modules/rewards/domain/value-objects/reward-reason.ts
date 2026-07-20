@@ -6,13 +6,15 @@
  * - `reversal_refund` — credit clawed back because an order was cancelled (BR-12).
  * - `manual_adjustment` — an operator credit/debit for customer service (US-G3).
  * - `referral_reward` — credit a referrer earns when their referral qualifies (BR-08).
+ * - `promotion` — a retention bonus (a streak bonus BR-25 or a win-back BR-17).
  */
 export type RewardReason =
   | "earn_purchase"
   | "burn_redemption"
   | "reversal_refund"
   | "manual_adjustment"
-  | "referral_reward";
+  | "referral_reward"
+  | "promotion";
 
 const REWARD_REASONS: readonly RewardReason[] = [
   "earn_purchase",
@@ -20,6 +22,7 @@ const REWARD_REASONS: readonly RewardReason[] = [
   "reversal_refund",
   "manual_adjustment",
   "referral_reward",
+  "promotion",
 ];
 
 /** Type guard narrowing a stored string to a known {@link RewardReason}. */

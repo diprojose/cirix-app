@@ -43,6 +43,15 @@ import {
   makeRecordReferredPurchase,
   makeReverseReferralOnOrderCancel,
 } from "@/modules/referrals/infrastructure/di/referrals-container";
+import {
+  makeRecordConfirmedOrder,
+  makeRecalculateSegments,
+  makeGenerateWinBack,
+} from "@/modules/customers/infrastructure/di/customers-container";
+import {
+  makeRaiseFraudAlert,
+  makeResolveFraudAlert,
+} from "@/modules/fraud/infrastructure/di/fraud-container";
 
 /*
  * Admin server actions (primary adapters for operator use cases). Every action
@@ -97,11 +106,16 @@ export async function advanceOrderAction(
       marginCents: result.value.marginCents,
     });
     // A confirmed order also advances the buyer's referral (if any) toward the
-    // referrer's reward — unlocked on their second purchase (BR-08).
+    // referrer's reward — unlocked on their second purchase (BR-08) — and folds
+    // into their retention profile (RFM segment + weekly streak, BR-21/BR-25).
     if (result.value.customerUid) {
       await makeRecordReferredPurchase().execute({
         referredUid: result.value.customerUid,
         orderId,
+      });
+      await makeRecordConfirmedOrder().execute({
+        customerUid: result.value.customerUid,
+        orderTotalCents: result.value.totalCents,
       });
     }
   } else if (action === "cancel") {
@@ -313,6 +327,9 @@ export async function runRewardsMaintenanceAction(): Promise<void> {
 
   const released = await makeReleaseDueRewards().execute();
   const expired = await makeExpireRewards().execute();
+  // Retention passes: demote lapsed customers (RFM) and send win-back incentives.
+  await makeRecalculateSegments().execute();
+  await makeGenerateWinBack().execute();
   const releasedCount = released.ok ? released.value.releasedCount : 0;
   const expiredCount = expired.ok ? expired.value.expiredCount : 0;
 
@@ -348,12 +365,16 @@ export async function saveCouponAction(formData: FormData): Promise<void> {
   const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
   const expiresAt = expiresRaw === "" ? null : `${expiresRaw}T23:59:59.999Z`;
 
+  const segmentRaw = String(formData.get("segmentScope") ?? "").trim();
+  const segmentScope = segmentRaw === "" ? null : segmentRaw;
+
   const input = {
     code: String(formData.get("code") ?? ""),
     discountType,
     value,
     minSpendCents: Math.round(minSpend * 100),
     usageLimitPerCustomer,
+    segmentScope,
     expiresAt,
     active: formData.get("active") === "on",
   };
@@ -378,6 +399,50 @@ export async function deleteCouponAction(id: string): Promise<void> {
     failTo("/admin/coupons", result.error.message);
   }
   revalidatePath("/admin/coupons");
+}
+
+/** Raises a fraud alert against the referral of the customer behind an email. */
+export async function raiseFraudAlertAction(formData: FormData): Promise<void> {
+  await requireOperator();
+
+  const email = String(formData.get("email") ?? "");
+  const evidence = String(formData.get("evidence") ?? "");
+
+  const resolved = await makeResolveUserByEmail().execute({ email });
+  if (!resolved.ok) {
+    failTo("/admin/fraude", `No existe una cuenta registrada con "${email}".`);
+  }
+
+  const result = await makeRaiseFraudAlert().execute({
+    subjectType: "referral",
+    subjectId: resolved.value.uid,
+    signal: "manual",
+    evidence,
+  });
+  if (!result.ok) {
+    failTo("/admin/fraude", result.error.message);
+  }
+
+  revalidatePath("/admin/fraude");
+  redirect("/admin/fraude?raised=1");
+}
+
+/** Resolves a fraud alert (approve clears it; block blocks the referral, audited). */
+export async function resolveFraudAlertAction(
+  alertId: string,
+  verdict: "approve" | "block"
+): Promise<void> {
+  const viewer = await requireOperator();
+
+  const result = await makeResolveFraudAlert().execute({
+    alertId,
+    verdict,
+    operatorId: viewer.uid ?? "operator",
+  });
+  if (!result.ok) {
+    failTo("/admin/fraude", result.error.message);
+  }
+  revalidatePath("/admin/fraude");
 }
 
 /** Applies a manual wallet credit/debit to the customer behind an email (audited). */

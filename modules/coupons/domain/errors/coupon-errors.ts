@@ -32,6 +32,15 @@ export class CouponExpiredError extends DomainError {
   }
 }
 
+/** Rejection: the coupon targets a segment the customer is not in (US-C5, BR-14). */
+export class CouponSegmentMismatchError extends DomainError {
+  readonly code = "coupons/segment-mismatch";
+
+  constructor() {
+    super("This coupon is not available for your customer segment.");
+  }
+}
+
 /** Rejection: the order subtotal is below the coupon's minimum spend. */
 export class MinSpendNotMetError extends DomainError {
   readonly code = "coupons/min-spend-not-met";
