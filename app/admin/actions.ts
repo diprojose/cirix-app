@@ -33,6 +33,12 @@ import {
   makeExpireRewards,
   makeAdjustBalanceManually,
 } from "@/modules/rewards/infrastructure/di/rewards-container";
+import {
+  makeCreateCoupon,
+  makeUpdateCoupon,
+  makeDeleteCoupon,
+  makeReverseCouponRedemption,
+} from "@/modules/coupons/infrastructure/di/coupons-container";
 
 /*
  * Admin server actions (primary adapters for operator use cases). Every action
@@ -88,6 +94,7 @@ export async function advanceOrderAction(
     });
   } else if (action === "cancel") {
     await makeReverseOrderRewards().execute({ orderId });
+    await makeReverseCouponRedemption().execute({ orderId });
   }
 
   revalidatePath(`/admin/orders/${orderId}`);
@@ -298,6 +305,66 @@ export async function runRewardsMaintenanceAction(): Promise<void> {
 
   revalidatePath("/admin/rewards");
   redirect(`/admin/rewards?released=${releasedCount}&expired=${expiredCount}`);
+}
+
+/** Creates or updates a coupon from the admin form (hidden `id` ⇒ update). */
+export async function saveCouponAction(formData: FormData): Promise<void> {
+  await requireOperator();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const backPath = id ? `/admin/coupons/${id}` : "/admin/coupons/new";
+
+  const discountType = String(formData.get("discountType") ?? "");
+  const rawValue = Number.parseFloat(String(formData.get("value") ?? "").replace(",", "."));
+  if (!Number.isFinite(rawValue) || rawValue < 0) {
+    failTo(backPath, "El valor del descuento debe ser un número no negativo.");
+  }
+  // Percentage is a whole percent; a fixed amount is entered in dollars.
+  const value =
+    discountType === "fixed" ? Math.round(rawValue * 100) : Math.round(rawValue);
+
+  const minSpendRaw = String(formData.get("minSpend") ?? "").trim().replace(",", ".");
+  const minSpend = minSpendRaw === "" ? 0 : Number.parseFloat(minSpendRaw);
+  if (!Number.isFinite(minSpend) || minSpend < 0) {
+    failTo(backPath, "El mínimo de compra debe ser un número no negativo.");
+  }
+
+  const usageRaw = String(formData.get("usageLimit") ?? "").trim();
+  const usageLimitPerCustomer = usageRaw === "" ? null : Number.parseInt(usageRaw, 10);
+
+  const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
+  const expiresAt = expiresRaw === "" ? null : `${expiresRaw}T23:59:59.999Z`;
+
+  const input = {
+    code: String(formData.get("code") ?? ""),
+    discountType,
+    value,
+    minSpendCents: Math.round(minSpend * 100),
+    usageLimitPerCustomer,
+    expiresAt,
+    active: formData.get("active") === "on",
+  };
+
+  const result = id
+    ? await makeUpdateCoupon().execute({ id, ...input })
+    : await makeCreateCoupon().execute(input);
+  if (!result.ok) {
+    failTo(backPath, result.error.message);
+  }
+
+  revalidatePath("/admin/coupons");
+  redirect("/admin/coupons");
+}
+
+/** Deletes a coupon (operator action; prefer deactivating a shared one). */
+export async function deleteCouponAction(id: string): Promise<void> {
+  await requireOperator();
+
+  const result = await makeDeleteCoupon().execute({ id });
+  if (!result.ok) {
+    failTo("/admin/coupons", result.error.message);
+  }
+  revalidatePath("/admin/coupons");
 }
 
 /** Applies a manual wallet credit/debit to the customer behind an email (audited). */

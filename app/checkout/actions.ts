@@ -11,6 +11,10 @@ import {
   makeGetWallet,
   makeRedeemReward,
 } from "@/modules/rewards/infrastructure/di/rewards-container";
+import {
+  makeValidateCoupon,
+  makeRedeemCoupon,
+} from "@/modules/coupons/infrastructure/di/coupons-container";
 import type { PlaceOrderItemInput } from "@/modules/ordering/application/use-cases/place-order";
 
 /** What the checkout form submits. Prices are intentionally absent. */
@@ -23,6 +27,8 @@ export type PlaceOrderActionInput = {
   notes?: string;
   /** When true, apply the signed-in customer's available wallet credit. */
   redeemCredit?: boolean;
+  /** A coupon code to apply. Takes precedence over credit (mutual exclusion, BR-07). */
+  couponCode?: string;
 };
 
 /** Serializable outcome for the client form. */
@@ -77,17 +83,43 @@ export async function placeOrderAction(
     return { ok: false, message: ERROR_MESSAGES[result.error.code] ?? GENERIC_ERROR };
   }
 
-  // Optional wallet redemption (US-B2): only for a signed-in customer who asked
-  // for it. The rewards use case is the single authority that clamps the amount
-  // to the customer's real balance and the per-order cap; whatever it actually
-  // redeems is then recorded as the order's discount so the total matches. This
-  // runs after placement (the order is already safely created) — a rewards
-  // hiccup must not lose the order.
-  if (input.redeemCredit && viewer.authenticated && viewer.uid) {
+  // Discount at checkout: a coupon takes precedence over wallet credit — the two
+  // never stack (mutual exclusion, BR-07). Both run after placement (the order is
+  // already safely created) and are best-effort: the customer saw the discount
+  // validate in the preview, and a rare post-place hiccup must not lose the order.
+  if (input.couponCode) {
+    await applyCouponDiscount(
+      input.couponCode,
+      viewer.authenticated ? viewer.uid : null,
+      result.value.id,
+      result.value.subtotalCents
+    );
+  } else if (input.redeemCredit && viewer.authenticated && viewer.uid) {
     await applyWalletCredit(viewer.uid, result.value.id, result.value.subtotalCents);
   }
 
   return { ok: true, orderId: result.value.id };
+}
+
+/** Redeems a coupon against a placed order (atomic) and records the discount. */
+async function applyCouponDiscount(
+  code: string,
+  customerUid: string | null,
+  orderId: string,
+  orderSubtotalCents: number
+): Promise<void> {
+  const redeemed = await makeRedeemCoupon().execute({
+    code,
+    customerUid,
+    orderId,
+    orderSubtotalCents,
+  });
+  if (redeemed.ok && redeemed.value.discountCents > 0) {
+    await makeApplyOrderDiscount().execute({
+      orderId,
+      discountCents: redeemed.value.discountCents,
+    });
+  }
 }
 
 /** Redeems the customer's available credit against a placed order, capped by rules. */
@@ -142,4 +174,51 @@ export async function reportPaymentAction(
     return { ok: false, message: ERROR_MESSAGES[result.error.code] ?? GENERIC_ERROR };
   }
   return { ok: true, orderId: result.value.id };
+}
+
+/** Maps coupon rejection codes to the Spanish reason the checkout shows (US-C3). */
+const COUPON_ERROR_MESSAGES: Record<string, string> = {
+  "coupons/not-found": "Cupón no válido o inexistente.",
+  "coupons/inactive": "Este cupón no está activo.",
+  "coupons/expired": "Este cupón ya expiró.",
+  "coupons/min-spend-not-met": "Tu compra no alcanza el mínimo de este cupón.",
+  "coupons/usage-limit-reached": "Ya usaste este cupón el máximo de veces.",
+  "coupons/already-used-on-order": "Este pedido ya tiene un cupón aplicado.",
+};
+
+/** What the checkout coupon field submits to validate a code. */
+export type ValidateCouponActionInput = {
+  code: string;
+  subtotalCents: number;
+};
+
+/** Serializable coupon-validation outcome for the checkout form. */
+export type CouponActionResult =
+  | { ok: true; code: string; discountCents: number }
+  | { ok: false; message: string };
+
+/**
+ * Validates a coupon for the checkout preview: resolves the viewer (so
+ * per-customer usage limits apply) and returns the discount or a clear reason.
+ * It records nothing — the authoritative, atomic redemption happens when the
+ * order is placed.
+ */
+export async function validateCouponAction(
+  input: ValidateCouponActionInput
+): Promise<CouponActionResult> {
+  const viewer = await getViewer();
+
+  const result = await makeValidateCoupon().execute({
+    code: input.code,
+    customerUid: viewer.authenticated ? viewer.uid : null,
+    orderSubtotalCents: input.subtotalCents,
+  });
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      message: COUPON_ERROR_MESSAGES[result.error.code] ?? "No pudimos aplicar el cupón.",
+    };
+  }
+  return { ok: true, code: result.value.code, discountCents: result.value.discountCents };
 }

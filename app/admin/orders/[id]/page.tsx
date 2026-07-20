@@ -127,7 +127,7 @@ export default async function AdminOrderDetailPage({
           </p>
           {order.discountCents > 0 && (
             <p className="flex justify-between">
-              <span className="text-text-muted">Crédito aplicado</span>
+              <span className="text-text-muted">Descuento</span>
               <span className="font-medium tabular-nums text-cta-strong">
                 −{formatPrice(order.discountCents, order.currency)}
               </span>

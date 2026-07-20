@@ -9,6 +9,7 @@ const TABS = [
   { href: "/admin/products", label: "Productos" },
   { href: "/admin/recipes", label: "Recetas" },
   { href: "/admin/premium", label: "Premium" },
+  { href: "/admin/coupons", label: "Cupones" },
   { href: "/admin/rewards", label: "Recompensas" },
   { href: "/admin/settings", label: "Ajustes" },
 ];

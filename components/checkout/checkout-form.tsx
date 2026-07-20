@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatPrice, formatVes } from "@/lib/format/money";
 import { useCart } from "@/components/cart/cart-provider";
-import { placeOrderAction } from "@/app/checkout/actions";
+import { placeOrderAction, validateCouponAction } from "@/app/checkout/actions";
 import type { DeliveryZone } from "@/modules/ordering/domain/value-objects/delivery-method";
 import type { ExchangeRateDto } from "@/modules/pricing/application/dtos/exchange-rate-dto";
 
@@ -41,6 +41,12 @@ export function CheckoutForm({
   const [scheduledDate, setScheduledDate] = useState("");
   const [notes, setNotes] = useState("");
   const [useCredit, setUseCredit] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<
+    { code: string; discountCents: number } | null
+  >(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,15 +79,44 @@ export function CheckoutForm({
   const deliveryFeeCents =
     deliveryKind === "delivery" ? (selectedZone?.feeCents ?? 0) : 0;
 
-  // Credit preview: capped to the balance, the per-order cap and the subtotal.
-  // The server re-clamps on submit, so this is UX only.
+  // A coupon and wallet credit are mutually exclusive (BR-07); a coupon wins when
+  // both are set. All previews are UX only — the server re-validates on submit.
   const hasCredit = availableCreditCents > 0;
   const redeemCapCents = Math.floor((maxRedeemPctOfOrder / 100) * cart.subtotalCents);
-  const discountCents =
-    useCredit && hasCredit
+  const creditDiscountCents =
+    useCredit && hasCredit && appliedCoupon === null
       ? Math.min(availableCreditCents, redeemCapCents, cart.subtotalCents)
       : 0;
+  const couponDiscountCents = appliedCoupon
+    ? Math.min(appliedCoupon.discountCents, cart.subtotalCents)
+    : 0;
+  const discountCents = appliedCoupon ? couponDiscountCents : creditDiscountCents;
+  const discountLabel = appliedCoupon ? `Cupón ${appliedCoupon.code}` : "Crédito aplicado";
   const totalCents = cart.subtotalCents + deliveryFeeCents - discountCents;
+
+  async function handleApplyCoupon() {
+    if (couponBusy || cart === null) return;
+    const code = couponInput.trim();
+    if (code === "") return;
+
+    setCouponBusy(true);
+    setCouponError(null);
+    const result = await validateCouponAction({ code, subtotalCents: cart.subtotalCents });
+    if (result.ok) {
+      setAppliedCoupon({ code: result.code, discountCents: result.discountCents });
+      setUseCredit(false);
+    } else {
+      setAppliedCoupon(null);
+      setCouponError(result.message);
+    }
+    setCouponBusy(false);
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null);
+    setCouponError(null);
+    setCouponInput("");
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -101,7 +136,8 @@ export function CheckoutForm({
         deliveryKind === "pickup" ? { kind: "pickup" } : { kind: "delivery", zoneId },
       scheduledDate,
       notes,
-      redeemCredit: useCredit && hasCredit,
+      redeemCredit: appliedCoupon ? false : useCredit && hasCredit,
+      couponCode: appliedCoupon?.code,
     });
 
     if (!result.ok) {
@@ -213,8 +249,54 @@ export function CheckoutForm({
         </label>
       </section>
 
-      {/* Wallet credit: signed-in customers can pay part of the order with it. */}
-      {hasCredit && (
+      {/* Coupon: anyone (guests included) can apply a code. Excludes credit (BR-07). */}
+      <section className="space-y-3 rounded-2xl bg-surface p-4 shadow-xs">
+        <h2 className="text-sm font-bold text-text">Cupón</h2>
+        {appliedCoupon ? (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-text">
+              <span className="font-bold tracking-wide">{appliedCoupon.code}</span> aplicado
+              {couponDiscountCents > 0 && ` (−${formatPrice(couponDiscountCents, currency)})`}
+            </span>
+            <button
+              type="button"
+              onClick={handleRemoveCoupon}
+              className="shrink-0 rounded-pill border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-sugar-100"
+            >
+              Quitar
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={couponInput}
+                onChange={(event) => setCouponInput(event.target.value)}
+                placeholder="Código"
+                className={`${FIELD_CLASS} uppercase`}
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={couponBusy}
+                className="shrink-0 rounded-pill bg-ink px-5 text-sm font-semibold text-on-accent transition-transform active:scale-95 disabled:opacity-60"
+              >
+                {couponBusy ? "…" : "Aplicar"}
+              </button>
+            </div>
+            {couponError && (
+              <p role="alert" className="text-xs font-medium text-danger">
+                {couponError}
+              </p>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Wallet credit: signed-in customers can pay part of the order with it.
+          Hidden while a coupon is applied — the two never stack (BR-07). */}
+      {hasCredit && appliedCoupon === null && (
         <section className="rounded-2xl bg-surface p-4 shadow-xs">
           <label className="flex items-center justify-between gap-3">
             <span className="min-w-0">
@@ -243,7 +325,7 @@ export function CheckoutForm({
           {deliveryFeeCents === 0 ? "Gratis" : formatPrice(deliveryFeeCents, currency)}
         </SummaryRow>
         {discountCents > 0 && (
-          <SummaryRow label="Crédito aplicado">
+          <SummaryRow label={discountLabel}>
             −{formatPrice(discountCents, currency)}
           </SummaryRow>
         )}
