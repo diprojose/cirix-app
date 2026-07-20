@@ -31,4 +31,9 @@ export class LedgerEntryId extends Identifier {
   static forBurn(orderId: string): LedgerEntryId {
     return new LedgerEntryId(`burn_${orderId}`);
   }
+
+  /** Deterministic id for a referrer's reward — one per referral (BR-08). */
+  static forReferral(referralId: string): LedgerEntryId {
+    return new LedgerEntryId(`referral_${referralId}`);
+  }
 }

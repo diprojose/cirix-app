@@ -96,6 +96,42 @@ export class LedgerEntry extends AggregateRoot<LedgerEntryProps, LedgerEntryId> 
   }
 
   /**
+   * Credit a referrer earns once their referral qualifies (BR-08). Like a
+   * purchase earn it is born `pending` with a holdback and an expiry, but sourced
+   * from the referral and keyed by it so a referral rewards its referrer at most
+   * once (BR-11).
+   */
+  static referral(input: {
+    referrerUid: string;
+    amountCents: number;
+    referralId: string;
+    holdbackUntil: string;
+    expiresAt: string;
+  }): Result<LedgerEntry, DomainError> {
+    const uid = input.referrerUid.trim();
+    if (uid.length === 0) {
+      return err(new InvalidLedgerEntryError("A ledger line requires a customer uid."));
+    }
+    if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {
+      return err(new InvalidLedgerEntryError("Referral reward must be a positive integer of cents."));
+    }
+    return ok(
+      new LedgerEntry(LedgerEntryId.forReferral(input.referralId), {
+        customerUid: uid,
+        amountCents: input.amountCents,
+        reason: "referral_reward",
+        status: "pending",
+        sourceType: "referral",
+        sourceId: input.referralId,
+        holdbackUntil: input.holdbackUntil,
+        expiresAt: input.expiresAt,
+        note: "",
+        createdAt: new Date().toISOString(),
+      })
+    );
+  }
+
+  /**
    * Credit spent on a future order (BR-03): a negative line, settled on
    * creation. Keyed by the order so one order carries at most one redemption.
    */
@@ -262,11 +298,9 @@ export class LedgerEntry extends AggregateRoot<LedgerEntryProps, LedgerEntryId> 
     return this.props.status === "available" ? this.props.amountCents : 0;
   }
 
-  /** This line's contribution to the pending balance (only held earn lines). */
+  /** This line's contribution to the pending balance (held earn/referral lines). */
   get pendingCents(): number {
-    return this.props.reason === "earn_purchase" && this.props.status === "pending"
-      ? this.props.amountCents
-      : 0;
+    return this.props.status === "pending" ? this.props.amountCents : 0;
   }
 
   /** Whether this held line is due for release at the given instant. */
@@ -278,11 +312,11 @@ export class LedgerEntry extends AggregateRoot<LedgerEntryProps, LedgerEntryId> 
     );
   }
 
-  /** Whether this available earn line has reached its expiry at the given instant. */
+  /** Whether this available line has reached its expiry at the given instant.
+   * Only earn and referral lines carry an expiry; burn/manual lines never do. */
   isExpirableAt(nowIso: string): boolean {
     return (
       this.props.status === "available" &&
-      this.props.reason === "earn_purchase" &&
       this.props.expiresAt !== null &&
       this.props.expiresAt <= nowIso
     );

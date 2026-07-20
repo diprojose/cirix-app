@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getViewer, requireCustomer } from "@/lib/auth/dal";
 import { makeGetWallet } from "@/modules/rewards/infrastructure/di/rewards-container";
@@ -48,6 +49,17 @@ export default async function WalletPage() {
         <div className="mx-auto w-full max-w-[26rem] px-5 pt-4 md:max-w-2xl md:pt-8">
           <h1 className="mb-4 hidden text-2xl font-bold text-text md:block">Mi billetera</h1>
           <WalletView wallet={wallet} />
+          <Link
+            href="/referidos"
+            className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-sugar-100"
+          >
+            <span className="text-sm font-semibold text-text">
+              Invita amigos y gana crédito
+            </span>
+            <span className="text-cta-strong" aria-hidden="true">
+              →
+            </span>
+          </Link>
         </div>
       </main>
 

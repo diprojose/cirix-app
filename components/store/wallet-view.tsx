@@ -9,6 +9,7 @@ const REASON_LABELS: Record<RewardReason, string> = {
   burn_redemption: "Crédito usado",
   reversal_refund: "Reverso",
   manual_adjustment: "Ajuste",
+  referral_reward: "Recompensa por referido",
 };
 
 /** Human copy per ledger status. */

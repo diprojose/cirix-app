@@ -39,6 +39,10 @@ import {
   makeDeleteCoupon,
   makeReverseCouponRedemption,
 } from "@/modules/coupons/infrastructure/di/coupons-container";
+import {
+  makeRecordReferredPurchase,
+  makeReverseReferralOnOrderCancel,
+} from "@/modules/referrals/infrastructure/di/referrals-container";
 
 /*
  * Admin server actions (primary adapters for operator use cases). Every action
@@ -92,9 +96,18 @@ export async function advanceOrderAction(
       customerUid: result.value.customerUid,
       marginCents: result.value.marginCents,
     });
+    // A confirmed order also advances the buyer's referral (if any) toward the
+    // referrer's reward — unlocked on their second purchase (BR-08).
+    if (result.value.customerUid) {
+      await makeRecordReferredPurchase().execute({
+        referredUid: result.value.customerUid,
+        orderId,
+      });
+    }
   } else if (action === "cancel") {
     await makeReverseOrderRewards().execute({ orderId });
     await makeReverseCouponRedemption().execute({ orderId });
+    await makeReverseReferralOnOrderCancel().execute({ orderId });
   }
 
   revalidatePath(`/admin/orders/${orderId}`);

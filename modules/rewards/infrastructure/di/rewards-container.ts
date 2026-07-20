@@ -14,6 +14,8 @@ import { AdjustBalanceManually } from "../../application/use-cases/adjust-balanc
 import { GetRewardRules } from "../../application/use-cases/get-reward-rules";
 import { SaveRewardRules } from "../../application/use-cases/save-reward-rules";
 import { GetLiabilityReport } from "../../application/use-cases/get-liability-report";
+import { AccrueReferralReward } from "../../application/use-cases/accrue-referral-reward";
+import { ReverseReferralReward } from "../../application/use-cases/reverse-referral-reward";
 
 /*
  * Composition root for the rewards module. The single place that knows the
@@ -72,3 +74,11 @@ export const makeSaveRewardRules = (): SaveRewardRules =>
 /** Builds the "get liability report" use case (points liability). */
 export const makeGetLiabilityReport = (): GetLiabilityReport =>
   new GetLiabilityReport(ledger());
+
+/** Builds the "accrue referral reward" use case (referrer credit on unlock). */
+export const makeAccrueReferralReward = (): AccrueReferralReward =>
+  new AccrueReferralReward(ledger(), rules());
+
+/** Builds the "reverse referral reward" use case (claw back on 2nd-purchase cancel). */
+export const makeReverseReferralReward = (): ReverseReferralReward =>
+  new ReverseReferralReward(ledger());
