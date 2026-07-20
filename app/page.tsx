@@ -3,6 +3,7 @@ import {
   makeListAvailableProducts,
   makeListFeaturedProducts,
 } from "@/modules/catalog/infrastructure/di/catalog-container";
+import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
 import { TopNav } from "@/components/store/top-nav";
 import { HomeHeader } from "@/components/store/home-header";
 import { SearchBar } from "@/components/store/search-bar";
@@ -21,10 +22,11 @@ import { COLUMN, CONTAINER } from "@/components/store/layout";
  * and a single client-side department filter.
  */
 export default async function Home() {
-  const [viewer, productsResult, featuredResult] = await Promise.all([
+  const [viewer, productsResult, featuredResult, rateResult] = await Promise.all([
     getViewer(),
     makeListAvailableProducts().execute(),
     makeListFeaturedProducts().execute(),
+    makeGetExchangeRate().execute(),
   ]);
 
   if (!productsResult.ok) {
@@ -39,6 +41,7 @@ export default async function Home() {
   const products = productsResult.value;
   const featured = featuredResult.ok ? featuredResult.value : [];
   const heroProduct = featured[0] ?? products[0];
+  const vesPerUsd = rateResult.ok ? rateResult.value.vesPerUsd : null;
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-bg">
@@ -67,7 +70,7 @@ export default async function Home() {
         )}
 
         {/* Shared catalog: one client-side filter drives both layouts. */}
-        <CatalogBrowser products={products} featured={featured} />
+        <CatalogBrowser products={products} featured={featured} vesPerUsd={vesPerUsd} />
       </main>
 
       {/* Desktop / web horizon: footer. */}

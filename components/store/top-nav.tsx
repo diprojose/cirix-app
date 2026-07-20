@@ -32,9 +32,17 @@ export function TopNav({ viewer }: { viewer: ViewerDto }) {
           <Link href="/" className="hover:text-accent">
             Inicio
           </Link>
+          <Link href="/recipes" className="hover:text-accent">
+            Recetas
+          </Link>
           <Link href="/premium" className="hover:text-accent">
             Premium
           </Link>
+          {viewer.permissions.canOperateStore && (
+            <Link href="/admin" className="font-semibold text-cta-strong hover:text-cta">
+              Panel
+            </Link>
+          )}
         </nav>
 
         <Link

@@ -50,3 +50,17 @@ export async function requirePremium(): Promise<ViewerDto> {
   }
   return viewer;
 }
+
+/**
+ * Guard for the admin panel: requires an operator. Guests go to login; any
+ * other signed-in viewer is sent back to the storefront. Every `/admin` page
+ * and every admin server action must call this — the role check lives on the
+ * server, never only in the UI.
+ */
+export async function requireOperator(): Promise<ViewerDto> {
+  const viewer = await getViewer();
+  if (!viewer.permissions.canOperateStore) {
+    redirect(viewer.authenticated ? "/" : "/login?from=/admin");
+  }
+  return viewer;
+}

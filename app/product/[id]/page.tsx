@@ -5,7 +5,8 @@ import {
   makeGetProductById,
   makeListAvailableProducts,
 } from "@/modules/catalog/infrastructure/di/catalog-container";
-import { formatPrice } from "@/lib/format/money";
+import { formatPrice, formatVes } from "@/lib/format/money";
+import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { ProductThumb } from "@/components/store/product-thumb";
@@ -63,10 +64,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  */
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [viewer, productResult, availableResult] = await Promise.all([
+  const [viewer, productResult, availableResult, rateResult] = await Promise.all([
     getViewer(),
     makeGetProductById().execute(id),
     makeListAvailableProducts().execute(),
+    makeGetExchangeRate().execute(),
   ]);
 
   if (!productResult.ok) {
@@ -76,6 +78,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const product = productResult.value;
   const department = departmentLabel(product.department);
   const price = formatPrice(product.priceCents, product.currency);
+  const vesPerUsd = rateResult.ok ? rateResult.value.vesPerUsd : null;
   const related = (availableResult.ok ? availableResult.value : [])
     .filter((p) => p.department === product.department && p.id !== product.id)
     .slice(0, MAX_RELATED);
@@ -108,6 +111,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <div className="absolute right-0 top-8 rounded-2xl bg-surface px-4 py-2.5 text-center shadow-float">
               <p className="text-[11px] font-medium text-text-muted">Precio</p>
               <p className="text-xl font-extrabold tabular-nums text-text">{price}</p>
+              {vesPerUsd !== null && (
+                <p className="text-xs font-medium tabular-nums text-text-muted">
+                  {formatVes(product.priceCents, vesPerUsd)}
+                </p>
+              )}
             </div>
           </div>
 
@@ -169,7 +177,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <h2 className="mb-3 text-lg font-bold text-text">Más de {department}</h2>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {related.map((p, index) => (
-                  <ProductCard key={p.id} product={p} index={index} />
+                  <ProductCard key={p.id} product={p} index={index} vesPerUsd={vesPerUsd} />
                 ))}
               </div>
             </section>

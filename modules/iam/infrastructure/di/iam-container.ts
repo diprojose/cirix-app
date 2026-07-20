@@ -5,6 +5,7 @@ import { CreateSession } from "../../application/use-cases/create-session";
 import { RevokeSession } from "../../application/use-cases/revoke-session";
 import { GrantPremium } from "../../application/use-cases/grant-premium";
 import { RevokePremium } from "../../application/use-cases/revoke-premium";
+import { ResolveUserByEmail } from "../../application/use-cases/resolve-user-by-email";
 
 /*
  * Composition root for the iam module. This is the single place that knows the
@@ -34,3 +35,7 @@ export const makeGrantPremium = (): GrantPremium =>
 /** Builds the "revoke premium claim" use case (operator action). */
 export const makeRevokePremium = (): RevokePremium =>
   new RevokePremium(identityProvider);
+
+/** Builds the "resolve user by email" use case (operator action). */
+export const makeResolveUserByEmail = (): ResolveUserByEmail =>
+  new ResolveUserByEmail(identityProvider);

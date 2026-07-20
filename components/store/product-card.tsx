@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
-import { formatPrice } from "@/lib/format/money";
+import { formatPrice, formatVesCompact } from "@/lib/format/money";
 import { QuickAddButton } from "@/components/cart/quick-add-button";
 import { ProductThumb } from "./product-thumb";
 
@@ -25,10 +25,13 @@ export function ProductCard({
   product,
   index = 0,
   className = "",
+  vesPerUsd = null,
 }: {
   product: ProductDto;
   index?: number;
   className?: string;
+  /** Current BCV rate for the bolívar reference price; `null` hides it. */
+  vesPerUsd?: number | null;
 }) {
   const tint = CARD_TINTS[index % CARD_TINTS.length];
 
@@ -52,8 +55,15 @@ export function ProductCard({
         </Link>
       </h3>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="inline-flex h-9 items-center rounded-pill bg-surface px-3 text-xs font-bold tabular-nums text-text shadow-xs">
-          {formatPrice(product.priceCents, product.currency)}
+        <span className="inline-flex h-9 flex-col justify-center rounded-pill bg-surface px-3 shadow-xs">
+          <span className="text-xs font-bold tabular-nums leading-tight text-text">
+            {formatPrice(product.priceCents, product.currency)}
+          </span>
+          {vesPerUsd !== null && (
+            <span className="text-[10px] font-medium tabular-nums leading-tight text-text-muted">
+              {formatVesCompact(product.priceCents, vesPerUsd)}
+            </span>
+          )}
         </span>
         <QuickAddButton product={product} />
       </div>

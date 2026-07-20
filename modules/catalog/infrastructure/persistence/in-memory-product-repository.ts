@@ -31,7 +31,15 @@ export class InMemoryProductRepository implements ProductRepository {
     );
   }
 
+  async findAll(): Promise<Product[]> {
+    return [...this.store.values()];
+  }
+
   async save(product: Product): Promise<void> {
     this.store.set(product.id.value, product);
+  }
+
+  async delete(id: ProductId): Promise<void> {
+    this.store.delete(id.value);
   }
 }

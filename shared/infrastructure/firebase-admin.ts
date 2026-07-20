@@ -1,13 +1,16 @@
 import "server-only";
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 /*
  * Firebase Admin bootstrap. This is the only module that reads the service
- * account credentials and initialises the privileged server-side SDK. It is
- * infrastructure: nothing in domain/ or application/ imports it. Kept as a
- * lazily-initialised singleton so the app is created once per server runtime
- * and reused across requests (and never re-created on hot reload).
+ * account credentials and initialises the privileged server-side SDK. It lives
+ * in the shared kernel's infrastructure because several bounded contexts (iam,
+ * ordering, …) back their adapters with the same Firebase project — nothing in
+ * any domain/ or application/ layer imports it. Kept as a lazily-initialised
+ * singleton so the app is created once per server runtime and reused across
+ * requests (and never re-created on hot reload).
  */
 
 const APP_NAME = "mixmag-admin";
@@ -46,4 +49,9 @@ function adminApp(): App {
 /** The Admin Auth service, backed by the shared Admin app. */
 export function adminAuth(): Auth {
   return getAuth(adminApp());
+}
+
+/** The Admin Firestore service, backed by the shared Admin app. */
+export function adminFirestore(): Firestore {
+  return getFirestore(adminApp());
 }

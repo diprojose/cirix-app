@@ -13,9 +13,12 @@ export type ViewerDto = {
   uid: string | null;
   email: string | null;
   tier: AccessTierName;
+  /** ISO timestamp of when premium expires; `null` for non-premium or legacy grants. */
+  premiumUntil: string | null;
   permissions: {
     canPlaceOrders: boolean;
     canViewRecipes: boolean;
+    canOperateStore: boolean;
   };
 };
 
@@ -25,9 +28,11 @@ export const guestViewer: ViewerDto = {
   uid: null,
   email: null,
   tier: "guest",
+  premiumUntil: null,
   permissions: {
     canPlaceOrders: false,
     canViewRecipes: false,
+    canOperateStore: false,
   },
 };
 
@@ -41,9 +46,11 @@ export const toViewerDto = (account: UserAccount | null): ViewerDto => {
     uid: account.id.value,
     email: account.email.value,
     tier: account.tier.name,
+    premiumUntil: account.premiumUntil,
     permissions: {
       canPlaceOrders: account.canPlaceOrders(),
       canViewRecipes: account.canViewRecipes(),
+      canOperateStore: account.canOperateStore(),
     },
   };
 };

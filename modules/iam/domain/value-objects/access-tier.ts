@@ -1,11 +1,12 @@
 import { ValueObject } from "@/shared/domain/value-object";
 
 /**
- * The three access modes the product supports, ordered from least to most
- * capable. `guest` browses without an account, `customer` has signed in and can
- * place orders, and `premium` can additionally view the subscriber recipes.
+ * The access modes the product supports, ordered from least to most capable.
+ * `guest` browses without an account, `customer` has signed in and can place
+ * orders, `premium` can additionally view the subscriber recipes, and
+ * `operator` runs the store (order queue, catalog, premium grants).
  */
-export type AccessTierName = "guest" | "customer" | "premium";
+export type AccessTierName = "guest" | "customer" | "premium" | "operator";
 
 /** Props backing an {@link AccessTier} value object. */
 type AccessTierProps = {
@@ -39,6 +40,11 @@ export class AccessTier extends ValueObject<AccessTierProps> {
     return new AccessTier({ name: "premium" });
   }
 
+  /** The tier for the business staff who operate the store. */
+  static operator(): AccessTier {
+    return new AccessTier({ name: "operator" });
+  }
+
   /** Builds a tier from its stored name. */
   static fromName(name: AccessTierName): AccessTier {
     return new AccessTier({ name });
@@ -50,11 +56,16 @@ export class AccessTier extends ValueObject<AccessTierProps> {
 
   /** Whether a viewer at this tier may place made-to-order purchases. */
   canPlaceOrders(): boolean {
-    return this.props.name === "customer" || this.props.name === "premium";
+    return this.props.name !== "guest";
   }
 
   /** Whether a viewer at this tier may access the subscriber recipe content. */
   canViewRecipes(): boolean {
-    return this.props.name === "premium";
+    return this.props.name === "premium" || this.props.name === "operator";
+  }
+
+  /** Whether a viewer at this tier may run the store's admin panel. */
+  canOperateStore(): boolean {
+    return this.props.name === "operator";
   }
 }

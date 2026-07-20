@@ -1,5 +1,8 @@
-import type { PremiumRequest } from "../../domain/entities/premium-request";
-import type { PremiumRequestStatus } from "../../domain/entities/premium-request";
+import type {
+  PremiumRequest,
+  PremiumRequestPayment,
+  PremiumRequestStatus,
+} from "../../domain/entities/premium-request";
 
 /**
  * PremiumRequestDto is the plain, serializable view of a {@link PremiumRequest}.
@@ -12,6 +15,7 @@ export type PremiumRequestDto = {
   email: string;
   requestedAt: string;
   status: PremiumRequestStatus;
+  payment: PremiumRequestPayment | null;
 };
 
 /** Maps a PremiumRequest aggregate to its serializable DTO. */
@@ -23,4 +27,5 @@ export const toPremiumRequestDto = (
   email: request.email,
   requestedAt: request.requestedAt.toISOString(),
   status: request.status,
+  payment: request.payment,
 });

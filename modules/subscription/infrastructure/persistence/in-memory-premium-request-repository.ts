@@ -20,6 +20,10 @@ export class InMemoryPremiumRequestRepository
     this.store.set(request.id.value, request);
   }
 
+  async findById(id: string): Promise<PremiumRequest | null> {
+    return this.store.get(id) ?? null;
+  }
+
   async findPendingByUid(uid: string): Promise<PremiumRequest | null> {
     for (const request of this.store.values()) {
       if (request.uid === uid && request.status === "pending") {

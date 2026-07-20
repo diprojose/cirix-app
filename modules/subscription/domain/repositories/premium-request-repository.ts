@@ -11,6 +11,9 @@ export interface PremiumRequestRepository {
   /** Inserts the request or replaces the existing one with the same id. */
   save(request: PremiumRequest): Promise<void>;
 
+  /** Returns the request with the given id, or `null` if none exists. */
+  findById(id: string): Promise<PremiumRequest | null>;
+
   /** Returns the pending request for the given user, or `null` if none exists. */
   findPendingByUid(uid: string): Promise<PremiumRequest | null>;
 

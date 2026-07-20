@@ -23,9 +23,12 @@ import { ChevronRightIcon } from "./icons";
 export function CatalogBrowser({
   products,
   featured,
+  vesPerUsd = null,
 }: {
   products: ProductDto[];
   featured: ProductDto[];
+  /** Current BCV rate for bolívar reference prices; `null` hides them. */
+  vesPerUsd?: number | null;
 }) {
   const [selected, setSelected] = useState<DepartmentFilter>("all");
 
@@ -61,7 +64,12 @@ export function CatalogBrowser({
                 card; the scroll container's overflow-y would otherwise clip it. */}
             <Shelf padY="pt-8 pb-3">
               {visibleFeatured.map((product, index) => (
-                <FeaturedCard key={product.id} product={product} index={index} />
+                <FeaturedCard
+                  key={product.id}
+                  product={product}
+                  index={index}
+                  vesPerUsd={vesPerUsd}
+                />
               ))}
             </Shelf>
           </div>
@@ -70,7 +78,7 @@ export function CatalogBrowser({
 
       <section className={`mt-8 md:mt-10 ${CONTAINER}`} aria-label="Más pedidos">
         <SectionHeader title="Más pedidos" />
-        <ProductGrid products={visibleProducts} />
+        <ProductGrid products={visibleProducts} vesPerUsd={vesPerUsd} />
       </section>
     </div>
   );
@@ -81,7 +89,13 @@ export function CatalogBrowser({
  * sideways, next column peeking), reflowing into the wide desktop grid from md
  * up. Each card carries `snap-start` so swipes settle on a column.
  */
-function ProductGrid({ products }: { products: ProductDto[] }) {
+function ProductGrid({
+  products,
+  vesPerUsd,
+}: {
+  products: ProductDto[];
+  vesPerUsd: number | null;
+}) {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center gap-1 py-14 text-center">
@@ -101,6 +115,7 @@ function ProductGrid({ products }: { products: ProductDto[] }) {
           product={product}
           index={index}
           className="snap-start"
+          vesPerUsd={vesPerUsd}
         />
       ))}
     </Shelf>

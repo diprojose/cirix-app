@@ -18,6 +18,12 @@ export interface ProductRepository {
   /** Returns every available product flagged as featured. */
   findAllFeatured(): Promise<Product[]>;
 
+  /** Returns every product, available or not (the operator's catalog view). */
+  findAll(): Promise<Product[]>;
+
   /** Inserts the product or replaces the existing one with the same id. */
   save(product: Product): Promise<void>;
+
+  /** Removes the product with the given id (idempotent). */
+  delete(id: ProductId): Promise<void>;
 }

@@ -1,11 +1,11 @@
 import "server-only";
 import type { UserAccount } from "../../domain/entities/user-account";
-import type { UserId } from "../../domain/value-objects/user-id";
+import { UserId } from "../../domain/value-objects/user-id";
 import type {
   IdentityProvider,
   MintedSession,
 } from "../../domain/ports/identity-provider";
-import { adminAuth } from "./firebase-admin";
+import { adminAuth } from "@/shared/infrastructure/firebase-admin";
 import { toUserAccount } from "./user-account-mapper";
 
 /**
@@ -42,11 +42,39 @@ export class FirebaseIdentityProvider implements IdentityProvider {
     await adminAuth().revokeRefreshTokens(decoded.sub);
   }
 
-  async grantPremium(userId: UserId): Promise<void> {
-    await adminAuth().setCustomUserClaims(userId.value, { premium: true });
+  async grantPremium(userId: UserId, until: Date): Promise<void> {
+    // setCustomUserClaims replaces the whole claim object — merge to preserve
+    // unrelated claims (e.g. `operator`).
+    const existing = (await adminAuth().getUser(userId.value)).customClaims ?? {};
+    await adminAuth().setCustomUserClaims(userId.value, {
+      ...existing,
+      premium: true,
+      premiumUntil: until.getTime(),
+    });
   }
 
   async revokePremium(userId: UserId): Promise<void> {
-    await adminAuth().setCustomUserClaims(userId.value, { premium: false });
+    const existing = (await adminAuth().getUser(userId.value)).customClaims ?? {};
+    await adminAuth().setCustomUserClaims(userId.value, {
+      ...existing,
+      premium: false,
+      premiumUntil: null,
+    });
+  }
+
+  async getPremiumExpiry(userId: UserId): Promise<Date | null> {
+    const claims = (await adminAuth().getUser(userId.value)).customClaims ?? {};
+    const until = claims.premiumUntil;
+    return typeof until === "number" ? new Date(until) : null;
+  }
+
+  async findUserIdByEmail(email: string): Promise<UserId | null> {
+    try {
+      const user = await adminAuth().getUserByEmail(email);
+      return UserId.from(user.uid);
+    } catch {
+      // Firebase throws auth/user-not-found for unknown emails.
+      return null;
+    }
   }
 }

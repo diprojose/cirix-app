@@ -19,6 +19,15 @@ export class InvalidSessionError extends DomainError {
   }
 }
 
+/** Raised when no registered user holds the given email. */
+export class UserNotFoundError extends DomainError {
+  readonly code = "iam/user-not-found";
+
+  constructor(email: string) {
+    super(`No registered user holds the email "${email}".`);
+  }
+}
+
 /** Raised when a session cookie could not be minted from an id token. */
 export class SessionCreationError extends DomainError {
   readonly code = "iam/session-creation-failed";

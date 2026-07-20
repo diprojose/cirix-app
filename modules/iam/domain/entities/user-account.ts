@@ -10,6 +10,7 @@ import { InvalidUserAccountError } from "../errors/iam-errors";
 type UserAccountProps = {
   email: Email;
   tier: AccessTier;
+  premiumUntil: string | null;
 };
 
 /** Input accepted by {@link UserAccount.create}. */
@@ -17,6 +18,9 @@ export type CreateUserAccountInput = {
   uid: string;
   email: string;
   premium?: boolean;
+  /** ISO timestamp of when the premium subscription expires, if known. */
+  premiumUntil?: string | null;
+  operator?: boolean;
 };
 
 /**
@@ -33,8 +37,9 @@ export class UserAccount extends AggregateRoot<UserAccountProps, UserId> {
 
   /**
    * Builds a UserAccount from decoded authentication data, validating its
-   * invariants. A signed-in user is a `customer` by default and `premium` when
-   * the corresponding subscription claim is present.
+   * invariants. A signed-in user is a `customer` by default, `premium` when the
+   * subscription claim is present, and `operator` (the most capable tier) when
+   * flagged as store staff.
    */
   static create(input: CreateUserAccountInput): Result<UserAccount, DomainError> {
     const uid = input.uid.trim();
@@ -47,10 +52,15 @@ export class UserAccount extends AggregateRoot<UserAccountProps, UserId> {
       return emailResult;
     }
 
-    const tier = input.premium ? AccessTier.premium() : AccessTier.customer();
+    const tier = input.operator
+      ? AccessTier.operator()
+      : input.premium
+        ? AccessTier.premium()
+        : AccessTier.customer();
     const account = new UserAccount(UserId.from(uid), {
       email: emailResult.value,
       tier,
+      premiumUntil: input.premiumUntil ?? null,
     });
     return ok(account);
   }
@@ -63,6 +73,11 @@ export class UserAccount extends AggregateRoot<UserAccountProps, UserId> {
     return this.props.tier;
   }
 
+  /** ISO timestamp of when premium expires, or `null` when unknown/absent. */
+  get premiumUntil(): string | null {
+    return this.props.premiumUntil;
+  }
+
   /** Whether this user may place made-to-order purchases. */
   canPlaceOrders(): boolean {
     return this.props.tier.canPlaceOrders();
@@ -71,5 +86,10 @@ export class UserAccount extends AggregateRoot<UserAccountProps, UserId> {
   /** Whether this user may access the subscriber recipe content. */
   canViewRecipes(): boolean {
     return this.props.tier.canViewRecipes();
+  }
+
+  /** Whether this user may run the store's admin panel. */
+  canOperateStore(): boolean {
+    return this.props.tier.canOperateStore();
   }
 }

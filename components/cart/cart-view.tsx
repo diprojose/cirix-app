@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice } from "@/lib/format/money";
+import { formatPrice, formatVes } from "@/lib/format/money";
 import { QuantityStepper } from "@/components/store/quantity-stepper";
 import { BagIcon, TrashIcon } from "@/components/store/icons";
 import { MAX_QUANTITY } from "@/modules/cart/domain/value-objects/quantity";
@@ -13,10 +13,15 @@ import { useCart } from "./cart-provider";
  * CartView is the client body of the `/cart` page. It renders straight from the
  * cart context: a loading skeleton until the cart has hydrated from storage (so
  * the empty state never flashes), then either an empty state or the line list plus
- * an order summary. The checkout CTA is an intentional "próximamente" placeholder
- * until the ordering context exists.
+ * an order summary. The checkout CTA hands off to `/checkout`, where the ordering
+ * context takes over.
  */
-export function CartView() {
+export function CartView({
+  vesPerUsd = null,
+}: {
+  /** Current BCV rate for the bolívar subtotal reference; `null` hides it. */
+  vesPerUsd?: number | null;
+}) {
   const { cart, ready, changeQuantity, removeItem, clear } = useCart();
 
   if (!ready) {
@@ -49,20 +54,23 @@ export function CartView() {
             {formatPrice(cart.subtotalCents, currency)}
           </span>
         </div>
+        {vesPerUsd !== null && (
+          <p className="text-right text-sm font-medium tabular-nums text-text-muted">
+            {formatVes(cart.subtotalCents, vesPerUsd)}
+          </p>
+        )}
         <p className="mt-1 text-xs text-text-muted">
           El envío y los detalles de entrega se calculan al finalizar el pedido.
         </p>
       </div>
 
       <div className="space-y-3">
-        <button
-          type="button"
-          disabled
-          title="Próximamente"
-          className="flex h-14 w-full cursor-not-allowed items-center justify-center rounded-pill bg-sugar-300 text-base font-semibold text-sugar-500"
+        <Link
+          href="/checkout"
+          className="flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-base font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
         >
-          Finalizar pedido (próximamente)
-        </button>
+          Finalizar pedido
+        </Link>
         <button
           type="button"
           onClick={() => void clear()}

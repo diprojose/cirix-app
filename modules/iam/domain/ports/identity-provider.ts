@@ -32,9 +32,24 @@ export interface IdentityProvider {
   /** Revokes the refresh tokens behind a session so it can no longer be renewed. */
   revokeSession(sessionCookie: string): Promise<void>;
 
-  /** Grants the premium subscription claim to a user (operator action). */
-  grantPremium(userId: UserId): Promise<void>;
+  /**
+   * Grants the premium subscription claim to a user until the given moment
+   * (operator action). Granting again replaces the expiry.
+   */
+  grantPremium(userId: UserId, until: Date): Promise<void>;
 
   /** Removes the premium subscription claim from a user (operator action). */
   revokePremium(userId: UserId): Promise<void>;
+
+  /**
+   * Returns when the user's premium currently expires, or `null` when they
+   * hold no premium claim. Used to extend (rather than reset) on renewal.
+   */
+  getPremiumExpiry(userId: UserId): Promise<Date | null>;
+
+  /**
+   * Resolves the id of the registered user holding the given email, or `null`
+   * when no account exists (operator actions target users by email).
+   */
+  findUserIdByEmail(email: string): Promise<UserId | null>;
 }

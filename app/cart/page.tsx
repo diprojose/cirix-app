@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getViewer } from "@/lib/auth/dal";
+import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
@@ -18,7 +19,11 @@ export const metadata: Metadata = {
  * cart lives in the browser (localStorage), not on the server.
  */
 export default async function CartPage() {
-  const viewer = await getViewer();
+  const [viewer, rateResult] = await Promise.all([
+    getViewer(),
+    makeGetExchangeRate().execute(),
+  ]);
+  const vesPerUsd = rateResult.ok ? rateResult.value.vesPerUsd : null;
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
@@ -35,7 +40,7 @@ export default async function CartPage() {
       <main className="flex-1 pb-28 md:pb-12">
         <div className="mx-auto w-full max-w-[26rem] px-5 pt-4 md:max-w-2xl md:pt-8">
           <h1 className="mb-4 hidden text-2xl font-bold text-text md:block">Tu carrito</h1>
-          <CartView />
+          <CartView vesPerUsd={vesPerUsd} />
         </div>
       </main>
 

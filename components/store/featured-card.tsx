@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
-import { formatPrice } from "@/lib/format/money";
+import { formatPrice, formatVesCompact } from "@/lib/format/money";
 import { departmentLabel } from "./departments";
 import { ProductThumb } from "./product-thumb";
 import { HeartIcon } from "./icons";
@@ -20,9 +20,12 @@ import { HeartIcon } from "./icons";
 export function FeaturedCard({
   product,
   index = 0,
+  vesPerUsd = null,
 }: {
   product: ProductDto;
   index?: number;
+  /** Current BCV rate for the bolívar reference price; `null` hides it. */
+  vesPerUsd?: number | null;
 }) {
   const violet = index % 2 === 1;
   const surface = violet ? "bg-violet-100" : "bg-accent-soft";
@@ -72,6 +75,11 @@ export function FeaturedCard({
         <span className="mt-2 block text-xl font-bold tabular-nums text-text">
           {formatPrice(product.priceCents, product.currency)}
         </span>
+        {vesPerUsd !== null && (
+          <span className="block text-xs font-medium tabular-nums text-text-muted">
+            {formatVesCompact(product.priceCents, vesPerUsd)}
+          </span>
+        )}
       </div>
 
       {/* Bottom: wide "Agregar" spanning the card, heart beside it. */}
