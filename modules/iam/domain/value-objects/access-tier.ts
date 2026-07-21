@@ -3,10 +3,9 @@ import { ValueObject } from "@/shared/domain/value-object";
 /**
  * The access modes the product supports, ordered from least to most capable.
  * `guest` browses without an account, `customer` has signed in and can place
- * orders, `premium` can additionally view the subscriber recipes, and
- * `operator` runs the store (order queue, catalog, premium grants).
+ * orders, and `operator` runs the store (order queue, catalog, rewards).
  */
-export type AccessTierName = "guest" | "customer" | "premium" | "operator";
+export type AccessTierName = "guest" | "customer" | "operator";
 
 /** Props backing an {@link AccessTier} value object. */
 type AccessTierProps = {
@@ -16,7 +15,7 @@ type AccessTierProps = {
 /**
  * AccessTier is the value object that encapsulates the app's authorization
  * rules. It answers what a viewer at a given tier is allowed to do
- * ({@link AccessTier.canPlaceOrders}, {@link AccessTier.canViewRecipes}) so the
+ * ({@link AccessTier.canPlaceOrders}, {@link AccessTier.canOperateStore}) so the
  * business rules of the three access modes live in one place in the domain,
  * never scattered across the delivery layer.
  */
@@ -30,14 +29,9 @@ export class AccessTier extends ValueObject<AccessTierProps> {
     return new AccessTier({ name: "guest" });
   }
 
-  /** The tier for a signed-in user without an active subscription. */
+  /** The tier for a signed-in user. */
   static customer(): AccessTier {
     return new AccessTier({ name: "customer" });
-  }
-
-  /** The tier for a signed-in user with an active premium subscription. */
-  static premium(): AccessTier {
-    return new AccessTier({ name: "premium" });
   }
 
   /** The tier for the business staff who operate the store. */
@@ -54,14 +48,9 @@ export class AccessTier extends ValueObject<AccessTierProps> {
     return this.props.name;
   }
 
-  /** Whether a viewer at this tier may place made-to-order purchases. */
+  /** Whether a viewer at this tier may place orders. */
   canPlaceOrders(): boolean {
     return this.props.name !== "guest";
-  }
-
-  /** Whether a viewer at this tier may access the subscriber recipe content. */
-  canViewRecipes(): boolean {
-    return this.props.name === "premium" || this.props.name === "operator";
   }
 
   /** Whether a viewer at this tier may run the store's admin panel. */

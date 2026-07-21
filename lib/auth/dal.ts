@@ -17,7 +17,7 @@ import { SESSION_COOKIE_NAME } from "./session-cookie";
  * matter how many components ask for it.
  */
 
-/** Resolves the current viewer (guest, customer or premium) for this request. */
+/** Resolves the current viewer (guest, customer or operator) for this request. */
 export const getViewer = cache(async (): Promise<ViewerDto> => {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
@@ -26,27 +26,13 @@ export const getViewer = cache(async (): Promise<ViewerDto> => {
 });
 
 /**
- * Guard for order flows: requires a viewer allowed to place orders (customer or
- * premium). Redirects guests to the login page. Returns the viewer so callers
- * can use its identity.
+ * Guard for order flows: requires a viewer allowed to place orders. Redirects
+ * guests to the login page. Returns the viewer so callers can use its identity.
  */
 export async function requireCustomer(): Promise<ViewerDto> {
   const viewer = await getViewer();
   if (!viewer.permissions.canPlaceOrders) {
     redirect("/login");
-  }
-  return viewer;
-}
-
-/**
- * Guard for subscriber recipe content: requires a premium viewer. Guests go to
- * login; signed-in non-premium customers go to the premium plan page. This is
- * the server-side enforcement the recipes area must rely on.
- */
-export async function requirePremium(): Promise<ViewerDto> {
-  const viewer = await getViewer();
-  if (!viewer.permissions.canViewRecipes) {
-    redirect(viewer.authenticated ? "/premium" : "/login");
   }
   return viewer;
 }
