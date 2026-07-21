@@ -74,7 +74,7 @@ export default async function OrderPage({
       <SiteFooter />
 
       {/* Mobile / PWA horizon: floating tab bar. */}
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }

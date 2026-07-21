@@ -71,7 +71,7 @@ export default async function CheckoutPage() {
       <SiteFooter />
 
       {/* Mobile / PWA horizon: floating tab bar. */}
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }

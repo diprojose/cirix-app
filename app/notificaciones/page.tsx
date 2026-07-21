@@ -125,7 +125,7 @@ export default async function NotificationsPage({
       </main>
 
       <SiteFooter />
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }

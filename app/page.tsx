@@ -71,7 +71,7 @@ export default async function Home() {
         </main>
 
         <SiteFooter />
-        <BottomNav />
+        <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
       </div>
     </SearchProvider>
   );

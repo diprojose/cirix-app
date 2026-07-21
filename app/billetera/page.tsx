@@ -87,7 +87,7 @@ export default async function WalletPage() {
       </main>
 
       <SiteFooter />
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }

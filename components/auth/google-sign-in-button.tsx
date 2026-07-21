@@ -8,13 +8,18 @@ import { auth, googleProvider } from "@/lib/firebase/client";
 /**
  * Client component that runs the Google sign-in flow: it opens the provider
  * popup, exchanges the resulting id token for a server session cookie via
- * `POST /api/auth/session`, then navigates to `redirectTo`. First-time users are
+ * `POST /api/auth/session`, then navigates onward. First-time users are
  * registered by Firebase automatically. Renders its own loading/error state.
+ *
+ * `redirectTo` is the page the visitor was bounced from, or `null` when they
+ * came to `/login` on their own — in that case the destination is whatever the
+ * session route reports, so operators land on the admin panel instead of the
+ * storefront. The role cannot be known before signing in.
  */
 export function GoogleSignInButton({
-  redirectTo = "/",
+  redirectTo = null,
 }: {
-  redirectTo?: string;
+  redirectTo?: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -36,8 +41,19 @@ export function GoogleSignInButton({
         throw new Error("No se pudo iniciar la sesión. Intenta de nuevo.");
       }
 
-      router.push(redirectTo);
+      const payload = (await response.json().catch(() => null)) as {
+        landing?: unknown;
+      } | null;
+      const landing =
+        typeof payload?.landing === "string" && payload.landing.startsWith("/")
+          ? payload.landing
+          : "/";
+
+      // Refresh before navigating: the client router may hold an RSC payload
+      // for the destination rendered as a guest, which would show the signed-out
+      // chrome until the next navigation.
       router.refresh();
+      router.push(redirectTo ?? landing);
     } catch (caught) {
       setError(
         caught instanceof Error

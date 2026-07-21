@@ -102,7 +102,7 @@ export default async function ReferralsPage() {
       </main>
 
       <SiteFooter />
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }

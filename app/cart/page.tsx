@@ -34,7 +34,7 @@ export default async function CartPage() {
       </main>
 
       <SiteFooter />
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }

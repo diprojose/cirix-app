@@ -21,12 +21,14 @@ export default async function LoginPage({
 }) {
   const viewer = await getViewer();
   if (viewer.authenticated) {
-    redirect("/");
+    redirect(viewer.permissions.canOperateStore ? "/admin" : "/");
   }
 
   const { from } = await searchParams;
-  // Only allow same-site relative redirects to avoid open-redirects.
-  const redirectTo = from && from.startsWith("/") ? from : "/";
+  // Only allow same-site relative redirects to avoid open-redirects. When there
+  // is no `from`, the destination stays null so the session route can pick it
+  // from the viewer's role — an operator belongs in the panel, not the store.
+  const redirectTo = from && from.startsWith("/") ? from : null;
 
   return (
     <main

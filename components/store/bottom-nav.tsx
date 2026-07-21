@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CartBadge } from "@/components/cart/cart-badge";
-import { HomeIcon, BagIcon, UserIcon, WalletIcon } from "./icons";
+import { HomeIcon, BagIcon, SlidersIcon, UserIcon, WalletIcon } from "./icons";
 
 /**
  * BottomNav is the floating mobile tab bar (hidden from `md` up, where the web
@@ -12,8 +12,16 @@ import { HomeIcon, BagIcon, UserIcon, WalletIcon } from "./icons";
  * shipped a dead "Favoritos" tab and a dead "+" button while leaving the wallet
  * and referrals unreachable on a phone. The cart tab carries a live item-count
  * badge. It sits above the safe-area inset.
+ *
+ * Operators get an extra tab for the admin panel: the `/admin` link lives in the
+ * desktop-only TopNav, so without it the panel is unreachable on a phone — the
+ * primary screen for this app.
  */
-export function BottomNav() {
+export function BottomNav({
+  canOperateStore = false,
+}: {
+  canOperateStore?: boolean;
+}) {
   const pathname = usePathname();
 
   return (
@@ -47,6 +55,14 @@ export function BottomNav() {
           active={pathname === "/referidos"}
           icon={<UserIcon className="h-6 w-6" />}
         />
+        {canOperateStore && (
+          <NavItem
+            label="Panel"
+            href="/admin"
+            active={pathname.startsWith("/admin")}
+            icon={<SlidersIcon className="h-6 w-6" />}
+          />
+        )}
       </div>
     </nav>
   );

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   makeCreateSession,
+  makeGetViewer,
   makeRevokeSession,
 } from "@/modules/iam/infrastructure/di/iam-container";
 import { makeRegisterReferral } from "@/modules/referrals/infrastructure/di/referrals-container";
@@ -21,6 +22,10 @@ export const runtime = "nodejs";
  * POST /api/auth/session — exchanges a client Firebase id token for an httpOnly
  * session cookie. The body is `{ idToken: string }`. Domain errors are mapped
  * to a plain `{ code, message }` shape before crossing to the client.
+ *
+ * The response carries a `landing` path: the role is only known once the
+ * session exists, so the login screen cannot compute it before signing in. An
+ * operator is sent to the admin panel; everyone else to the storefront.
  */
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
@@ -47,7 +52,16 @@ export async function POST(request: Request) {
 
   await bindPendingReferral(idToken, cookieStore);
 
-  return NextResponse.json({ ok: true });
+  // Resolve the viewer from the freshly minted cookie rather than from the
+  // request's cookie jar: the DAL's `getViewer` is memoised per render pass and
+  // would not see a cookie set in this very handler.
+  const viewer = await makeGetViewer().execute({
+    sessionCookie: result.value.cookie,
+  });
+  const landing =
+    viewer.ok && viewer.value.permissions.canOperateStore ? "/admin" : "/";
+
+  return NextResponse.json({ ok: true, landing });
 }
 
 /**
