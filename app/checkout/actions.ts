@@ -2,10 +2,12 @@
 
 import { getViewer } from "@/lib/auth/dal";
 import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
+import { canAccessOrder } from "@/lib/auth/order-access";
 import {
   makePlaceOrder,
   makeReportPayment,
   makeApplyOrderDiscount,
+  makeGetOrderById,
 } from "@/modules/ordering/infrastructure/di/ordering-container";
 import {
   makeGetWallet,
@@ -170,10 +172,20 @@ export type ReportPaymentActionInput = {
 /**
  * Records the customer's payment claim (method + reference) on their order.
  * Verification remains a manual operator step.
+ *
+ * `orderId` arrives from the client, so ownership is checked before anything is
+ * written: knowing an order URL must never be enough to file a payment report
+ * on someone else's order. Denials answer "not found" so the action never
+ * confirms that an id exists.
  */
 export async function reportPaymentAction(
   input: ReportPaymentActionInput
 ): Promise<OrderActionResult> {
+  const order = await makeGetOrderById().execute({ orderId: input.orderId });
+  if (!order.ok || !(await canAccessOrder(order.value.customerUid))) {
+    return { ok: false, message: ERROR_MESSAGES["ordering/order-not-found"] };
+  }
+
   const result = await makeReportPayment().execute({
     orderId: input.orderId,
     method: input.method,

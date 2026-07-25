@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/dal";
+import { canAccessOrder } from "@/lib/auth/order-access";
 import { formatPrice } from "@/lib/format/money";
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
@@ -20,14 +21,17 @@ import type { OrderDto } from "@/modules/ordering/application/dtos/order-dto";
 export const metadata: Metadata = {
   title: "Tu pedido",
   description: "Estado de tu pedido, datos de pago y confirmación por WhatsApp.",
+  // The order id is a credential: keep these URLs out of every index.
+  robots: { index: false, follow: false },
 };
 
 /**
  * Order status page (primary adapter): the customer's receipt and tracking
- * screen, reachable by anyone holding the order URL (the random id is the
- * guest's credential). Shows the lifecycle timeline, the frozen totals in both
- * currencies, the payment instructions with the report form, and the WhatsApp
- * handoff — the confirmation channel Venezuelan commerce actually runs on.
+ * screen. A guest order is reachable by anyone holding the URL (the random id
+ * is the guest's credential); an order owned by a registered account is not —
+ * see {@link canAccessOrder}. Shows the lifecycle timeline, the frozen totals
+ * in both currencies, the payment instructions with the report form, and the
+ * WhatsApp handoff — the confirmation channel Venezuelan commerce runs on.
  */
 export default async function OrderPage({
   params,
@@ -43,6 +47,11 @@ export default async function OrderPage({
   }
   const order = result.value;
 
+  // 404 rather than 403: a denial must not confirm that the order exists.
+  if (!(await canAccessOrder(order.customerUid))) {
+    notFound();
+  }
+
   const shortId = order.id.slice(0, 8).toUpperCase();
   const canReport = order.status === "received" || order.status === "payment_reported";
 
@@ -50,7 +59,7 @@ export default async function OrderPage({
     <div className="flex min-h-dvh flex-col bg-bg">
       {/* Desktop / web horizon: top navigation bar (hidden below md). */}
       <TopNav viewer={viewer} />
-      <SubHeader title="Pedido #{shortId}" />
+      <SubHeader title={`Pedido #${shortId}`} />
 
       <main className="flex-1 pb-28 md:pb-12">
         <div className={`${CONTAINER_READ} space-y-4 pt-4 md:pt-8`}>
