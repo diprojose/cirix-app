@@ -39,7 +39,7 @@ export function SignOutButton({
       disabled={loading}
       className={
         className ??
-        "min-h-[44px] rounded-full px-4 py-2 text-sm font-medium text-zinc-600 underline-offset-4 hover:underline disabled:opacity-60 dark:text-zinc-400"
+        "min-h-11 rounded-pill px-4 py-2 text-label font-medium text-text-muted underline-offset-4 transition-colors hover:text-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:text-stone-400 disabled:no-underline"
       }
     >
       {loading ? "Saliendo…" : "Cerrar sesión"}

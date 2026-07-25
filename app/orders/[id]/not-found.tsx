@@ -1,27 +1,27 @@
 import Link from "next/link";
+import { COLUMN } from "@/components/store/layout";
+import { BagIcon } from "@/components/store/icons";
 
 /**
- * Shown when an order id does not exist (mistyped or stale link). Kept minimal:
- * a message and a way back to the store.
+ * Shown when an order id does not exist (mistyped or stale link). Matches the
+ * product 404 exactly: same container, same glyph treatment, same CTA.
  */
 export default function OrderNotFound() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-bg px-6">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <p className="text-5xl" aria-hidden="true">
-          🧾
-        </p>
-        <h1 className="text-xl font-bold text-text">Pedido no encontrado</h1>
-        <p className="text-sm text-text-muted">
-          El enlace no corresponde a ningún pedido. Revisa el enlace que recibiste.
-        </p>
-        <Link
-          href="/"
-          className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong px-6 text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
-        >
-          Volver a la tienda
-        </Link>
-      </div>
+    <main
+      className={`${COLUMN} flex min-h-dvh flex-col items-center justify-center gap-3 text-center`}
+    >
+      <BagIcon className="h-12 w-12 text-text-muted" />
+      <h1 className="text-h-section font-bold text-text">Pedido no encontrado</h1>
+      <p className="text-body text-text-muted">
+        El enlace no corresponde a ningún pedido. Revisa el enlace que recibiste.
+      </p>
+      <Link
+        href="/"
+        className="mt-2 inline-flex min-h-11 items-center rounded-pill bg-action-fill px-5 text-label font-semibold text-on-action shadow-action transition-[background-color,transform] duration-200 ease-out-quint hover:bg-action-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      >
+        Volver a la tienda
+      </Link>
     </main>
   );
 }

@@ -1,69 +1,55 @@
 import Link from "next/link";
 import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
-import { formatPrice, formatVesCompact } from "@/lib/format/money";
+import { formatPrice } from "@/lib/format/money";
 import { QuickAddButton } from "@/components/cart/quick-add-button";
 import { ProductThumb } from "./product-thumb";
 
-/*
- * Alternating tonal card surfaces (violet / pink), matching the reference
- * "Most Ordered" grid. Chosen by position parity so the grid reads as a clean
- * checkerboard; falls back to a stable pick when no index is given.
- */
-const CARD_TINTS = ["bg-violet-100", "bg-brand-100"] as const;
-
 /**
- * ProductCard is the compact catalog cell used in the storefront grid. It shows
- * the product photo (or its placeholder) floating on a tonal surface, the name,
- * a price pill and a violet add control. A soft pink-tinted shadow gives the
- * card presence against the pale page, and on pointer devices it lifts on hover.
- * The whole card links to the product detail page via a stretched link on the
- * title, while the "+" quick-add button stays above it (`z-10`) as an independent
- * control that adds one unit straight to the cart. `className` lets a carousel
- * context add snap alignment without the card knowing about the scroller.
+ * ProductCard is the catalog cell. It is deliberately plain: a white surface
+ * with a hairline border, because the produce photography supplies all the
+ * colour the grid needs. Three of these fit across a phone, and the add control
+ * lives in the card itself, so building a twenty-item basket never leaves the
+ * grid.
+ *
+ * The name carries a stretched link to the detail page while the add control
+ * sits above it (`z-10`) as an independent target, so tapping "+" never
+ * navigates.
  */
 export function ProductCard({
   product,
-  index = 0,
   className = "",
-  vesPerUsd = null,
+  priority = false,
 }: {
   product: ProductDto;
-  index?: number;
   className?: string;
-  /** Current BCV rate for the bolívar reference price; `null` hides it. */
-  vesPerUsd?: number | null;
+  /** Eager-loads the image; set on the first row so the LCP is not deferred. */
+  priority?: boolean;
 }) {
-  const tint = CARD_TINTS[index % CARD_TINTS.length];
-
   return (
     <article
-      className={`relative flex flex-col overflow-hidden rounded-[1.25rem] p-3 shadow-[0_8px_20px_-12px_oklch(0.6_0.14_348/0.3)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:hover:-translate-y-1 hover:shadow-card ${tint} ${className}`}
+      className={`relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface p-2 transition-[transform,box-shadow] duration-200 ease-out-quint hover:shadow-card motion-safe:hover:-translate-y-0.5 ${className}`}
     >
       <ProductThumb
         id={product.id}
         name={product.name}
-        department={product.department}
         imageUrl={product.imageUrl}
-        className="aspect-square w-full"
+        priority={priority}
+        className="aspect-square w-full rounded-md bg-accent-subtle"
+        sizes="(max-width: 768px) 33vw, 180px"
       />
-      <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-text">
+
+      <h3 className="mt-2 line-clamp-2 text-label font-semibold leading-snug text-text">
         <Link
           href={`/product/${product.id}`}
-          className="rounded-sm after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta"
+          className="rounded-sm after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {product.name}
         </Link>
       </h3>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="inline-flex h-9 flex-col justify-center rounded-pill bg-surface px-3 shadow-xs">
-          <span className="text-xs font-bold tabular-nums leading-tight text-text">
-            {formatPrice(product.priceCents, product.currency)}
-          </span>
-          {vesPerUsd !== null && (
-            <span className="text-[10px] font-medium tabular-nums leading-tight text-text-muted">
-              {formatVesCompact(product.priceCents, vesPerUsd)}
-            </span>
-          )}
+
+      <div className="mt-auto flex items-center justify-between gap-1 pt-2">
+        <span className="min-w-0 truncate text-label font-bold tabular-nums text-text">
+          {formatPrice(product.priceCents, product.currency)}
         </span>
         <QuickAddButton product={product} />
       </div>

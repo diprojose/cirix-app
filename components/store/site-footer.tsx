@@ -11,22 +11,20 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-8 py-10 text-sm text-text-muted md:flex-row md:items-start md:justify-between">
         <div className="max-w-xs">
           <p className="text-lg font-bold text-text">mixmag</p>
-          <p className="mt-2">
-            Postres por encargo y artículos de tu supermercado, en un solo lugar.
-          </p>
+          <p className="mt-2">Tu supermercado, a domicilio.</p>
         </div>
         <nav className="grid grid-cols-2 gap-x-12 gap-y-2">
           <Link href="/" className="hover:text-accent">
             Tienda
           </Link>
-          <Link href="/premium" className="hover:text-accent">
-            Recetas premium
+          <Link href="/billetera" className="hover:text-accent">
+            Mi saldo
+          </Link>
+          <Link href="/referidos" className="hover:text-accent">
+            Invita y gana
           </Link>
           <Link href="/login" className="hover:text-accent">
             Iniciar sesión
-          </Link>
-          <Link href="/offline" className="hover:text-accent">
-            Sin conexión
           </Link>
         </nav>
         <p className="text-xs">© mixmag</p>

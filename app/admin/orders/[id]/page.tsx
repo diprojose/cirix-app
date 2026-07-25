@@ -73,7 +73,7 @@ export default async function AdminOrderDetailPage({
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium tabular-nums text-cta-strong underline underline-offset-2"
+            className="font-medium tabular-nums text-action-strong underline underline-offset-2"
           >
             {order.customerPhone}
           </a>
@@ -97,7 +97,7 @@ export default async function AdminOrderDetailPage({
           </span>
         </p>
         {order.notes && (
-          <p className="rounded-xl bg-sugar-100 px-3 py-2 text-text">{order.notes}</p>
+          <p className="rounded-xl bg-stone-100 px-3 py-2 text-text">{order.notes}</p>
         )}
       </section>
 
@@ -125,6 +125,14 @@ export default async function AdminOrderDetailPage({
                 : formatPrice(order.deliveryFeeCents, order.currency)}
             </span>
           </p>
+          {order.discountCents > 0 && (
+            <p className="flex justify-between">
+              <span className="text-text-muted">Descuento</span>
+              <span className="font-medium tabular-nums text-action-strong">
+                −{formatPrice(order.discountCents, order.currency)}
+              </span>
+            </p>
+          )}
           <p className="flex justify-between text-base font-bold text-text">
             <span>Total</span>
             <span className="tabular-nums">
@@ -148,7 +156,7 @@ export default async function AdminOrderDetailPage({
         ) : (
           <ul className="space-y-2">
             {order.payments.map((payment) => (
-              <li key={payment.id} className="rounded-xl bg-sugar-100 p-3">
+              <li key={payment.id} className="rounded-xl bg-stone-100 p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-text">
@@ -203,7 +211,7 @@ export default async function AdminOrderDetailPage({
                     <span
                       className={`shrink-0 rounded-pill px-2.5 py-1 text-xs font-semibold ${
                         payment.status === "verified"
-                          ? "bg-cta/15 text-cta-strong"
+                          ? "bg-action-fill/15 text-action-strong"
                           : "bg-danger/10 text-danger"
                       }`}
                     >
@@ -226,7 +234,7 @@ export default async function AdminOrderDetailPage({
               <form key={action} action={advanceOrderAction.bind(null, order.id, action)}>
                 <button
                   type="submit"
-                  className="rounded-pill bg-gradient-to-r from-cta to-cta-strong px-5 py-2.5 text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-95"
+                  className="rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-5 py-2.5 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
                 >
                   {label}
                 </button>
@@ -249,7 +257,7 @@ export default async function AdminOrderDetailPage({
       <p className="text-sm">
         <Link
           href={`/orders/${order.id}`}
-          className="font-medium text-cta-strong underline underline-offset-2"
+          className="font-medium text-action-strong underline underline-offset-2"
         >
           Ver como cliente →
         </Link>

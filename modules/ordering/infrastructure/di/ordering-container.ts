@@ -12,6 +12,7 @@ import { ListDeliveryZones } from "../../application/use-cases/list-delivery-zon
 import { ListOrders } from "../../application/use-cases/list-orders";
 import { ReviewPayment } from "../../application/use-cases/review-payment";
 import { AdvanceOrderStatus } from "../../application/use-cases/advance-order-status";
+import { ApplyOrderDiscount } from "../../application/use-cases/apply-order-discount";
 
 /*
  * Composition root for the ordering module. This is the single place that
@@ -57,3 +58,7 @@ export const makeReviewPayment = (): ReviewPayment =>
 /** Builds the "advance order status" use case (operator action). */
 export const makeAdvanceOrderStatus = (): AdvanceOrderStatus =>
   new AdvanceOrderStatus(getOrderRepository());
+
+/** Builds the "apply order discount" use case (wallet redemption at checkout). */
+export const makeApplyOrderDiscount = (): ApplyOrderDiscount =>
+  new ApplyOrderDiscount(getOrderRepository());

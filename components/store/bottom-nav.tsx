@@ -4,24 +4,38 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CartBadge } from "@/components/cart/cart-badge";
-import { HomeIcon, HeartIcon, BagIcon, UserIcon, PlusIcon } from "./icons";
+import { HomeIcon, BagIcon, SlidersIcon, UserIcon, WalletIcon } from "./icons";
 
 /**
  * BottomNav is the floating mobile tab bar (hidden from `md` up, where the web
- * TopNav takes over). "Inicio" and "Carrito" are wired destinations; Favoritos
- * and Perfil remain presentational placeholders (their routes don't exist yet) so
- * nothing 404s. The cart tab carries a live item-count badge. A trailing "+"
- * quick-add sits in its own light circle, mirroring the reference. It sits above
- * the safe-area inset.
+ * TopNav takes over). Every tab is a real destination: the previous version
+ * shipped a dead "Favoritos" tab and a dead "+" button while leaving the wallet
+ * and referrals unreachable on a phone. The cart tab carries a live item-count
+ * badge. It sits above the safe-area inset.
+ *
+ * Operators get an extra tab for the admin panel: the `/admin` link lives in the
+ * desktop-only TopNav, so without it the panel is unreachable on a phone — the
+ * primary screen for this app.
  */
-export function BottomNav() {
+export function BottomNav({
+  canOperateStore = false,
+}: {
+  canOperateStore?: boolean;
+}) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[env(safe-area-inset-bottom)] md:hidden">
+    <nav
+      aria-label="Navegación principal"
+      className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[env(safe-area-inset-bottom)] md:hidden"
+    >
       <div className="mb-3 flex items-center gap-2 rounded-pill bg-surface p-2 shadow-float">
-        <NavItem label="Inicio" href="/" active={pathname === "/"} icon={<HomeIcon className="h-6 w-6" />} />
-        <NavItem label="Favoritos" icon={<HeartIcon className="h-6 w-6" />} />
+        <NavItem
+          label="Inicio"
+          href="/"
+          active={pathname === "/"}
+          icon={<HomeIcon className="h-6 w-6" />}
+        />
         <NavItem
           label="Carrito"
           href="/cart"
@@ -29,21 +43,32 @@ export function BottomNav() {
           icon={<BagIcon className="h-6 w-6" />}
           badge={<CartBadge />}
         />
-        <NavItem label="Perfil" icon={<UserIcon className="h-6 w-6" />} />
-        <button
-          type="button"
-          aria-label="Agregar (próximamente)"
-          title="Próximamente"
-          className="grid h-12 w-12 place-items-center rounded-pill bg-sugar-100 text-ink transition-colors hover:bg-sugar-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-        >
-          <PlusIcon className="h-6 w-6" />
-        </button>
+        <NavItem
+          label="Mi saldo"
+          href="/billetera"
+          active={pathname === "/billetera"}
+          icon={<WalletIcon className="h-6 w-6" />}
+        />
+        <NavItem
+          label="Invita y gana"
+          href="/referidos"
+          active={pathname === "/referidos"}
+          icon={<UserIcon className="h-6 w-6" />}
+        />
+        {canOperateStore && (
+          <NavItem
+            label="Panel"
+            href="/admin"
+            active={pathname.startsWith("/admin")}
+            icon={<SlidersIcon className="h-6 w-6" />}
+          />
+        )}
       </div>
     </nav>
   );
 }
 
-/** A single tab: active fill, an inactive link, or a disabled placeholder. */
+/** A single tab: an accent-filled current page, or a plain link. */
 function NavItem({
   label,
   href,
@@ -52,46 +77,24 @@ function NavItem({
   badge,
 }: {
   label: string;
-  href?: string;
+  href: string;
   active?: boolean;
   icon: ReactNode;
   badge?: ReactNode;
 }) {
-  if (active) {
-    return (
-      <span
-        aria-current="page"
-        aria-label={label}
-        className="relative grid h-12 w-12 place-items-center rounded-pill bg-cta text-on-cta shadow-cta"
-      >
-        {icon}
-        {badge}
-      </span>
-    );
-  }
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        aria-label={label}
-        className="relative grid h-12 w-12 place-items-center rounded-pill text-sugar-400 transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-      >
-        {icon}
-        {badge}
-      </Link>
-    );
-  }
-
   return (
-    <button
-      type="button"
-      aria-label={`${label} (próximamente)`}
-      title="Próximamente"
-      className="relative grid h-12 w-12 place-items-center rounded-pill text-sugar-400 transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+    <Link
+      href={href}
+      aria-label={label}
+      aria-current={active ? "page" : undefined}
+      className={`relative grid h-12 w-12 place-items-center rounded-pill transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+        active
+          ? "bg-accent-fill text-on-accent shadow-accent"
+          : "text-text-muted hover:bg-stone-100 hover:text-text"
+      }`}
     >
       {icon}
       {badge}
-    </button>
+    </Link>
   );
 }

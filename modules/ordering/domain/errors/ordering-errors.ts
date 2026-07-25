@@ -101,3 +101,8 @@ export class InvalidOrderTransitionError extends DomainError {
 export class CorruptOrderSnapshotError extends DomainError {
   readonly code = "ordering/corrupt-order-snapshot";
 }
+
+/** Raised when a credit discount is negative or exceeds the order subtotal. */
+export class InvalidDiscountError extends DomainError {
+  readonly code = "ordering/invalid-discount";
+}

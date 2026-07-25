@@ -17,9 +17,10 @@ export type ResolvedUserDto = {
 };
 
 /**
- * Resolves a registered user's uid from their email. Operator actions (grant or
- * revoke premium) target people by the email the customer shared, while the
- * identity system keys everything by uid — this use case bridges the two.
+ * Resolves a registered user's uid from their email. Operator actions (manual
+ * balance adjustments, fraud alerts) target people by the email the customer
+ * shared, while the identity system keys everything by uid — this use case
+ * bridges the two.
  */
 export class ResolveUserByEmail
   implements UseCase<ResolveUserByEmailInput, ResolvedUserDto>

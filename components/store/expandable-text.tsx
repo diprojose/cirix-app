@@ -4,7 +4,7 @@ import { useState } from "react";
 
 /**
  * ExpandableText renders a product description clamped to two lines with a
- * violet "Leer más" / "Leer menos" toggle, reproducing the reference's
+ * accent "Leer más" / "Leer menos" toggle, matching the storefront.s
  * "Read more" affordance. Purely visual state; no data leaves the component.
  */
 export function ExpandableText({ text }: { text: string }) {
@@ -20,7 +20,7 @@ export function ExpandableText({ text }: { text: string }) {
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="mt-1 text-sm font-medium text-cta"
+        className="mt-1 text-sm font-medium text-action"
       >
         {expanded ? "Leer menos" : "Leer más"}
       </button>

@@ -1,7 +1,10 @@
 import type { Order, RestoreOrderInput } from "../../domain/entities/order";
 
-/** Bumped whenever the persisted shape changes, so old documents can be migrated. */
-export const ORDER_DOCUMENT_VERSION = 1;
+/** Bumped whenever the persisted shape changes, so old documents can be migrated.
+ * v2 added `unitCostCents` per line (frozen product cost for the rewards margin);
+ * v3 adds `discountCents` (wallet credit applied at checkout). Older documents
+ * restore with 0 for the missing fields via the domain's optional defaults. */
+export const ORDER_DOCUMENT_VERSION = 3;
 
 /**
  * OrderDocument is the versioned Firestore shape of an order — distinct from
@@ -23,6 +26,7 @@ export const toOrderDocument = (order: Order): OrderDocument => ({
     productId: line.productId,
     name: line.name,
     unitPriceCents: line.unitPriceCents,
+    unitCostCents: line.unitCostCents,
     currency: line.currency,
     imageUrl: line.imageUrl,
     quantity: line.quantity,
@@ -45,6 +49,7 @@ export const toOrderDocument = (order: Order): OrderDocument => ({
     reportedAt: payment.reportedAt,
     status: payment.status,
   })),
+  discountCents: order.discountCents,
   customerUid: order.customerUid,
   createdAt: order.createdAt,
 });
@@ -64,6 +69,7 @@ export const documentToRestoreInput = (
   exchangeRate: document.exchangeRate,
   status: document.status,
   payments: document.payments,
+  discountCents: document.discountCents,
   customerUid: document.customerUid,
   createdAt: document.createdAt,
 });

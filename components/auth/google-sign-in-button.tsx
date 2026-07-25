@@ -8,13 +8,18 @@ import { auth, googleProvider } from "@/lib/firebase/client";
 /**
  * Client component that runs the Google sign-in flow: it opens the provider
  * popup, exchanges the resulting id token for a server session cookie via
- * `POST /api/auth/session`, then navigates to `redirectTo`. First-time users are
+ * `POST /api/auth/session`, then navigates onward. First-time users are
  * registered by Firebase automatically. Renders its own loading/error state.
+ *
+ * `redirectTo` is the page the visitor was bounced from, or `null` when they
+ * came to `/login` on their own — in that case the destination is whatever the
+ * session route reports, so operators land on the admin panel instead of the
+ * storefront. The role cannot be known before signing in.
  */
 export function GoogleSignInButton({
-  redirectTo = "/",
+  redirectTo = null,
 }: {
-  redirectTo?: string;
+  redirectTo?: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -36,8 +41,19 @@ export function GoogleSignInButton({
         throw new Error("No se pudo iniciar la sesión. Intenta de nuevo.");
       }
 
-      router.push(redirectTo);
+      const payload = (await response.json().catch(() => null)) as {
+        landing?: unknown;
+      } | null;
+      const landing =
+        typeof payload?.landing === "string" && payload.landing.startsWith("/")
+          ? payload.landing
+          : "/";
+
+      // Refresh before navigating: the client router may hold an RSC payload
+      // for the destination rendered as a guest, which would show the signed-out
+      // chrome until the next navigation.
       router.refresh();
+      router.push(redirectTo ?? landing);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -54,13 +70,13 @@ export function GoogleSignInButton({
         type="button"
         onClick={handleSignIn}
         disabled={loading}
-        className="flex min-h-[44px] w-full items-center justify-center gap-3 rounded-full border border-black/[.12] bg-white px-5 py-3 text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50 disabled:opacity-60 dark:border-white/[.16] dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+        className="flex min-h-11 w-full items-center justify-center gap-3 rounded-pill border border-border bg-surface px-5 py-3 text-label font-medium text-text shadow-xs transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none"
       >
         <GoogleGlyph />
         {loading ? "Conectando…" : "Continuar con Google"}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-label text-danger">
           {error}
         </p>
       )}

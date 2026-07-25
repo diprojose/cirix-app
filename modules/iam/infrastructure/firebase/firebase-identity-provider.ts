@@ -10,9 +10,9 @@ import { toUserAccount } from "./user-account-mapper";
 
 /**
  * Firebase-backed adapter implementing {@link IdentityProvider}. It is the only
- * place that talks to the Admin Auth SDK: it mints and verifies session
- * cookies and manages the `premium` custom claim. Swapping identity providers
- * means replacing this adapter alone — domain and application stay untouched.
+ * place that talks to the Admin Auth SDK: it mints and verifies session cookies
+ * and resolves users by email. Swapping identity providers means replacing this
+ * adapter alone — domain and application stay untouched.
  */
 export class FirebaseIdentityProvider implements IdentityProvider {
   async verifySession(sessionCookie: string): Promise<UserAccount | null> {
@@ -40,32 +40,6 @@ export class FirebaseIdentityProvider implements IdentityProvider {
     // Resolve the cookie to its user, then revoke that user's refresh tokens.
     const decoded = await adminAuth().verifySessionCookie(sessionCookie, false);
     await adminAuth().revokeRefreshTokens(decoded.sub);
-  }
-
-  async grantPremium(userId: UserId, until: Date): Promise<void> {
-    // setCustomUserClaims replaces the whole claim object — merge to preserve
-    // unrelated claims (e.g. `operator`).
-    const existing = (await adminAuth().getUser(userId.value)).customClaims ?? {};
-    await adminAuth().setCustomUserClaims(userId.value, {
-      ...existing,
-      premium: true,
-      premiumUntil: until.getTime(),
-    });
-  }
-
-  async revokePremium(userId: UserId): Promise<void> {
-    const existing = (await adminAuth().getUser(userId.value)).customClaims ?? {};
-    await adminAuth().setCustomUserClaims(userId.value, {
-      ...existing,
-      premium: false,
-      premiumUntil: null,
-    });
-  }
-
-  async getPremiumExpiry(userId: UserId): Promise<Date | null> {
-    const claims = (await adminAuth().getUser(userId.value)).customClaims ?? {};
-    const until = claims.premiumUntil;
-    return typeof until === "number" ? new Date(until) : null;
   }
 
   async findUserIdByEmail(email: string): Promise<UserId | null> {

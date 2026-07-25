@@ -21,11 +21,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   applicationName: "mixmag",
   title: {
-    default: "mixmag — postres por pedido",
+    default: "mixmag — tu supermercado",
     template: "%s — mixmag",
   },
   description:
-    "Tienda de postres artesanales hechos por pedido, con recetas exclusivas para suscriptores.",
+    "Supermercado a domicilio: pide tu mercado y acumula saldo con cada compra.",
   // iOS/iPadOS: enable standalone launch and set the home-screen app title.
   appleWebApp: {
     capable: true,
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e0669a",
+  themeColor: "#2d8249",
   // Mobile-first: let content flow behind the notch/home indicator when needed.
   viewportFit: "cover",
 };

@@ -10,17 +10,18 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "mixmag — postres por pedido",
+    name: "mixmag — tu supermercado",
     short_name: "mixmag",
     description:
-      "Tienda de postres artesanales hechos por pedido, con recetas exclusivas para suscriptores.",
+      "Supermercado a domicilio: pide tu mercado y acumula saldo con cada compra.",
     lang: "es",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#ffffff",
-    theme_color: "#e0669a",
+    // Match the design tokens: stone-50 page background, brand-600 green.
+    background_color: "#faf9f6",
+    theme_color: "#2d8249",
     icons: [
       {
         src: "/icon-192x192.png",

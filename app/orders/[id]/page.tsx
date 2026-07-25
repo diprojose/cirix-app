@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/dal";
-import { formatPrice, formatVes } from "@/lib/format/money";
+import { formatPrice } from "@/lib/format/money";
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
-import { BackButton } from "@/components/store/back-button";
+import { SubHeader } from "@/components/store/sub-header";
+import { CONTAINER_READ } from "@/components/store/layout";
 import { PaymentSection } from "@/components/orders/payment-section";
 import {
   ORDER_STATUS_LABELS,
@@ -49,21 +50,13 @@ export default async function OrderPage({
     <div className="flex min-h-dvh flex-col bg-bg">
       {/* Desktop / web horizon: top navigation bar (hidden below md). */}
       <TopNav viewer={viewer} />
-
-      {/* Mobile / PWA horizon: top bar — back · Pedido. */}
-      <div className="mx-auto flex w-full max-w-[26rem] items-center gap-3 px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden">
-        <BackButton />
-        <p className="flex-1 text-center text-base font-semibold text-text">
-          Pedido #{shortId}
-        </p>
-        <span className="h-10 w-10" aria-hidden="true" />
-      </div>
+      <SubHeader title="Pedido #{shortId}" />
 
       <main className="flex-1 pb-28 md:pb-12">
-        <div className="mx-auto w-full max-w-[26rem] space-y-4 px-5 pt-4 md:max-w-2xl md:pt-8">
-          <h1 className="hidden text-2xl font-bold text-text md:block">
+        <div className={`${CONTAINER_READ} space-y-4 pt-4 md:pt-8`}>
+          <h2 className="hidden text-display font-bold text-text md:block">
             Pedido #{shortId}
-          </h1>
+          </h2>
 
           <StatusCard order={order} />
           <SummaryCard order={order} />
@@ -81,7 +74,7 @@ export default async function OrderPage({
       <SiteFooter />
 
       {/* Mobile / PWA horizon: floating tab bar. */}
-      <BottomNav />
+      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
     </div>
   );
 }
@@ -97,7 +90,7 @@ function StatusCard({ order }: { order: OrderDto }) {
         <h2 className="text-sm font-bold text-text">Estado</h2>
         <span
           className={`rounded-pill px-3 py-1 text-xs font-semibold ${
-            cancelled ? "bg-danger/10 text-danger" : "bg-cta/10 text-cta-strong"
+            cancelled ? "bg-danger/10 text-danger" : "bg-action-fill/10 text-action-strong"
           }`}
         >
           {ORDER_STATUS_LABELS[order.status]}
@@ -113,7 +106,7 @@ function StatusCard({ order }: { order: OrderDto }) {
                 <span
                   aria-hidden="true"
                   className={`grid h-5 w-5 shrink-0 place-items-center rounded-pill text-[10px] font-bold ${
-                    reached ? "bg-cta text-on-cta" : "bg-sugar-200 text-sugar-500"
+                    reached ? "bg-action-fill text-on-action" : "bg-stone-200 text-stone-500"
                   }`}
                 >
                   {index + 1}
@@ -157,7 +150,7 @@ function StatusCard({ order }: { order: OrderDto }) {
   );
 }
 
-/** Lines and totals, frozen at placement time, in dollars and bolívares. */
+/** Lines and totals, frozen at placement time. */
 function SummaryCard({ order }: { order: OrderDto }) {
   return (
     <section className="space-y-3 rounded-2xl bg-surface p-4 shadow-xs">
@@ -166,7 +159,7 @@ function SummaryCard({ order }: { order: OrderDto }) {
       <ul className="space-y-2">
         {order.lines.map((line) => (
           <li key={line.productId} className="flex items-center gap-3">
-            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-sugar-100">
+            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-stone-100">
               {line.imageUrl ? (
                 <Image
                   src={line.imageUrl}
@@ -209,6 +202,14 @@ function SummaryCard({ order }: { order: OrderDto }) {
               : formatPrice(order.deliveryFeeCents, order.currency)}
           </span>
         </p>
+        {order.discountCents > 0 && (
+          <p className="flex justify-between">
+            <span className="text-text-muted">Descuento</span>
+            <span className="font-medium tabular-nums text-action-strong">
+              −{formatPrice(order.discountCents, order.currency)}
+            </span>
+          </p>
+        )}
         <p className="flex justify-between text-base">
           <span className="font-bold text-text">Total</span>
           <span className="font-bold tabular-nums text-text">
@@ -218,11 +219,7 @@ function SummaryCard({ order }: { order: OrderDto }) {
         {order.exchangeRate && (
           <>
             <p className="text-right text-sm font-medium tabular-nums text-text-muted">
-              {formatVes(order.totalCents, order.exchangeRate.vesPerUsd)}
-            </p>
-            <p className="text-xs text-text-muted">
-              Tasa BCV congelada al hacer el pedido ({order.exchangeRate.asOf}):{" "}
-              {formatVes(100, order.exchangeRate.vesPerUsd)} por $1.
+              {formatPrice(order.totalCents, order.currency)}
             </p>
           </>
         )}
@@ -237,9 +234,6 @@ function WhatsAppCard({ order, shortId }: { order: OrderDto; shortId: string }) 
     .map((line) => `• ${line.quantity}× ${line.name}`)
     .join("\n");
   const total = formatPrice(order.totalCents, order.currency);
-  const totalVes = order.exchangeRate
-    ? ` (${formatVes(order.totalCents, order.exchangeRate.vesPerUsd)})`
-    : "";
   const fulfillment =
     order.delivery.kind === "pickup"
       ? `Retiro en tienda — ${order.scheduledDate}`
@@ -249,7 +243,7 @@ function WhatsAppCard({ order, shortId }: { order: OrderDto; shortId: string }) 
     `Hola, soy ${order.customerName} 👋\n` +
     `Acabo de hacer el pedido #${shortId} en ${BUSINESS_PROFILE.name}:\n` +
     `${lines}\n` +
-    `Total: ${total}${totalVes}\n` +
+    `Total: ${total}\n` +
     `${fulfillment}`;
 
   const href = `https://wa.me/${BUSINESS_PROFILE.whatsappNumber}?text=${encodeURIComponent(message)}`;

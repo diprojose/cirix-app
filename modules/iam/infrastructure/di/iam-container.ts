@@ -3,8 +3,6 @@ import { FirebaseIdentityProvider } from "../firebase/firebase-identity-provider
 import { GetViewer } from "../../application/use-cases/get-viewer";
 import { CreateSession } from "../../application/use-cases/create-session";
 import { RevokeSession } from "../../application/use-cases/revoke-session";
-import { GrantPremium } from "../../application/use-cases/grant-premium";
-import { RevokePremium } from "../../application/use-cases/revoke-premium";
 import { ResolveUserByEmail } from "../../application/use-cases/resolve-user-by-email";
 
 /*
@@ -27,14 +25,6 @@ export const makeCreateSession = (): CreateSession =>
 /** Builds the "revoke session on logout" use case. */
 export const makeRevokeSession = (): RevokeSession =>
   new RevokeSession(identityProvider);
-
-/** Builds the "grant premium claim" use case (operator action). */
-export const makeGrantPremium = (): GrantPremium =>
-  new GrantPremium(identityProvider);
-
-/** Builds the "revoke premium claim" use case (operator action). */
-export const makeRevokePremium = (): RevokePremium =>
-  new RevokePremium(identityProvider);
 
 /** Builds the "resolve user by email" use case (operator action). */
 export const makeResolveUserByEmail = (): ResolveUserByEmail =>

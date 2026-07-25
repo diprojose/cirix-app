@@ -1,235 +1,158 @@
 # DESIGN.md — Sistema de diseño de mixmag
 
-> Fuente de verdad visual de mixmag, derivada de una referencia de app de repostería (pantallas Home / Detalle / Carrito).
-> Estética: suave, redondeada, apetecible y aireada. Acento **rosa** único y tonal. Registro **producto** (el usuario está en una tarea: navegar → elegir → pagar) con **momentos de color "committed"** en las tarjetas de marca.
+> Fuente de verdad visual de mixmag: **e-commerce de supermercado** para Florida, cuyo propósito es demostrar un programa de retención sobre el Ledger de Recompensas.
+> Estética: **utilitaria y densa**. La compra de mercado es una tarea (llenar una canasta de 10-20 artículos), no un paseo. La foto del producto pone el color; la interfaz se aparta.
 >
-> Las reglas de código (inglés) y de commits viven en las reglas globales; la PWA y el dominio (hexagonal + DDD) viven en `CLAUDE.md`. Este archivo solo define lo **visual**.
+> Las reglas de código (inglés) y de commits viven en las reglas globales; el dominio (hexagonal + DDD), el Ledger y la PWA viven en `CLAUDE.md`. Este archivo solo define lo **visual**.
 
 ## Decisiones fundacionales
 
-1. **Color:** un único acento **rosa** con variaciones tonales (sin violeta). El acento **puede cambiar**: el sistema usa una capa semántica swappable (`--color-accent*`), así re-tematizar es editar un solo lugar.
-2. **Tipografía:** **Poppins** (sans geométrico redondeado y amable).
-3. **Tema:** **light por decisión**, no por defecto. Escena: alguien navegando postres en el teléfono, en un entorno luminoso; el rosa claro y aireado hace que la comida "antoje". Un ramp dark queda fuera de alcance por ahora.
-4. **Dominio sin tocar:** `DessertDto` = `{ id, name, description, priceCents, currency, available }`. No hay `imageUrl`, `category`, `rating` ni `deliveryTime`. Por eso: imágenes = placeholder, chips de categoría = presentacionales, y los chips "delivery/rating" de la referencia se **adaptan** a semántica por-encargo.
+1. **Dos ejes de color, no uno.** **Verde** = marca y cromo. **Naranja** = valor y acción. Un control que el usuario pulsa para avanzar, o un número que representa dinero que ganó, es naranja. Todo lo demás es verde o neutro. Un solo color de acción en toda la app.
+2. **Tipografía:** **Poppins** en 400/500/600/700. El peso 800 **no se carga**: pedir `font-extrabold` produce un faux-bold sintético.
+3. **Tema:** **light por decisión**. Un supermercado es una escena luminosa y plana para que la verdura resalte. No hay rampa dark por ahora.
+4. **Densidad:** 3 productos por fila en móvil, control de cantidad dentro de la card. Llenar una canasta no debe requerir abrir la ficha.
+5. **Honestidad de datos (regla dura).** Ningún dato que el dominio no modele llega a la UI. Sin ratings, sin plazos de entrega, sin saldos inventados. Si un dato falla al cargar, no se dibuja como cero ni como vacío.
 
-### Regla de contraste (WCAG AA) — crítica
-Texto blanco sobre el rosa vibrante `#e0669a` (`brand-500`) **no cumple AA** (~2.3:1). Por tanto:
-- **Rellenos interactivos con texto blanco** (CTA primario, botón "+", chip activo) → rosa profundo (`brand-700`/`accent-fill`, o degradado `accent-strong → brand-800`). Verificar ≥ 4.5:1.
-- **Superficies decorativas** (card destacada, resumen) → rosa claro (`accent-soft`/`brand-100`) con texto oscuro.
-- Alternativa para un CTA de rosa vibrante: etiqueta en **tinta oscura** (`sugar-950`) en vez de blanco (~5.7:1).
+> **Historia:** este documento describía una pastelería por encargo con acento rosa, derivada de un mockup de repostería. Tras el pivote a supermercado se reescribió por completo. Si encuentras rosa, violeta, "postres" o "por encargo" en el código, es un resto del pivote.
 
 ---
 
 ## 1. Design tokens (Tailwind v4 `@theme`)
 
-Estos tokens reemplazan el `@theme inline` mínimo actual de `app/globals.css`. Nomenclatura: **`brand`** = ramp rosa; **`sugar`** = neutrales tintados de rosa (nunca `#000`/`#fff`). Todo en **OKLCH**, anclado a `brand-500 = #e0669a`.
+Implementados en `app/globals.css`. Nomenclatura: **`brand`** = rampa verde, **`action`** = rampa naranja, **`stone`** = neutrales tibios (nunca `#000`/`#fff`). Todo en OKLCH.
 
-```css
-@import "tailwindcss";
+La **capa semántica** es lo único que consumen los componentes. Re-tematizar = reapuntar `--color-accent*` / `--color-action*`; ningún componente referencia `brand-*`, `action-*` ni `stone-*` directo salvo utilidades neutras (`bg-stone-100` para hovers).
 
-@theme {
-  /* ---- Ramp de marca (rosa) ---- */
-  --color-brand-50:  oklch(0.971 0.013 350);
-  --color-brand-100: oklch(0.940 0.030 350);
-  --color-brand-200: oklch(0.898 0.055 350);
-  --color-brand-300: oklch(0.835 0.088 350);
-  --color-brand-400: oklch(0.755 0.125 350);
-  --color-brand-500: oklch(0.680 0.155 350); /* #e0669a — base de marca */
-  --color-brand-600: oklch(0.610 0.170 352); /* ~ #d1508a (hover actual) */
-  --color-brand-700: oklch(0.530 0.162 354);
-  --color-brand-800: oklch(0.445 0.132 356);
-  --color-brand-900: oklch(0.370 0.102 357);
-  --color-brand-950: oklch(0.280 0.072 358);
-
-  /* ---- Neutrales tintados (sugar) ---- */
-  --color-sugar-0:   oklch(0.995 0.003 350); /* superficie / cards */
-  --color-sugar-50:  oklch(0.982 0.006 350); /* fondo de página */
-  --color-sugar-100: oklch(0.962 0.007 348);
-  --color-sugar-200: oklch(0.922 0.008 346); /* bordes hairline */
-  --color-sugar-300: oklch(0.862 0.009 344);
-  --color-sugar-400: oklch(0.720 0.010 340); /* iconos inactivos / placeholder */
-  --color-sugar-500: oklch(0.605 0.012 338); /* texto muted / subtítulo */
-  --color-sugar-600: oklch(0.500 0.013 336);
-  --color-sugar-700: oklch(0.400 0.014 334); /* body */
-  --color-sugar-800: oklch(0.305 0.014 332);
-  --color-sugar-900: oklch(0.235 0.015 330); /* títulos */
-  --color-sugar-950: oklch(0.180 0.013 328); /* casi-negro: filtro, chip activo, "+" */
-
-  /* ---- Capa semántica (SWAPPABLE — "puede cambiar" se edita aquí) ---- */
-  --color-bg:            var(--color-sugar-50);
-  --color-surface:       var(--color-sugar-0);
-  --color-border:        var(--color-sugar-200);
-  --color-text:          var(--color-sugar-900);
-  --color-text-muted:    var(--color-sugar-500);
-  --color-ink:           var(--color-sugar-950); /* controles casi-negros */
-  --color-accent:        var(--color-brand-500); /* marca / superficies vibrantes */
-  --color-accent-strong: var(--color-brand-600); /* hover / press */
-  --color-accent-fill:   var(--color-brand-700); /* relleno CTA con texto blanco (AA) */
-  --color-accent-soft:   var(--color-brand-100); /* superficies decorativas */
-  --color-accent-subtle: var(--color-brand-50);  /* rellenos tenues */
-  --color-on-accent:     var(--color-sugar-0);   /* texto sobre accent-fill */
-  --color-danger:        oklch(0.585 0.210 25);  /* solo swipe-to-delete */
-  --color-on-danger:     var(--color-sugar-0);
-
-  /* ---- Radios ---- */
-  --radius-sm:   0.75rem;    /* 12 — chips info interior, precio pill */
-  --radius-md:   1rem;       /* 16 — thumbnails, cards pequeñas */
-  --radius-lg:   1.5rem;     /* 24 — cards de producto, line items */
-  --radius-xl:   2rem;       /* 32 — card destacada, resumen, hero */
-  --radius-pill: 62.4375rem; /* píldora total: botones, chips, nav, stepper */
-
-  /* ---- Sombras (difusas, tintadas de rosa) ---- */
-  --shadow-xs:     0 1px 2px oklch(0.68 0.155 350 / 0.08);
-  --shadow-card:   0 10px 30px -12px oklch(0.60 0.14 348 / 0.22);
-  --shadow-float:  0 14px 34px -10px oklch(0.50 0.13 340 / 0.26);
-  --shadow-accent: 0 12px 26px -8px oklch(0.53 0.162 354 / 0.45);
-
-  /* ---- Motion ---- */
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* ---- Tipografía ---- */
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
-}
+```
+--color-accent / accent-strong / accent-fill / accent-soft / accent-subtle / on-accent   → verde
+--color-action / action-strong / action-fill / action-soft / action-subtle / on-action   → naranja
+--color-bg / surface / border / text / text-muted / ink                                  → neutros
+--color-danger / on-danger
 ```
 
-**Ajustes asociados en `globals.css` (al implementar):**
-- Eliminar `body { font-family: Arial, Helvetica, sans-serif }` → dejar mandar `--font-sans` (Poppins).
-- Fijar `background: var(--color-bg); color: var(--color-text)` en `body`.
-- Quitar/neutralizar el `@media (prefers-color-scheme: dark)` en superficies de tienda (compromiso light).
+### Contraste (WCAG AA) — verificado, no estimado
 
-**Wiring de Poppins** (`app/layout.tsx`): `next/font/google` → `Poppins({ weight: ["400","500","600","700"], subsets: ["latin"], variable: "--font-poppins" })`, aplicar `.variable` al `<html>`. Geist Mono puede quedar para datos monospace.
+Los valores están calibrados para pasar AA y hay un script que lo comprueba (ver §6). Pares críticos:
 
----
+| Par | Ratio |
+|---|---|
+| `on-accent` sobre `accent-fill` | 6.8:1 |
+| `on-action` sobre `action-fill` | 6.9:1 |
+| `text` sobre `surface` | 16.4:1 |
+| `text-muted` sobre `bg` | 4.7:1 |
+| `accent` como texto sobre `bg` | 4.7:1 |
+| `action-800` sobre `action-soft` (badge de saldo) | 7.9:1 |
 
-## 2. Tipografía
+**Nunca** texto blanco sobre `action-500` ni `brand-500`: son tonos decorativos. Los rellenos con texto blanco usan siempre el paso `-700` (`accent-fill` / `action-fill`).
 
-Poppins, escala rem fija (registro producto), ratio ~1.2. Pesos cargados: 400 / 500 / 600 / 700.
+### Radios
 
-| Rol | Tamaño / interlínea | Peso | Tracking | Uso |
-|---|---|---|---|---|
-| `display` | 1.75rem / 2rem | 700 | -0.02em | Título de Detalle ("Torta de chocolate") |
-| `price-lg` | 1.5rem / 1.75rem | 700 | tabular-nums | Precio grande (badge Detalle, total Carrito) |
-| `h-section` | 1.125rem / 1.5rem | 600 | -0.01em | "Top Product", "Most Ordered", "Ingredients" |
-| `title` | 1rem / 1.375rem | 600 | — | Nombre en card / line item |
-| `body` | 0.9375rem / 1.5 | 400 | — | Descripción, texto general |
-| `label` | 0.8125rem / 1.25 | 500 | — | Chips, precio en card, links "Ver todo" |
-| `caption` | 0.75rem / 1 | 500 | — | Subtítulo muted, etiqueta de badge |
+Escala apretada: un registro denso pelea con esquinas de boutique.
 
-Prosa (descripciones) capada a 65–75ch. Precios/montos siempre `tabular-nums`, formateados en el borde con `Intl.NumberFormat("es", { style: "currency", currency })` desde `priceCents / 100`.
+```
+sm 8 · md 12 · lg 16 · xl 24 · pill
+```
 
----
+`--radius-2xl` y `--radius-3xl` se **redefinen** como alias de `lg`/`xl`. Tailwind v4 `@theme` *extiende* en vez de reemplazar, así que sin eso `rounded-2xl` seguiría resolviendo a un valor fuera del sistema (era el radio de card de facto en 40 sitios).
 
-## 3. Tema y swappability
+### Tipografía
 
-- **Fuente única del acento:** ningún componente usa `brand-*` directo; todos consumen la capa semántica (`accent`, `accent-fill`, `accent-soft`, `on-accent`…). Cambiar de rosa a otro color = reescribir el ramp `brand-*` (o reapuntar `--color-accent*`). Nada más se toca.
-- **`theme_color` de la PWA** (`app/manifest.ts` + `viewport` en `layout.tsx`) permanece **`#e0669a`** (marca), independiente del acento de UI salvo decisión explícita.
-- **Contraste (AA):** rellenos con texto blanco → `accent-fill` (brand-700) o degradado `accent-strong → brand-800`; superficies claras → `accent-soft` con `text`. Verificar ≥ 4.5:1 (normal) / 3:1 (≥18.66px bold).
-- **Motion:** 150ms estado · 200ms default · 300ms reveal. Solo `ease-out` exponenciales; sin bounce/elastic; nunca animar propiedades de layout; respetar `prefers-reduced-motion`.
+Declarada como tokens reales (`--text-*`), no como prosa. Usar `text-display`, `text-price-lg`, `text-h-section`, `text-title`, `text-body`, `text-label`, `text-caption`. **No** usar `text-[…]` arbitrarios.
 
----
+| Rol | Tamaño / interlínea | Uso |
+|---|---|---|
+| `display` | 1.75rem / 2rem | Título de ficha, h2 de escritorio |
+| `price-lg` | 1.5rem / 1.75rem | Precio de ficha, total del carrito |
+| `h-section` | 1.125rem / 1.5rem | Encabezado de sección |
+| `title` | 1rem / 1.375rem | Nombre en línea de carrito, CTA |
+| `body` | 0.9375rem / 1.5 | Descripción, texto general |
+| `label` | 0.8125rem / 1.25 | Nombre y precio en card, enlaces de nav |
+| `caption` | 0.75rem / 1rem | Texto muted, notas |
 
-## 4. Componentes
+Montos siempre `tabular-nums`, formateados con `formatPrice` (`lib/format/money.ts`), locale **`es-US`** → `$4.00`. El locale `es` a secas produce `4,00 US$`: incorrecto para Florida y casi el doble de ancho, lo que rompe una card de 3 columnas.
 
-Convención transversal: touch target ≥ **44px**, foco visible (`ring` 2px `accent` con offset), estados `default/hover/active/focus/disabled` en todo lo interactivo. Ubicación sugerida: `components/store/*` (presentacionales; `"use client"` solo donde hay interacción).
+### Motion
 
-### 4.1 `AppScreen` (shell)
-- Columna mobile centrada: `max-w-[26rem]` (≈420px), `mx-auto`, `px-3` (12px). Gutter estrecho para que el contenido respire ancho; los carruseles sangran hasta el borde (`-mx-3 px-3`). Tokens centralizados en `components/store/layout.ts` (`COLUMN` / `CONTAINER` / `BLEED`) para no derivar entre archivos.
-- Fondo `bg` con degradado sutil rosa al tope opcional (`accent-subtle → bg`).
-- **Sin barra de estado falsa** (el "9:41 / señal / batería" es chrome del mockup).
-- Safe areas: `env(safe-area-inset-top)` en header, `env(safe-area-inset-bottom)` en nav/CTA.
-- **Dos horizontes (una sola URL responsive):** en **móvil/PWA** se usa este shell de app (header, search, chips, cards, `BottomNav` flotante, safe-areas, ajustes `display-mode: standalone`). En **escritorio/web (≥ md)** se conmuta al **paquete web completo**: `TopNav` superior (logo + buscador + enlaces + cuenta), grilla multi-columna ancha (2–4 col) y `SiteFooter`; el `BottomNav` se oculta. Los primitivos (cards, chips, thumb) se comparten; cambia la composición y el cromo por breakpoint. Mobile manda las decisiones de diseño.
+Usar los tokens `ease-out-quint` / `ease-out-expo`. 150ms estado · 200ms default. Sin bounce. Nunca animar propiedades de layout.
 
-### 4.2 `HomeHeader`
-Avatar (44px círculo, `object-cover`) + texto (`caption` muted "Buenos días" + `title` nombre) a la izquierda; **botón campana** a la derecha (44px círculo, `surface`, `shadow-xs`, icono `ink`, punto `accent` opcional de notificación).
-
-### 4.3 `SubHeader` (Detalle / Carrito)
-**Back** (44px círculo `surface` + `shadow-xs`) · **título centrado** (`title`) · **acción trailing** (share en Detalle / kebab en Carrito, 44px círculo).
-
-### 4.4 `SearchBar`
-Píldora `radius-pill`, `surface`, altura 48px, `shadow-xs`. Lupa `sugar-400` + placeholder "Busca tu postre" (`body` muted). **Botón filtro** trailing: 44px círculo `bg-ink` + icono sliders blanco. Focus → `ring` accent. El filtro abre bottom sheet (no modal).
-
-### 4.5 `CategoryChips` (presentacional — sin datos)
-Fila scroll horizontal, `gap-2`, sin scrollbar. Chips `radius-pill`, ~40px, `px-4`.
-- **Activo:** `bg-ink` + texto blanco (+ thumbnail 28px circular opcional).
-- **Inactivo:** `surface` + texto `sugar-700` + borde `border`.
-- Los chips reflejan el **departamento** del dominio: `Todos · Postres · Supermercado` (ampliable). **Filtran de verdad**, en cliente: el catálogo se carga una vez y se filtra al instante. Un eje fino por `category` dentro de un departamento queda como extensión futura.
-
-### 4.6 `SectionHeader`
-Título `h-section` (`text`) + link "Ver todo" a la derecha (`label`, color `accent`, sin subrayado, hover `accent-strong`).
-
-### 4.7 `FeaturedCard` (destacada)
-`radius-xl` (32), fondo `accent-soft` con **blob decorativo** (SVG/gradiente `brand-200` baja opacidad, `absolute`, `overflow-hidden`). En Home vive en un **carrusel** (`Shelf` de 1 fila): ancho responsive `w-[86%] max-w-[20rem]` para que asome la siguiente tarjeta (peek) con snap obligatorio.
-- Izquierda: chip-tag opcional ("Nuevo"), **título** (`display`, 2 líneas, `text`), **precio** (`title`, `text`).
-- Derecha: **imagen** placeholder (§4.18, `object-contain`, ~140px, desbordando el borde inferior).
-- Inferior: **"Agregar"** (píldora `surface`, texto `ink`, `shadow-card`) + **favorito** (44px círculo `surface`, corazón; toggle relleno `accent`).
-
-### 4.8 `ProductCard` (compacta)
-En Home vive en un **carrusel de 2 filas** (`Shelf rows={2}`): columnas que se deslizan de lado en móvil (peek + snap), reflowing a la grilla ancha (`md:grid-cols-3 lg:grid-cols-4`) en escritorio. En `/menu` se usa en grilla directa. `radius-lg`. **Variación tonal** (en vez del rosa+lavanda de la referencia): alternar `accent-soft` (brand-100) y `sugar-100`. Imagen placeholder arriba (desbordando), **nombre** (`title`), **precio pill** abajo-izq (`surface`, `label`, tabular-nums), **botón "+"** abajo-der (36–40px círculo `bg-accent-fill`, "+" blanco, press `scale-95`).
-
-### 4.9 `BottomNav` (flotante)
-`fixed` inferior, centrada, `max-w`, píldora `radius-pill`, `surface`, `shadow-float`, respeta `safe-area-inset-bottom`, ~64px. 4 ítems: **Inicio · Favoritos · Carrito · Perfil** (iconos 24px).
-- **Activo:** círculo 48px relleno `accent-fill` + icono blanco + leve elevación. **Inactivo:** icono `sugar-400`.
-- Rutas al implementar: `/ · /favoritos · /cart · /account`. En Detalle/Carrito se oculta (el CTA ocupa el borde inferior). **Solo móvil:** de `md` en adelante se oculta y el rol de navegación lo toman el `TopNav` web + `SiteFooter` (ver §4.1). Hoy solo `Inicio` está enlazado; el resto es presentacional hasta que existan sus rutas.
-
-### 4.10 `PrimaryButton` (CTA)
-Píldora `radius-pill`, ancho completo, altura **56px**, texto `on-accent` (`label` 16/600). **Relleno accesible:** degradado `accent-strong → brand-800` (o plano `accent-fill`), `shadow-accent`.
-- Estados: hover `brand-800`; active `scale-[0.98]` + sombra reducida; disabled `sugar-200` + texto `sugar-400`; loading spinner + label oculto. `transition` 200ms `--ease-out-quint`.
-
-### 4.11 `ProductHero` + `PriceBadge` (Detalle)
-Imagen a sangre sobre degradado rosa sutil (`accent-subtle → bg`), placeholder centrada (~260px). **`PriceBadge` flotante:** píldora-card `surface`, `radius-lg`, `shadow-card`, `absolute`; `caption` muted ("Por porción") + `price-lg`.
-
-### 4.12 `QuantityStepper`
-Píldora, `surface`, borde `border` (o `bg-sugar-100`). "−"/"+" (targets 36px, icono `sugar-700`) + contador en círculo `accent-fill` 32px (texto blanco). Altura 44. "−" deshabilitado en 1.
-
-### 4.13 `InfoChips` (Detalle) — **adaptados a por-encargo**
-Dos cards lado a lado, `radius-md`, `surface`, borde `border`, `p-3`. Icono/emoji + valor (`title`) + `caption` muted. Contenido adaptado (no "delivery/rating"): p.ej. **"Por encargo · Listo en 48h"** y **"Personalizable · Elige diseño"**. No inventar ratings/tiempos falsos.
-
-### 4.14 `Description` + "Ver más"
-`body` `sugar-700`, `line-clamp-3`, link inline "Ver más" color `accent`. Texto real desde `dessert.description`.
-
-### 4.15 `IngredientsRow` (opcional / presentacional)
-`SectionHeader` "Incluye" + fila de thumbnails ~56px `radius-md` (placeholder). Sin campo de dominio → estático u omitible.
-
-### 4.16 `CartLineItem`
-Row en card `surface`, `radius-lg`, `p-3`. Thumbnail 56–64px `radius-md` (placeholder) + **nombre** (`title`) + **subtítulo** (`caption` muted) + **precio pill** (`bg-sugar-100`, `label`, tabular-nums).
-- **Swipe-to-delete:** arrastrar a la izquierda revela acción destructiva (`bg-danger`, papelera, texto `on-danger`). **Fallback no-gestual** para desktop/a11y (botón eliminar visible o long-press + confirm). `danger` es la única excepción semántica fuera del rosa.
-
-### 4.17 `SummaryCard` (resumen)
-`radius-xl`, fondo `accent-soft` con blob decorativo + cluster de imagen placeholder. Filas: "Entrega/Envío" + monto; "Total" (`caption`) + monto grande (`price-lg`). Montos con `Intl.NumberFormat("es", currency)`.
-
-### 4.18 `DessertThumb` (placeholder de imagen)
-Como `DessertDto` no tiene `imageUrl`: bloque `radius-md/lg` con degradado tintado (`accent-soft → brand-200`) + glifo de postre (🍰 o icono) centrado, determinístico por `id` para variar el tono. **Evolución:** cuando el dominio gane `imageUrl`, sustituir por `next/image` (`object-contain`, `sizes` mobile) sin cambiar el layout; registrar `images` remotePatterns en `next.config.ts`.
+`prefers-reduced-motion` se respeta **globalmente** en `globals.css`, no componente por componente: con ~20 sitios de motion, guardarlos uno a uno es exactamente cómo se terminó con solo 3 protegidos.
 
 ---
 
-## 5. Pantallas → rutas / archivos
+## 2. Layout
 
-| Pantalla | Ruta destino | Estado | Datos / use case |
-|---|---|---|---|
-| **Home** (catálogo) | `app/page.tsx` (reemplaza boilerplate) | crear branded | `makeListAvailableDesserts()` (existe) → cards. Chips presentacionales. |
-| **Detalle** | `app/menu/[id]/page.tsx` (nueva) | crear | `makeGetDessertById()` **ya existe y está sin usar** → enlazar. |
-| **Carrito** | `app/cart/page.tsx` (nueva) | crear (presentacional) | Sin módulo de carrito aún (contexto `ordering` pendiente). Estado cliente / datos de ejemplo por ahora. |
-| **Nav inferior** | componente global | crear | Rutas `/ · /favoritos · /cart · /account`. |
+Contenedores centralizados en `components/store/layout.ts`. **Importarlos, nunca escribir `max-w-[26rem]` a mano** — así se llegó a tener gutter de 12px en la home y 20px en el resto, con la app saltando de lado al entrar al carrito.
 
-**Arquitectura (hexagonal + DDD):** las pantallas son **adaptadores primarios** (Server Components que llaman use cases y reciben DTOs planos); los componentes de tienda son presentacionales; el precio se formatea en el borde. El Detalle usa el `GetDessertById` existente. El Carrito real pertenecerá al futuro módulo `ordering`; hoy su spec es visual.
+```
+COLUMN          móvil (header, secciones planas)   max-w-[26rem] px-4
+CONTAINER       catálogo y grillas                 + md:max-w-6xl
+CONTAINER_READ  formularios y lectura              + md:max-w-2xl
+```
 
----
-
-## 6. Adaptaciones y anti-slop
-
-- **Por-encargo:** los info-chips de Detalle usan semántica real (encargo, personalización, fecha), no "delivery/rating".
-- **PWA:** sin barra de estado falsa; safe-area en header/nav/CTA; nav flotante como patrón instalable; targets ≥44px.
-- **Mobile-first → desktop:** columna `max-w-[26rem]` centrada; cards a grid 2–3 col ≥ md; sin tipografía fluida.
-- **Bans evitados:** sin bordes laterales de acento (usar bordes completos / tintes de fondo); sin texto en degradado (precios/links en color sólido `accent`); glass evitado; sin plantilla hero-metric; cards **no** idénticas (destacada ≠ compacta; variación tonal); **sin modales** (bottom sheets / inline para filtros y confirmaciones).
-- **Consistencia:** un solo shape language (píldoras + `radius-lg/xl`), un set de iconos (outline), mismos estados en todos los botones.
+**Dos horizontes, una URL.** En móvil manda el shell de app (`HomeHeader` / `SubHeader`, `BottomNav` flotante, safe-areas). Desde `md` se conmuta al paquete web (`TopNav` + grilla ancha + `SiteFooter`) y el `BottomNav` se oculta. Los primitivos se comparten; cambia la composición. **Mobile-first manda las decisiones.**
 
 ---
 
-## 7. Verificación del sistema
+## 3. Componentes
 
-1. **Compilación de tokens:** pegar el bloque `@theme` en `app/globals.css` (rama de prueba) y confirmar que Tailwind v4 genera utilidades (`bg-brand-500`, `text-sugar-900`, `rounded-xl`, `shadow-card`, `font-sans`).
-2. **Contraste AA:** validar los pares críticos — `on-accent`/`accent-fill` (brand-700), `text`/`accent-soft` (brand-100), `text`/`surface`. Ajustar el ramp si algún par no llega a 4.5:1.
-3. **Poppins:** confirmar que los pesos 400/500/600/700 cargan vía `next/font`.
-4. **Cobertura referencia→spec:** cada elemento de las 3 pantallas tiene sección en §4 y ruta en §5.
-5. **Swappability:** ningún componente referencia `brand-*` directo (solo la capa semántica `accent*`).
+Convención transversal: touch target ≥ **44px**, `focus-visible` en todo lo interactivo, estados `default/hover/active/focus/disabled`. `disabled` se expresa con token (`bg-stone-200` + `text-stone-400`), **no** con `opacity-60`.
+
+Cuando un control debe verse compacto pero cumplir 44px, expandir el área pulsable con un pseudo-elemento (`before:h-11 before:w-11`) en vez de agrandar el botón. Ver `QuickAddButton` y `QuantityStepper`.
+
+### 3.1 `ProductCard`
+Superficie sobria: `surface` + borde `border`, `rounded-lg`. Sin tintes alternados — la foto de la verdura ya aporta el color. Foto cuadrada sobre `accent-subtle`, nombre a 2 líneas (`label`), precio (`label`, tabular) y control de cantidad en la misma fila. La primera fila del catálogo pasa `priority` para que el LCP no quede diferido.
+
+### 3.2 `QuickAddButton`
+Es un `+` naranja que **se convierte en stepper** (− / cantidad / +) en cuanto el producto está en el carrito. La cantidad se lee del carrito, así la grilla funciona como resumen de lo que llevas.
+
+### 3.3 `SubHeader`
+Barra móvil de toda pantalla bajo la home: back + título centrado + acción opcional. Es la única implementación; antes estaba copiada en 9 archivos, todas con el título 4px descentrado porque el espaciador era `h-10` contra un botón `h-11`. Aporta el `h1` de la ruta.
+
+### 3.4 `WalletBadge`
+Saldo real (verde no: **naranja**, es dinero) en el header móvil y en el `TopNav`. La racha solo se dibuja si es mayor que cero. Enlaza al ledger. Sustituyó a una campana que tenía el punto de no-leído siempre encendido y ningún destino.
+
+### 3.5 `ProductThumb`
+**Único** tratamiento de "sin imagen" en la app: `next/image` cuando hay `imageUrl`, y si no, un degradado determinista por `id` con el glifo de hoja. Carrito y pedidos lo usan también, para que la misma condición no se vea distinta en tres sitios.
+
+### 3.6 `BottomNav`
+Cuatro destinos **reales**: Inicio · Carrito · Mi saldo · Invita y gana. Nada de pestañas muertas.
+
+### 3.7 Buscador
+`SearchBar` escribe en `SearchProvider` (contexto) y `CatalogBrowser` lo lee: el catálogo completo ya está en el cliente, así que filtra al instante. El buscador del `TopNav` es **opt-in** (`searchable`), porque fuera de la tienda no hay nada que filtrar y un control vivo sin efecto es peor que ninguno.
+
+### 3.8 Iconos
+Set outline propio en `components/store/icons.tsx` (grid 24, stroke 1.75, caps redondos), una sola familia. **Sin emojis como iconos**: renderizan distinto por sistema operativo y no se pueden tokenizar.
+
+---
+
+## 4. Anti-slop
+
+- **Un solo acento de acción** en toda la página. Nada de un CTA violeta aquí y uno rosa allá (así estaba: el 404 de pedido era violeta y el de producto rosa).
+- **Sin datos inventados.** Prohibido "4.8 (12k)", "15-20 min", saldos por defecto. Si falla la carga, no se dibuja.
+- **Sin controles muertos** que parezcan vivos: si un input o botón no hace nada, se quita.
+- **Un solo lenguaje de forma:** píldoras para lo interactivo, `rounded-lg` para cards.
+- **Sin em-dash** en texto visible. Guion normal.
+- Sin texto en degradado, sin glass, sin sombras negras puras (las sombras se tiñen del neutro tibio).
+
+---
+
+## 5. Fuera de alcance (anotado, no hecho)
+
+- **i18n.** `CLAUDE.md` lo exige desde el día uno (`es`/`en`, rutas `[locale]`, copy en diccionarios). Hoy el copy está hardcodeado en español. Es la deuda más grande de esta capa.
+- **`loading.tsx` / `error.tsx`.** No existe ninguno; toda navegación bloquea sin feedback.
+- **Error-como-vacío.** ~18 sitios convierten un fallo de backend en un estado vacío benigno. El peor: `app/billetera/page.tsx` inventa un saldo de $0.00 si el wallet no carga.
+- **Bloque de recompra en un tap.** Requiere una consulta de pedidos por cliente que el puerto `OrderRepository` no expone (solo `findAll` para el operador).
+- **Capa Venezuela.** `modules/pricing` (BCV), `payment-method` (`pago_movil`, `zelle`) y `business-profile` ("Banco de Venezuela") siguen siendo de otro mercado. Se quitó su presentación, no el dominio.
+
+---
+
+## 6. Verificación
+
+1. `npx tsc --noEmit` y `npm run build` sin errores.
+2. **Sin restos del pivote:** `grep -riE "postres|dessert|recipe|premium|suscrip|por encargo|bcv|bolívar" app components` vacío en la ruta de cliente.
+3. **Un solo acento:** `grep -rn "violet\|--color-cta\|brand-[0-9]\|sugar-" app components` vacío.
+4. **Contraste:** `node scripts/check-contrast.mjs` — todos los pares ≥ 4.5.
+5. **Densidad:** en 390px se ven ≥6 productos y se agrega sin abrir la ficha.
+6. **Teclado:** home → ficha → carrito → checkout solo con Tab, con anillo visible en cada control.
+7. **`prefers-reduced-motion: reduce`:** sin transiciones, sin `scale` al pulsar, sin `animate-pulse`.
+8. **PWA viva:** `/manifest.webmanifest` y `/sw.js` accesibles, instalable, shell offline. Subir `CACHE_VERSION` ante cualquier cambio.

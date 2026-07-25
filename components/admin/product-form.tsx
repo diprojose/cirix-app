@@ -4,7 +4,7 @@ import { saveProductAction } from "@/app/admin/actions";
 
 /** Shared input styling for the product fields. */
 const FIELD_CLASS =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta";
+  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 /**
  * ProductForm is the operator's create/edit form, shared by both admin pages.
@@ -39,7 +39,7 @@ export function ProductForm({ product }: { product?: ProductDto }) {
           maxLength={300}
           defaultValue={product?.description ?? ""}
           placeholder="Bizcocho húmedo de chocolate…"
-          className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text placeholder:text-sugar-400 focus:outline-none focus:ring-2 focus:ring-cta"
+          className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill"
         />
       </label>
 
@@ -60,21 +60,39 @@ export function ProductForm({ product }: { product?: ProductDto }) {
         </label>
 
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-text">Departamento</span>
-          <select
-            name="department"
-            required
-            defaultValue={product?.department ?? DEPARTMENT_ORDER[0]}
+          <span className="text-sm font-medium text-text">Costo (US$)</span>
+          <input
+            type="number"
+            name="cost"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            defaultValue={product ? (product.costCents / 100).toFixed(2) : ""}
+            placeholder="12.00"
             className={FIELD_CLASS}
-          >
-            {DEPARTMENT_ORDER.map((department) => (
-              <option key={department} value={department}>
-                {departmentLabel(department)}
-              </option>
-            ))}
-          </select>
+          />
         </label>
       </div>
+      <p className="-mt-2 text-xs text-text-muted">
+        El costo es interno (no se muestra al cliente); define el margen sobre el que se
+        calculan las recompensas.
+      </p>
+
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium text-text">Departamento</span>
+        <select
+          name="department"
+          required
+          defaultValue={product?.department ?? DEPARTMENT_ORDER[0]}
+          className={FIELD_CLASS}
+        >
+          {DEPARTMENT_ORDER.map((department) => (
+            <option key={department} value={department}>
+              {departmentLabel(department)}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-text">URL de imagen (opcional)</span>
@@ -96,7 +114,7 @@ export function ProductForm({ product }: { product?: ProductDto }) {
             type="checkbox"
             name="available"
             defaultChecked={product?.available ?? true}
-            className="h-5 w-5 accent-[oklch(0.64_0.17_288)]"
+            className="h-5 w-5 accent-action-fill"
           />
           Visible en la tienda
         </label>
@@ -105,7 +123,7 @@ export function ProductForm({ product }: { product?: ProductDto }) {
             type="checkbox"
             name="featured"
             defaultChecked={product?.featured ?? false}
-            className="h-5 w-5 accent-[oklch(0.64_0.17_288)]"
+            className="h-5 w-5 accent-action-fill"
           />
           Destacado
         </label>
@@ -113,7 +131,7 @@ export function ProductForm({ product }: { product?: ProductDto }) {
 
       <button
         type="submit"
-        className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-cta to-cta-strong text-sm font-semibold text-on-cta shadow-cta transition-transform active:scale-[0.98]"
+        className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
       >
         {product ? "Guardar cambios" : "Crear producto"}
       </button>
