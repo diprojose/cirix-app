@@ -45,8 +45,8 @@ export const MVP_MODULES: MvpModule[] = [
     },
     capabilities: [
       {
-        es: "Seguimiento de leads y cuentas",
-        en: "Lead and account follow-up",
+        es: "Flujo completo: subscribers, leads, prospects y customers",
+        en: "Full flow: subscribers, leads, prospects, and customers",
       },
       {
         es: "Flujos de atencion y visibilidad del equipo",
