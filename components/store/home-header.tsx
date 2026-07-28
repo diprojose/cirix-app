@@ -21,7 +21,7 @@ export function HomeHeader({
   return (
     <header className="flex items-center justify-between gap-3">
       <Link
-        href="/"
+        href="/loyalty"
         className="rounded-sm text-h-section font-bold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         mixmag

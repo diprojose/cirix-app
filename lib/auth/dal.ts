@@ -46,7 +46,7 @@ export async function requireCustomer(): Promise<ViewerDto> {
 export async function requireOperator(): Promise<ViewerDto> {
   const viewer = await getViewer();
   if (!viewer.permissions.canOperateStore) {
-    redirect(viewer.authenticated ? "/" : "/login?from=/admin");
+    redirect(viewer.authenticated ? "/loyalty" : "/login?from=/admin");
   }
   return viewer;
 }

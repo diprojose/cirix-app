@@ -14,7 +14,7 @@ export function SiteFooter() {
           <p className="mt-2">Tu supermercado, a domicilio.</p>
         </div>
         <nav className="grid grid-cols-2 gap-x-12 gap-y-2">
-          <Link href="/" className="hover:text-accent">
+          <Link href="/loyalty" className="hover:text-accent">
             Tienda
           </Link>
           <Link href="/billetera" className="hover:text-accent">

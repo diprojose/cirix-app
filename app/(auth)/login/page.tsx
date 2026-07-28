@@ -21,7 +21,7 @@ export default async function LoginPage({
 }) {
   const viewer = await getViewer();
   if (viewer.authenticated) {
-    redirect(viewer.permissions.canOperateStore ? "/admin" : "/");
+    redirect(viewer.permissions.canOperateStore ? "/admin" : "/loyalty");
   }
 
   const { from } = await searchParams;
@@ -47,7 +47,7 @@ export default async function LoginPage({
       <p className="text-center text-caption text-text-muted">
         ¿Solo mirando?{" "}
         <Link
-          href="/"
+          href="/loyalty"
           className="rounded-sm font-medium text-accent underline underline-offset-4 transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Explora la tienda

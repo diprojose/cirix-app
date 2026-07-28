@@ -24,7 +24,7 @@ export default function OfflinePage() {
         señal.
       </p>
       <Link
-        href="/"
+        href="/loyalty"
         className="mt-2 inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         Reintentar

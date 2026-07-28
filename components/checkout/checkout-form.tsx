@@ -65,7 +65,7 @@ export function CheckoutForm({
           Agrega productos antes de finalizar un pedido.
         </p>
         <Link
-          href="/"
+          href="/loyalty"
           className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-6 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
         >
           Explorar productos

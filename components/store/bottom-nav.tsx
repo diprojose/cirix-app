@@ -32,8 +32,8 @@ export function BottomNav({
       <div className="mb-3 flex items-center gap-2 rounded-pill bg-surface p-2 shadow-float">
         <NavItem
           label="Inicio"
-          href="/"
-          active={pathname === "/"}
+          href="/loyalty"
+          active={pathname === "/loyalty"}
           icon={<HomeIcon className="h-6 w-6" />}
         />
         <NavItem

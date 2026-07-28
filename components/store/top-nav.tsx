@@ -32,7 +32,7 @@ export function TopNav({
     <header className="hidden border-b border-border bg-surface md:block">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-8 py-3">
         <Link
-          href="/"
+          href="/loyalty"
           className="rounded-sm text-xl font-bold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           mixmag
@@ -45,7 +45,7 @@ export function TopNav({
         )}
 
         <nav className="flex items-center gap-6 text-label font-medium text-text">
-          <Link href="/" className={LINK}>
+          <Link href="/loyalty" className={LINK}>
             Inicio
           </Link>
           <Link href="/referidos" className={LINK}>

@@ -136,7 +136,7 @@ function EmptyCart() {
         <p className="text-h-section font-bold text-text">Tu carrito está vacío</p>
         <p className="mt-1 text-body text-text-muted">Agrega productos para verlos aquí.</p>
       </div>
-      <Link href="/" className={`${CTA} h-12 max-w-xs`}>
+      <Link href="/loyalty" className={`${CTA} h-12 max-w-xs`}>
         Explorar productos
       </Link>
     </div>
