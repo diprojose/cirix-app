@@ -1,21 +1,12 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { requireOperator } from "@/lib/auth/dal";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { LocalizedLink } from "@/components/localized-link";
+import { requireOperator } from "@/lib/auth/dal";
+import { getCurrentLocale, pick } from "@/lib/i18n";
 
-export const metadata: Metadata = {
-  title: { template: "%s · Panel mixmag", default: "Panel de operador" },
-  robots: { index: false, follow: false },
-};
-
-/**
- * Admin shell (server layout): enforces the operator guard for every /admin
- * page — guests go to login, non-operators back to the storefront — and frames
- * the section with its own header and tab navigation. Each admin server action
- * re-checks the guard on its own; this layout is UX, the actions are the wall.
- */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const locale = await getCurrentLocale();
   const viewer = await requireOperator();
 
   return (
@@ -23,15 +14,20 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-5 py-3">
           <div className="min-w-0">
-            <p className="text-base font-bold text-text">Panel de operador</p>
+            <p className="text-base font-bold text-text">
+              {pick(locale, { es: "Panel de operador", en: "Operator panel" })}
+            </p>
             <p className="truncate text-xs text-text-muted">{viewer.email}</p>
           </div>
-          <Link
-            href="/loyalty"
-            className="shrink-0 rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text transition-colors hover:bg-stone-100"
-          >
-            ← Tienda
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <LocalizedLink
+              href="/loyalty"
+              className="shrink-0 rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text transition-colors hover:bg-stone-100"
+            >
+              {pick(locale, { es: "< Tienda", en: "< Store" })}
+            </LocalizedLink>
+          </div>
         </div>
         <div className="mx-auto w-full max-w-3xl px-5 pb-3">
           <AdminNav />

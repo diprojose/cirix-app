@@ -1,34 +1,24 @@
-import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getViewer, requireCustomer } from "@/lib/auth/dal";
-import { makeGetWallet } from "@/modules/rewards/infrastructure/di/rewards-container";
-import { makeGetCustomerProfile } from "@/modules/customers/infrastructure/di/customers-container";
-import { makeListEligibleCoupons } from "@/modules/coupons/infrastructure/di/coupons-container";
-import { TopNav } from "@/components/store/top-nav";
-import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
-import { SubHeader } from "@/components/store/sub-header";
-import { CONTAINER_READ } from "@/components/store/layout";
-import { WalletView } from "@/components/store/wallet-view";
+import { LocalizedLink } from "@/components/localized-link";
 import { RewardsPerks } from "@/components/store/rewards-perks";
+import { SiteFooter } from "@/components/store/site-footer";
+import { SubHeader } from "@/components/store/sub-header";
+import { TopNav } from "@/components/store/top-nav";
+import { WalletView } from "@/components/store/wallet-view";
+import { CONTAINER_READ } from "@/components/store/layout";
+import { getViewer, requireCustomer } from "@/lib/auth/dal";
+import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
+import { makeListEligibleCoupons } from "@/modules/coupons/infrastructure/di/coupons-container";
+import { makeGetCustomerProfile } from "@/modules/customers/infrastructure/di/customers-container";
+import { makeGetWallet } from "@/modules/rewards/infrastructure/di/rewards-container";
 
-export const metadata: Metadata = {
-  title: "Mi billetera",
-  description: "Tu crédito de recompensas: disponible, pendiente y movimientos.",
-};
-
-/**
- * Wallet page: the customer's loyalty wallet. `requireCustomer` is the wall —
- * guests are redirected to login — and the wallet is read scoped strictly to the
- * signed-in viewer's own uid, so a customer only ever sees their own ledger
- * (the app's server-side stand-in for row-level isolation, US-A1).
- */
 export default async function WalletPage() {
+  const locale = await getCurrentLocale();
   const viewer = await requireCustomer();
   const uid = viewer.uid;
   if (!uid) {
-    redirect("/login");
+    redirect(await localizeForCurrentRequest("/login"));
   }
 
   const [navViewer, walletResult, profileResult] = await Promise.all([
@@ -52,36 +42,43 @@ export default async function WalletPage() {
     <div className="flex min-h-dvh flex-col bg-bg">
       <TopNav viewer={navViewer} />
 
-      <SubHeader title="Mi billetera" />
+      <SubHeader title={pick(locale, { es: "Mi billetera", en: "My wallet" })} />
 
       <main className="flex-1 pb-28 md:pb-12">
         <div className={`${CONTAINER_READ} pt-4 md:pt-8`}>
-          <h2 className="mb-4 hidden text-display font-bold text-text md:block">Mi billetera</h2>
+          <h2 className="mb-4 hidden text-display font-bold text-text md:block">
+            {pick(locale, { es: "Mi billetera", en: "My wallet" })}
+          </h2>
           <WalletView wallet={wallet} />
           <div className="mt-6">
             <RewardsPerks profile={profile} coupons={eligibleCoupons} />
           </div>
           <div className="mt-6 space-y-2">
-            <Link
+            <LocalizedLink
               href="/referidos"
               className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-stone-100"
             >
               <span className="text-sm font-semibold text-text">
-                Invita amigos y gana crédito
+                {pick(locale, {
+                  es: "Invita amigos y gana credito",
+                  en: "Refer friends and earn credit",
+                })}
               </span>
               <span className="text-action-strong" aria-hidden="true">
-                →
+                &gt;
               </span>
-            </Link>
-            <Link
+            </LocalizedLink>
+            <LocalizedLink
               href="/notificaciones"
               className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-4 shadow-xs transition-colors hover:bg-stone-100"
             >
-              <span className="text-sm font-semibold text-text">Notificaciones</span>
-              <span className="text-action-strong" aria-hidden="true">
-                →
+              <span className="text-sm font-semibold text-text">
+                {pick(locale, { es: "Notificaciones", en: "Notifications" })}
               </span>
-            </Link>
+              <span className="text-action-strong" aria-hidden="true">
+                &gt;
+              </span>
+            </LocalizedLink>
           </div>
         </div>
       </main>

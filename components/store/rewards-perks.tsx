@@ -1,37 +1,31 @@
+import { getCurrentLocale, pick } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format/money";
 import type { CustomerProfileDto } from "@/modules/customers/application/dtos/customer-profile-dto";
 import type { RfmSegment } from "@/modules/customers/domain/value-objects/rfm-segment";
 import type { CouponDto } from "@/modules/coupons/application/dtos/coupon-dto";
 
-/** Human copy per RFM segment. */
-const SEGMENT_LABELS: Record<RfmSegment, string> = {
-  nuevo: "Nuevo",
-  activo: "Activo",
-  vip: "VIP",
-  en_riesgo: "En riesgo",
-  inactivo: "Inactivo",
+const SEGMENT_LABELS: Record<RfmSegment, { es: string; en: string }> = {
+  nuevo: { es: "Nuevo", en: "New" },
+  activo: { es: "Activo", en: "Active" },
+  vip: { es: "VIP", en: "VIP" },
+  en_riesgo: { es: "En riesgo", en: "At risk" },
+  inactivo: { es: "Inactivo", en: "Inactive" },
 };
 
-/** Short summary of a coupon's discount. */
 function discountLabel(coupon: CouponDto): string {
   return coupon.discountType === "percentage"
     ? `${coupon.value}%`
     : formatPrice(coupon.value, "USD");
 }
 
-/**
- * RewardsPerks shows the customer's retention perks on the wallet: their weekly
- * streak progress toward the next bonus (US-B7), their segment, and the coupons
- * currently available to them (untargeted plus those aimed at their segment,
- * US-B4). A server component — it only formats data folded upstream.
- */
-export function RewardsPerks({
+export async function RewardsPerks({
   profile,
   coupons,
 }: {
   profile: CustomerProfileDto;
   coupons: CouponDto[];
 }) {
+  const locale = await getCurrentLocale();
   const target = Math.max(1, profile.streakTargetWeeks);
   const pct = Math.min(100, Math.round((profile.streakWeeks / target) * 100));
 
@@ -39,9 +33,11 @@ export function RewardsPerks({
     <div className="space-y-6">
       <section className="space-y-2 rounded-2xl bg-surface p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-text">Tu racha</h2>
+          <h2 className="text-sm font-bold text-text">
+            {pick(locale, { es: "Tu racha", en: "Your streak" })}
+          </h2>
           <span className="rounded-pill bg-stone-100 px-2 py-0.5 text-[0.65rem] font-semibold text-text-muted">
-            {SEGMENT_LABELS[profile.segment]}
+            {SEGMENT_LABELS[profile.segment][locale]}
           </span>
         </div>
         <div className="h-2.5 w-full overflow-hidden rounded-pill bg-stone-100">
@@ -51,14 +47,18 @@ export function RewardsPerks({
           />
         </div>
         <p className="text-xs text-text-muted">
-          {profile.streakWeeks} de {target} semanas seguidas — completa la racha para ganar un
-          bono.
+          {pick(locale, {
+            es: `${profile.streakWeeks} de ${target} semanas seguidas: completa la racha para ganar un bono.`,
+            en: `${profile.streakWeeks} of ${target} weeks completed: finish the streak to unlock a bonus.`,
+          })}
         </p>
       </section>
 
       {coupons.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-sm font-bold text-text">Cupones para ti</h2>
+          <h2 className="text-sm font-bold text-text">
+            {pick(locale, { es: "Cupones para ti", en: "Coupons for you" })}
+          </h2>
           <ul className="space-y-2">
             {coupons.map((coupon) => (
               <li
@@ -71,7 +71,8 @@ export function RewardsPerks({
                   </p>
                   {coupon.minSpendCents > 0 && (
                     <p className="text-xs text-text-muted">
-                      mín {formatPrice(coupon.minSpendCents, "USD")}
+                      {pick(locale, { es: "min", en: "min" })}{" "}
+                      {formatPrice(coupon.minSpendCents, "USD")}
                     </p>
                   )}
                 </div>

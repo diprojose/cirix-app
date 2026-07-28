@@ -1,43 +1,40 @@
-export type MvpModuleStatus = "live" | "preview";
+import type { Locale } from "@/lib/i18n";
 
-export type BilingualCopy = {
-  es: string;
-  en: string;
-};
+export type MvpModuleStatus = "live" | "preview";
 
 export type MvpModule = {
   slug: string;
-  eyebrow: BilingualCopy;
   title: string;
-  summary: BilingualCopy;
   href: string;
   status: MvpModuleStatus;
-  badge: BilingualCopy;
   accent: "brand" | "action";
-  audience: BilingualCopy;
-  ctaLabel: BilingualCopy;
-  capabilities: BilingualCopy[];
+  eyebrow: Record<Locale, string>;
+  summary: Record<Locale, string>;
+  badge: Record<Locale, string>;
+  audience: Record<Locale, string>;
+  ctaLabel: Record<Locale, string>;
+  capabilities: Record<Locale, string>[];
 };
 
 export const MVP_MODULES: MvpModule[] = [
   {
     slug: "zoho-crm",
+    title: "Zoho CRM",
+    href: "/zoho",
+    status: "live",
+    accent: "action",
     eyebrow: {
       es: "Suite de relacionamiento",
       en: "Relationship suite",
     },
-    title: "Zoho CRM",
     summary: {
       es: "Centraliza seguimiento comercial, visibilidad operativa y conversaciones activas en una sola vista.",
       en: "Centralize sales follow-up, operator visibility, and active conversations in one operating view.",
     },
-    href: "/zoho",
-    status: "live",
     badge: {
       es: "MVP activo",
       en: "Live MVP",
     },
-    accent: "action",
     audience: {
       es: "Ventas, soporte y customer success",
       en: "Sales, support, and customer success",
@@ -52,35 +49,35 @@ export const MVP_MODULES: MvpModule[] = [
         en: "Lead and account follow-up",
       },
       {
-        es: "Flujos de atención y visibilidad del equipo",
+        es: "Flujos de atencion y visibilidad del equipo",
         en: "Service workflows and team visibility",
       },
       {
-        es: "Operación lista para demos y discovery",
+        es: "Operacion lista para demos y discovery",
         en: "Demo-ready operator workspace",
       },
     ],
   },
   {
     slug: "loyalty",
-    eyebrow: {
-      es: "Suite de retención",
-      en: "Retention suite",
-    },
     title: "Loyalty Commerce",
-    summary: {
-      es: "Activa recompensas, referidos y compra recurrente desde un storefront conectado con lógica de retención.",
-      en: "Activate rewards, referrals, and repeat purchase flows from a storefront connected to retention logic.",
-    },
     href: "/loyalty",
     status: "live",
+    accent: "brand",
+    eyebrow: {
+      es: "Suite de retencion",
+      en: "Retention suite",
+    },
+    summary: {
+      es: "Activa recompensas, referidos y compra recurrente desde un storefront conectado con logica de retencion.",
+      en: "Activate rewards, referrals, and repeat purchase flows from a storefront connected to retention logic.",
+    },
     badge: {
       es: "Suite comercial",
       en: "Commerce suite",
     },
-    accent: "brand",
     audience: {
-      es: "Comercio, retención y operaciones",
+      es: "Comercio, retencion y operaciones",
       en: "Commerce, retention, and operations",
     },
     ctaLabel: {
@@ -89,7 +86,7 @@ export const MVP_MODULES: MvpModule[] = [
     },
     capabilities: [
       {
-        es: "Wallet de recompensas y crédito promocional",
+        es: "Wallet de recompensas y credito promocional",
         en: "Rewards wallet and promotional credit",
       },
       {
@@ -97,7 +94,7 @@ export const MVP_MODULES: MvpModule[] = [
         en: "Referrals, checkout, and repeat purchase",
       },
       {
-        es: "Base para activaciones de CRM y campañas",
+        es: "Base para activaciones de CRM y campanas",
         en: "Foundation for CRM activations and campaigns",
       },
     ],

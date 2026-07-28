@@ -1,32 +1,34 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LocalizedLink } from "@/components/localized-link";
+import { useLocale } from "@/components/locale-provider";
+import { pick } from "@/lib/locale";
 
-/** The admin sections, in display order. */
 const TABS = [
-  { href: "/admin/orders", label: "Pedidos" },
-  { href: "/admin/products", label: "Productos" },
-  { href: "/admin/coupons", label: "Cupones" },
-  { href: "/admin/rewards", label: "Recompensas" },
-  { href: "/admin/fraude", label: "Fraude" },
-  { href: "/admin/kpis", label: "KPIs" },
-  { href: "/admin/settings", label: "Ajustes" },
+  { href: "/admin/orders", es: "Pedidos", en: "Orders" },
+  { href: "/admin/products", es: "Productos", en: "Products" },
+  { href: "/admin/coupons", es: "Cupones", en: "Coupons" },
+  { href: "/admin/rewards", es: "Recompensas", en: "Rewards" },
+  { href: "/admin/fraude", es: "Fraude", en: "Fraud" },
+  { href: "/admin/kpis", es: "KPIs", en: "KPIs" },
+  { href: "/admin/settings", es: "Ajustes", en: "Settings" },
 ];
 
-/**
- * AdminNav is the admin panel's tab bar. A small client island only because it
- * highlights the active section from the current pathname.
- */
 export function AdminNav() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const normalizedPath = pathname.replace(/^\/(es|en)(?=\/|$)/, "") || "/";
 
   return (
-    <nav aria-label="Secciones del panel" className="flex gap-2 overflow-x-auto">
+    <nav
+      aria-label={pick(locale, { es: "Secciones del panel", en: "Admin sections" })}
+      className="flex gap-2 overflow-x-auto"
+    >
       {TABS.map((tab) => {
-        const active = pathname.startsWith(tab.href);
+        const active = normalizedPath.startsWith(tab.href);
         return (
-          <Link
+          <LocalizedLink
             key={tab.href}
             href={tab.href}
             className={`shrink-0 rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
@@ -35,8 +37,8 @@ export function AdminNav() {
                 : "text-text-muted hover:bg-stone-100 hover:text-text"
             }`}
           >
-            {tab.label}
-          </Link>
+            {pick(locale, { es: tab.es, en: tab.en })}
+          </LocalizedLink>
         );
       })}
     </nav>

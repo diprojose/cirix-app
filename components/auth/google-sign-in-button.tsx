@@ -3,31 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
+import { useLocale } from "@/components/locale-provider";
 import { auth, googleProvider } from "@/lib/firebase/client";
+import { localizeHref, pick } from "@/lib/locale";
 
-/**
- * Client component that runs the Google sign-in flow: it opens the provider
- * popup, exchanges the resulting id token for a server session cookie via
- * `POST /api/auth/session`, then navigates onward. First-time users are
- * registered by Firebase automatically. Renders its own loading/error state.
- *
- * `redirectTo` is the page the visitor was bounced from, or `null` when they
- * came to `/login` on their own — in that case the destination is whatever the
- * session route reports, so operators land on the admin panel instead of the
- * storefront. The role cannot be known before signing in.
- */
 export function GoogleSignInButton({
   redirectTo = null,
 }: {
   redirectTo?: string | null;
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSignIn() {
     setLoading(true);
     setError(null);
+
     try {
       const credential = await signInWithPopup(auth, googleProvider);
       const idToken = await credential.user.getIdToken();
@@ -38,7 +31,12 @@ export function GoogleSignInButton({
         body: JSON.stringify({ idToken }),
       });
       if (!response.ok) {
-        throw new Error("No se pudo iniciar la sesión. Intenta de nuevo.");
+        throw new Error(
+          pick(locale, {
+            es: "No se pudo iniciar la sesiÃ³n. Intenta de nuevo.",
+            en: "We couldn't sign you in. Try again.",
+          })
+        );
       }
 
       const payload = (await response.json().catch(() => null)) as {
@@ -49,16 +47,16 @@ export function GoogleSignInButton({
           ? payload.landing
           : "/";
 
-      // Refresh before navigating: the client router may hold an RSC payload
-      // for the destination rendered as a guest, which would show the signed-out
-      // chrome until the next navigation.
       router.refresh();
-      router.push(redirectTo ?? landing);
+      router.push(redirectTo ?? localizeHref(locale, landing));
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Ocurrió un error al iniciar sesión."
+          : pick(locale, {
+              es: "OcurriÃ³ un error al iniciar sesiÃ³n.",
+              en: "There was an error signing you in.",
+            })
       );
       setLoading(false);
     }
@@ -73,7 +71,12 @@ export function GoogleSignInButton({
         className="flex min-h-11 w-full items-center justify-center gap-3 rounded-pill border border-border bg-surface px-5 py-3 text-label font-medium text-text shadow-xs transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none"
       >
         <GoogleGlyph />
-        {loading ? "Conectando…" : "Continuar con Google"}
+        {loading
+          ? pick(locale, { es: "Conectando...", en: "Connecting..." })
+          : pick(locale, {
+              es: "Continuar con Google",
+              en: "Continue with Google",
+            })}
       </button>
       {error && (
         <p role="alert" className="text-label text-danger">
@@ -84,7 +87,6 @@ export function GoogleSignInButton({
   );
 }
 
-/** Google "G" logomark, inline so it needs no network request or asset. */
 function GoogleGlyph() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">

@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { localizeForCurrentRequest } from "@/lib/i18n";
 import { makeGetViewer } from "@/modules/iam/infrastructure/di/iam-container";
 import {
   guestViewer,
@@ -32,7 +33,7 @@ export const getViewer = cache(async (): Promise<ViewerDto> => {
 export async function requireCustomer(): Promise<ViewerDto> {
   const viewer = await getViewer();
   if (!viewer.permissions.canPlaceOrders) {
-    redirect("/login");
+    redirect(await localizeForCurrentRequest("/login"));
   }
   return viewer;
 }
@@ -46,7 +47,11 @@ export async function requireCustomer(): Promise<ViewerDto> {
 export async function requireOperator(): Promise<ViewerDto> {
   const viewer = await getViewer();
   if (!viewer.permissions.canOperateStore) {
-    redirect(viewer.authenticated ? "/loyalty" : "/login?from=/admin");
+    redirect(
+      viewer.authenticated
+        ? await localizeForCurrentRequest("/loyalty")
+        : await localizeForCurrentRequest("/login?from=/admin")
+    );
   }
   return viewer;
 }

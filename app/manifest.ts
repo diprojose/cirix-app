@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { DEFAULT_LOCALE, pick } from "@/lib/i18n";
 
 /**
  * Web App Manifest for the mixmag PWA.
@@ -10,16 +11,20 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "mixmag — tu supermercado",
+    name: pick(DEFAULT_LOCALE, {
+      es: "mixmag - tu supermercado",
+      en: "mixmag - your grocery store",
+    }),
     short_name: "mixmag",
-    description:
-      "Supermercado a domicilio: pide tu mercado y acumula saldo con cada compra.",
-    lang: "es",
-    start_url: "/",
-    scope: "/",
+    description: pick(DEFAULT_LOCALE, {
+      es: "Supermercado a domicilio: pide tu mercado y acumula saldo con cada compra.",
+      en: "Delivery grocery store: place your order and earn wallet credit with every purchase.",
+    }),
+    lang: DEFAULT_LOCALE,
+    start_url: `/${DEFAULT_LOCALE}/loyalty`,
+    scope: `/${DEFAULT_LOCALE}`,
     display: "standalone",
     orientation: "portrait",
-    // Match the design tokens: stone-50 page background, brand-600 green.
     background_color: "#faf9f6",
     theme_color: "#2d8249",
     icons: [

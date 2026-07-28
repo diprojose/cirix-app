@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { LocaleProvider } from "@/components/locale-provider";
 import { PwaInstaller } from "@/components/pwa-installer";
+import { getCurrentLocale } from "@/lib/i18n";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -18,11 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   applicationName: "mixmag",
   title: {
-    default: "mixmag - MVP demos",
+    default: "mixmag",
     template: "%s - mixmag",
   },
-  description:
-    "A module-based demo workspace for loyalty commerce and CRM MVP experiences.",
   appleWebApp: {
     capable: true,
     title: "mixmag",
@@ -35,18 +35,22 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getCurrentLocale();
+
   return (
     <html
-      lang="es"
+      lang={locale}
       className={`${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <CartProvider>{children}</CartProvider>
+        <LocaleProvider locale={locale}>
+          <CartProvider>{children}</CartProvider>
+        </LocaleProvider>
         <PwaInstaller />
       </body>
     </html>

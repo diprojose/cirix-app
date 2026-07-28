@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireCustomer } from "@/lib/auth/dal";
+import { localizeForCurrentRequest } from "@/lib/i18n";
 import {
   makeSaveNotificationPrefs,
   makeMarkNotificationsRead,
@@ -17,7 +18,7 @@ import {
 export async function saveNotificationPrefsAction(formData: FormData): Promise<void> {
   const viewer = await requireCustomer();
   if (!viewer.uid) {
-    redirect("/login");
+    redirect(await localizeForCurrentRequest("/login"));
   }
 
   await makeSaveNotificationPrefs().execute({
@@ -28,14 +29,14 @@ export async function saveNotificationPrefsAction(formData: FormData): Promise<v
   });
 
   revalidatePath("/notificaciones");
-  redirect("/notificaciones?saved=1");
+  redirect(await localizeForCurrentRequest("/notificaciones?saved=1"));
 }
 
 /** Marks all of the customer's notifications read. */
 export async function markNotificationsReadAction(): Promise<void> {
   const viewer = await requireCustomer();
   if (!viewer.uid) {
-    redirect("/login");
+    redirect(await localizeForCurrentRequest("/login"));
   }
 
   await makeMarkNotificationsRead().execute({ customerUid: viewer.uid });

@@ -1,65 +1,58 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LocalizedLink } from "@/components/localized-link";
+import { useLocale } from "@/components/locale-provider";
 import { CartBadge } from "@/components/cart/cart-badge";
+import { pick } from "@/lib/locale";
 import { HomeIcon, BagIcon, SlidersIcon, UserIcon, WalletIcon } from "./icons";
 
-/**
- * BottomNav is the floating mobile tab bar (hidden from `md` up, where the web
- * TopNav takes over). Every tab is a real destination: the previous version
- * shipped a dead "Favoritos" tab and a dead "+" button while leaving the wallet
- * and referrals unreachable on a phone. The cart tab carries a live item-count
- * badge. It sits above the safe-area inset.
- *
- * Operators get an extra tab for the admin panel: the `/admin` link lives in the
- * desktop-only TopNav, so without it the panel is unreachable on a phone — the
- * primary screen for this app.
- */
 export function BottomNav({
   canOperateStore = false,
 }: {
   canOperateStore?: boolean;
 }) {
   const pathname = usePathname();
+  const locale = useLocale();
+  const normalizedPath = pathname.replace(/^\/(es|en)(?=\/|$)/, "") || "/";
 
   return (
     <nav
-      aria-label="Navegación principal"
+      aria-label={pick(locale, { es: "NavegaciÃ³n principal", en: "Primary navigation" })}
       className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <div className="mb-3 flex items-center gap-2 rounded-pill bg-surface p-2 shadow-float">
         <NavItem
-          label="Inicio"
+          label={pick(locale, { es: "Inicio", en: "Home" })}
           href="/loyalty"
-          active={pathname === "/loyalty"}
+          active={normalizedPath === "/loyalty"}
           icon={<HomeIcon className="h-6 w-6" />}
         />
         <NavItem
-          label="Carrito"
+          label={pick(locale, { es: "Carrito", en: "Cart" })}
           href="/cart"
-          active={pathname === "/cart"}
+          active={normalizedPath === "/cart"}
           icon={<BagIcon className="h-6 w-6" />}
           badge={<CartBadge />}
         />
         <NavItem
-          label="Mi saldo"
+          label={pick(locale, { es: "Mi saldo", en: "My balance" })}
           href="/billetera"
-          active={pathname === "/billetera"}
+          active={normalizedPath === "/billetera"}
           icon={<WalletIcon className="h-6 w-6" />}
         />
         <NavItem
-          label="Invita y gana"
+          label={pick(locale, { es: "Invita y gana", en: "Refer & earn" })}
           href="/referidos"
-          active={pathname === "/referidos"}
+          active={normalizedPath === "/referidos"}
           icon={<UserIcon className="h-6 w-6" />}
         />
         {canOperateStore && (
           <NavItem
-            label="Panel"
+            label={pick(locale, { es: "Panel", en: "Admin" })}
             href="/admin"
-            active={pathname.startsWith("/admin")}
+            active={normalizedPath.startsWith("/admin")}
             icon={<SlidersIcon className="h-6 w-6" />}
           />
         )}
@@ -68,7 +61,6 @@ export function BottomNav({
   );
 }
 
-/** A single tab: an accent-filled current page, or a plain link. */
 function NavItem({
   label,
   href,
@@ -83,7 +75,7 @@ function NavItem({
   badge?: ReactNode;
 }) {
   return (
-    <Link
+    <LocalizedLink
       href={href}
       aria-label={label}
       aria-current={active ? "page" : undefined}
@@ -95,6 +87,6 @@ function NavItem({
     >
       {icon}
       {badge}
-    </Link>
+    </LocalizedLink>
   );
 }

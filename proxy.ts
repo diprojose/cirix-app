@@ -1,5 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
+import {
+  DEFAULT_LOCALE,
+  detectPreferredLocale,
+  hasLocale,
+  localizeHref,
+  stripLocaleFromPathname,
+} from "@/lib/locale";
 
 /*
  * Proxy (formerly "middleware" — renamed in Next.js 16). Performs an OPTIMISTIC
@@ -29,18 +36,34 @@ function isPrivate(pathname: string): boolean {
 
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
-  if (!isPrivate(pathname)) {
-    return NextResponse.next();
+  const { locale, pathname: barePathname } = stripLocaleFromPathname(pathname);
+  const resolvedLocale =
+    locale ?? detectPreferredLocale(request.headers.get("accept-language"));
+
+  if (!locale) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localizeHref(resolvedLocale, pathname);
+    return NextResponse.redirect(redirectUrl);
   }
 
-  const hasSession = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
-  if (hasSession) {
-    return NextResponse.next();
+  if (isPrivate(barePathname)) {
+    const hasSession = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
+    if (!hasSession) {
+      const loginUrl = new URL(localizeHref(resolvedLocale, "/login"), request.url);
+      loginUrl.searchParams.set("from", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("from", pathname);
-  return NextResponse.redirect(loginUrl);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-mixmag-locale", hasLocale(resolvedLocale) ? resolvedLocale : DEFAULT_LOCALE);
+  requestHeaders.set("x-mixmag-pathname", barePathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {
