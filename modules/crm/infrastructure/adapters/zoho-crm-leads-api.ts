@@ -5,10 +5,10 @@ import type {
   ZohoLeadUpsertResult,
 } from "../../domain/repositories/zoho-leads-gateway";
 import { toZohoPayload } from "../../application/use-cases/capture-commercial-lead";
+import { escapeCriteriaValue, ZohoCrmClient } from "./zoho-crm-client";
 
 export class ZohoCrmLeadsApi implements ZohoLeadsGateway {
-  private accessToken: string | null = null;
-  private accessTokenExpiresAt = 0;
+  constructor(private readonly client: ZohoCrmClient) {}
 
   async upsertLead(input: ZohoLeadUpsertInput): Promise<ZohoLeadUpsertResult> {
     const existingZohoLeadId =
@@ -16,14 +16,14 @@ export class ZohoCrmLeadsApi implements ZohoLeadsGateway {
     const payload = toZohoPayload(input.lead);
 
     if (existingZohoLeadId) {
-      await this.request(`/Leads/${existingZohoLeadId}`, {
+      await this.client.request(`/Leads/${existingZohoLeadId}`, {
         method: "PUT",
         body: JSON.stringify({ data: [{ id: existingZohoLeadId, ...payload }] }),
       });
       return { zohoLeadId: existingZohoLeadId, payload };
     }
 
-    const response = await this.request("/Leads/upsert", {
+    const response = await this.client.request("/Leads/upsert", {
       method: "POST",
       body: JSON.stringify({
         duplicate_check_fields: ["Email", "Phone"],
@@ -51,81 +51,7 @@ export class ZohoCrmLeadsApi implements ZohoLeadsGateway {
   }
 
   private async searchLead(criteria: string): Promise<string | null> {
-    const response = await this.request(`/Leads/search?criteria=${encodeURIComponent(criteria)}`, {
-      method: "GET",
-    });
-
-    if (response.status === 204) {
-      return null;
-    }
-
-    const json = (await response.json()) as { data?: Array<{ id?: string }>; code?: string };
-    if (json.code === "NO_CONTENT") {
-      return null;
-    }
-    return json.data?.[0]?.id ?? null;
+    const record = await this.client.searchFirstRecord("Leads", criteria, ["id"]);
+    return typeof record?.id === "string" ? record.id : null;
   }
-
-  private async request(path: string, init: RequestInit): Promise<Response> {
-    const token = await this.getAccessToken();
-    const response = await fetch(`${requireEnv("ZOHO_CRM_API_DOMAIN")}/crm/v8${path}`, {
-      ...init,
-      headers: {
-        Authorization: `Zoho-oauthtoken ${token}`,
-        "Content-Type": "application/json",
-        ...(init.headers ?? {}),
-      },
-      cache: "no-store",
-    });
-
-    if (response.ok) {
-      return response;
-    }
-
-    const body = await response.text();
-    throw new Error(`Zoho CRM request failed (${response.status}): ${body}`);
-  }
-
-  private async getAccessToken(): Promise<string> {
-    if (this.accessToken && Date.now() < this.accessTokenExpiresAt) {
-      return this.accessToken;
-    }
-
-    const response = await fetch(`${requireEnv("ZOHO_ACCOUNTS_DOMAIN")}/oauth/v2/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        refresh_token: requireEnv("ZOHO_REFRESH_TOKEN"),
-        client_id: requireEnv("ZOHO_CLIENT_ID"),
-        client_secret: requireEnv("ZOHO_CLIENT_SECRET"),
-        grant_type: "refresh_token",
-      }),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Zoho token refresh failed (${response.status}).`);
-    }
-
-    const json = (await response.json()) as { access_token?: string; expires_in?: number };
-    if (!json.access_token) {
-      throw new Error("Zoho token refresh did not return an access token.");
-    }
-
-    this.accessToken = json.access_token;
-    this.accessTokenExpiresAt = Date.now() + Math.max((json.expires_in ?? 3600) - 60, 60) * 1000;
-    return json.access_token;
-  }
-}
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable "${name}".`);
-  }
-  return value;
-}
-
-function escapeCriteriaValue(value: string): string {
-  return value.replace(/[()\\]/g, "\\$&");
 }
