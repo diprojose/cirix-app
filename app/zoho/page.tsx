@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CONTAINER, CONTAINER_READ } from "@/components/store/layout";
 
 export const metadata: Metadata = {
-  title: "Hozo CRM",
+  title: "Zoho CRM",
   description:
     "A visual CRM MVP showing customer follow-up, pipeline visibility, and operator workflows.",
 };
@@ -50,13 +50,13 @@ export default function HozoPage() {
           <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] md:items-end">
             <div className="max-w-2xl">
               <p className="text-label font-semibold uppercase tracking-[0.18em] text-action-strong">
-                Hozo CRM
+                Zoho CRM
               </p>
               <h1 className="mt-3 max-w-xl text-[clamp(2.4rem,6vw,4.75rem)] font-bold leading-[0.95] tracking-[-0.04em] text-text">
                 A cleaner front door for customer follow-up.
               </h1>
               <p className="mt-5 max-w-xl text-body text-text-muted md:text-lg">
-                This demo presents Hozo as the CRM layer for account visibility, follow-up
+                This demo presents Zoho as the CRM layer for account visibility, follow-up
                 discipline, and team handoff. It is intentionally visual in this first
                 release: no external sync, just the product story and workflow surface.
               </p>
@@ -129,10 +129,10 @@ export default function HozoPage() {
             Integration path
           </p>
           <h2 className="mt-2 text-display font-bold tracking-tight text-text">
-            Ready for real Hozo data when the contract is defined.
+            Ready for real Zoho data when the contract is defined.
           </h2>
           <p className="mt-4 text-body text-text-muted">
-            This page is currently a visual MVP. The next step is to introduce the actual Hozo
+            This page is currently a visual MVP. The next step is to introduce the actual Zoho
             integration boundary: authentication expectations, account payloads, and the
             synchronization flow that will feed the CRM screens from a real source.
           </p>

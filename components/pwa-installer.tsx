@@ -29,10 +29,26 @@ const DISMISS_KEY = "pwa-install-dismissed";
  * Renders nothing when the app is already running as an installed PWA.
  */
 export function PwaInstaller() {
+  const initialDismissed =
+    typeof window !== "undefined" &&
+    (() => {
+      try {
+        return localStorage.getItem(DISMISS_KEY) === "1";
+      } catch {
+        return false;
+      }
+    })();
+  const initialIsIOS =
+    typeof navigator !== "undefined" && /ipad|iphone|ipod/i.test(navigator.userAgent);
+  const initialIsStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as unknown as { standalone?: boolean }).standalone === true);
+
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [isIOS] = useState(initialIsIOS);
+  const [isStandalone] = useState(initialIsStandalone);
+  const [dismissed, setDismissed] = useState(initialDismissed);
   const pathname = usePathname();
 
   // Once dismissed, keep the prompt hidden across visits.
@@ -54,19 +70,6 @@ export function PwaInstaller() {
       if (document.readyState === "complete") register();
       else window.addEventListener("load", register, { once: true });
     }
-
-    try {
-      if (localStorage.getItem(DISMISS_KEY) === "1") setDismissed(true);
-    } catch {
-      // Ignore storage read failures.
-    }
-
-    setIsIOS(/ipad|iphone|ipod/i.test(navigator.userAgent));
-    setIsStandalone(
-      window.matchMedia("(display-mode: standalone)").matches ||
-        // iOS Safari exposes standalone mode on the navigator instead.
-        (navigator as unknown as { standalone?: boolean }).standalone === true
-    );
 
     const onBeforeInstall = (event: Event) => {
       event.preventDefault();
