@@ -1,7 +1,8 @@
 import type { UseCase } from "@/shared/application/use-case";
-import { ok, type Result } from "@/shared/domain/result";
+import { err, ok, type Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import type { CrmReadModel } from "../../domain/repositories/crm-read-model";
+import { CrmUnavailableError } from "../../domain/errors/crm-errors";
 import type {
   CommercialContactDto,
   CrmDashboardDto,
@@ -31,20 +32,25 @@ export class GetCrmDashboard implements UseCase<void, CrmDashboardDto> {
   constructor(private readonly crm: CrmReadModel) {}
 
   async execute(): Promise<Result<CrmDashboardDto, DomainError>> {
-    const [contacts, opportunities, activities] = await Promise.all([
-      this.crm.listCommercialContacts(),
-      this.crm.listOpportunities(),
-      this.crm.listActivities(),
-    ]);
+    try {
+      const [contacts, opportunities, activities] = await Promise.all([
+        this.crm.listCommercialContacts(),
+        this.crm.listOpportunities(),
+        this.crm.listActivities(),
+      ]);
 
-    return ok({
-      contacts,
-      opportunities,
-      activities,
-      stageSummary: summarizeStages(contacts),
-      conversions: summarizeConversions(contacts, opportunities),
-      priorityFollowUps: buildPriorityFollowUps(contacts),
-    });
+      return ok({
+        contacts,
+        opportunities,
+        activities,
+        stageSummary: summarizeStages(contacts),
+        conversions: summarizeConversions(contacts, opportunities),
+        priorityFollowUps: buildPriorityFollowUps(contacts),
+      });
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : "Unexpected CRM integration failure.";
+      return err(new CrmUnavailableError(message));
+    }
   }
 }
 
