@@ -50,6 +50,7 @@ export default async function ModulesLandingPage() {
                     width={88}
                     height={88}
                     priority
+                    unoptimized
                     className="h-16 w-16 object-contain md:h-[4.5rem] md:w-[4.5rem]"
                   />
                 </div>
