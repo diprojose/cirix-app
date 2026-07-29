@@ -1,6 +1,6 @@
 import { CrmShell } from "@/components/zoho/crm-shell";
 import { getCurrentLocale } from "@/lib/i18n";
-import { makeGetCrmDashboard } from "@/modules/crm/infrastructure/di/crm-container";
+import { getZohoDashboardState } from "./dashboard";
 
 export default async function ZohoLayout({
   children,
@@ -8,7 +8,7 @@ export default async function ZohoLayout({
   children: React.ReactNode;
 }) {
   const locale = await getCurrentLocale();
-  const result = await makeGetCrmDashboard().execute();
+  const { dashboard, warning } = await getZohoDashboardState();
 
-  return <CrmShell locale={locale} dashboard={result.ok ? result.value : null}>{children}</CrmShell>;
+  return <CrmShell locale={locale} dashboard={dashboard} warning={warning}>{children}</CrmShell>;
 }

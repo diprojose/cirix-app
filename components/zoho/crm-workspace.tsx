@@ -204,8 +204,8 @@ export function CrmWorkspace({
         {view === "overview" ? (
           <div className="space-y-8">
             <div className="grid gap-4 md:grid-cols-4">
-              {dashboard.conversions.map((item) => (
-                <article key={item.label} className="rounded-xl border border-border bg-surface p-5 shadow-xs">
+              {dashboard.conversions.map((item, index) => (
+                <article key={`${item.label}-${item.value}-${index}`} className="rounded-xl border border-border bg-surface p-5 shadow-xs">
                   <p className="text-caption font-semibold uppercase tracking-[0.16em] text-text-muted">
                     {item.label}
                   </p>
@@ -370,8 +370,8 @@ export function CrmWorkspace({
                   {pick(locale, { es: "Quién necesita atención ahora", en: "Who needs attention now" })}
                 </h2>
                 <div className="mt-6 space-y-3">
-                  {dashboard.priorityFollowUps.map((followUp) => (
-                    <article key={followUp.contactId} className="rounded-lg border border-border bg-bg px-4 py-4">
+                  {dashboard.priorityFollowUps.map((followUp, index) => (
+                    <article key={`${followUp.contactId}-${followUp.nextAction}-${index}`} className="rounded-lg border border-border bg-bg px-4 py-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-title font-semibold text-text">{followUp.fullName}</p>
@@ -559,8 +559,8 @@ function InfoListCard({
       </p>
       <h2 className="mt-2 text-display font-bold tracking-tight text-text">{pick(locale, title)}</h2>
       <div className="mt-6 space-y-3">
-        {items.map((item) => (
-          <div key={item} className="rounded-lg border border-border bg-bg px-4 py-3 text-body text-text-muted">
+        {items.map((item, index) => (
+          <div key={`${item}-${index}`} className="rounded-lg border border-border bg-bg px-4 py-3 text-body text-text-muted">
             {item}
           </div>
         ))}

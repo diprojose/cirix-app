@@ -4,13 +4,14 @@ import type { CrmDashboardDto, LifecycleStage } from "@/modules/crm/application/
 
 type CrmShellProps = {
   locale: Locale;
-  dashboard: CrmDashboardDto | null;
+  dashboard: CrmDashboardDto;
+  warning: string | null;
   children: React.ReactNode;
 };
 
 const PRIMARY_VIEWS = [
   { href: "/zoho", title: { es: "Overview", en: "Overview" } },
-  { href: "/zoho/kpis", title: { es: "KPIs", en: "KPIs" } },
+  { href: "/zoho/kpis", title: { es: "Performance", en: "Performance" } },
   { href: "/zoho/demo-form", title: { es: "Capture", en: "Capture" } },
 ] as const;
 
@@ -64,7 +65,7 @@ const SIDEBAR_GROUPS: Array<{
   },
 ] as const;
 
-export function CrmShell({ locale, dashboard, children }: CrmShellProps) {
+export function CrmShell({ locale, dashboard, warning, children }: CrmShellProps) {
   return (
     <div className="min-h-dvh bg-[linear-gradient(180deg,#f7f6f1_0%,#efede6_100%)]">
       <div className="mx-auto flex min-h-[calc(100dvh-1rem)] w-full max-w-[1600px] overflow-hidden bg-stone-100 shadow-[0_24px_70px_-28px_rgba(16,24,40,0.35)] md:min-h-[calc(100dvh-2rem)]">
@@ -111,7 +112,7 @@ export function CrmShell({ locale, dashboard, children }: CrmShellProps) {
               <p className="text-xs font-semibold text-white/88">CRM workspace</p>
               <p className="mt-1 text-xs leading-5 text-white/55">
                 {pick(locale, {
-                  es: "Shell operacional inspirado en un SaaS CRM clÃ¡sico.",
+                  es: "Shell operacional inspirado en un SaaS CRM clasico.",
                   en: "Operational shell inspired by a classic CRM SaaS.",
                 })}
               </p>
@@ -121,6 +122,11 @@ export function CrmShell({ locale, dashboard, children }: CrmShellProps) {
 
         <div className="min-w-0 flex-1 bg-[#fafafa]">
           <header className="bg-white">
+            {warning ? (
+              <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 md:px-6">
+                {warning}
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 md:px-6">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm text-stone-400">
@@ -130,10 +136,10 @@ export function CrmShell({ locale, dashboard, children }: CrmShellProps) {
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-3">
                   <h1 className="text-[1.55rem] font-semibold tracking-[-0.03em] text-stone-900">
-                    {pick(locale, { es: "Zoho CRM", en: "Zoho CRM" })}
+                    Zoho CRM
                   </h1>
                   <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
-                    {pick(locale, { es: "CRM", en: "CRM" })}
+                    CRM
                   </span>
                 </div>
                 <p className="mt-1 max-w-3xl text-sm text-stone-500">
@@ -251,6 +257,6 @@ function IconButton({
   );
 }
 
-function getStageCount(dashboard: CrmDashboardDto | null, stage: LifecycleStage) {
-  return dashboard?.stageSummary.find((item) => item.stage === stage)?.count ?? 0;
+function getStageCount(dashboard: CrmDashboardDto, stage: LifecycleStage) {
+  return dashboard.stageSummary.find((item) => item.stage === stage)?.count ?? 0;
 }
