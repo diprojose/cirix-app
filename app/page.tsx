@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import type { CSSProperties } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
@@ -44,15 +43,12 @@ export default async function ModulesLandingPage() {
             <div className="max-w-3xl">
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-surface p-3 shadow-card">
-                  <Image
-                    src="/brand/cirix-logo.webp"
-                    alt="Cirix Advertising logo"
-                    width={88}
-                    height={88}
-                    priority
-                    unoptimized
-                    className="h-16 w-16 object-contain md:h-[4.5rem] md:w-[4.5rem]"
-                  />
+                  <div
+                    aria-label="Cirix Advertising mark"
+                    className="grid h-16 w-16 place-items-center rounded-lg bg-[var(--landing-accent-subtle)] text-[2rem] font-black tracking-[-0.08em] text-[var(--landing-accent-strong)] md:h-[4.5rem] md:w-[4.5rem] md:text-[2.4rem]"
+                  >
+                    Cx
+                  </div>
                 </div>
                 <div>
                   <p className="text-label font-semibold uppercase tracking-[0.18em] text-[var(--landing-accent-strong)]">
