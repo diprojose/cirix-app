@@ -14,6 +14,8 @@ type ListModuleOptions = {
 export class ZohoCrmClient {
   private accessToken: string | null = null;
   private accessTokenExpiresAt = 0;
+  private refreshPromise: Promise<string> | null = null;
+  private refreshBackoffUntil = 0;
 
   async listModule(moduleName: string, options: ListModuleOptions = {}): Promise<ZohoCrmRecord[]> {
     const records: ZohoCrmRecord[] = [];
@@ -88,7 +90,36 @@ export class ZohoCrmClient {
     }
 
     const body = await response.text();
-    throw new Error(`Zoho CRM request failed (${response.status}): ${body}`);
+    throw new Error(`Zoho CRM request failed (${response.status}) for "${path}": ${body}`);
+  }
+
+  async debugListModule(moduleName: string, fields: string[], perPage = 5) {
+    const query = new URLSearchParams({
+      page: "1",
+      per_page: String(perPage),
+      fields: fields.join(","),
+    });
+    const path = `/${moduleName}?${query.toString()}`;
+    const response = await this.request(path, { method: "GET" });
+    const json = (await response.json()) as { data?: ZohoCrmRecord[] };
+
+    return {
+      moduleName,
+      status: response.status,
+      count: json.data?.length ?? 0,
+      firstIds: (json.data ?? []).slice(0, 3).map((record) => String(record.id ?? "unknown")),
+    };
+  }
+
+  async debugRefreshToken() {
+    const token = await this.getAccessToken();
+    return {
+      ok: true,
+      tokenPreview: `${token.slice(0, 12)}...`,
+      expiresAt: this.accessTokenExpiresAt,
+      cached: Date.now() < this.accessTokenExpiresAt,
+      backoffUntil: this.refreshBackoffUntil || null,
+    };
   }
 
   private async getAccessToken(): Promise<string> {
@@ -96,6 +127,25 @@ export class ZohoCrmClient {
       return this.accessToken;
     }
 
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    if (Date.now() < this.refreshBackoffUntil) {
+      const retryAt = new Date(this.refreshBackoffUntil).toISOString();
+      throw new Error(`Zoho token refresh temporarily paused after rate limiting. Retry after ${retryAt}.`);
+    }
+
+    this.refreshPromise = this.performTokenRefresh();
+
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private async performTokenRefresh(): Promise<string> {
     const response = await fetch(`${requireEnv("ZOHO_ACCOUNTS_DOMAIN")}/oauth/v2/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -109,8 +159,14 @@ export class ZohoCrmClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Zoho token refresh failed (${response.status}).`);
+      const body = await response.text();
+      if (response.status === 400 && /too many requests|access denied/i.test(body)) {
+        this.refreshBackoffUntil = Date.now() + 60_000;
+      }
+      throw new Error(`Zoho token refresh failed (${response.status}): ${body}`);
     }
+
+    this.refreshBackoffUntil = 0;
 
     const json = (await response.json()) as { access_token?: string; expires_in?: number };
     if (!json.access_token) {
@@ -118,7 +174,7 @@ export class ZohoCrmClient {
     }
 
     this.accessToken = json.access_token;
-    this.accessTokenExpiresAt = Date.now() + Math.max((json.expires_in ?? 3600) - 60, 60) * 1000;
+    this.accessTokenExpiresAt = Date.now() + Math.max((json.expires_in ?? 3600) - 300, 300) * 1000;
     return json.access_token;
   }
 }

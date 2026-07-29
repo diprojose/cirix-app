@@ -3,7 +3,7 @@ import { makeGetCrmDashboard } from "@/modules/crm/infrastructure/di/crm-contain
 export async function GET() {
   const result = await makeGetCrmDashboard().execute();
   if (!result.ok) {
-    return Response.json({ error: result.error.code }, { status: 500 });
+    return Response.json({ error: result.error.code }, { status: 503 });
   }
 
   return Response.json(result.value);
