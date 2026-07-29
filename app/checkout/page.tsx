@@ -7,7 +7,6 @@ import { SubHeader } from "@/components/store/sub-header";
 import { CONTAINER_READ } from "@/components/store/layout";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { makeListDeliveryZones } from "@/modules/ordering/infrastructure/di/ordering-container";
-import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
 import {
   makeGetWallet,
   makeGetRewardRules,
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 
 /**
  * Checkout page: the storefront's order-placement adapter. The server shell
- * resolves the delivery zones and the current BCV rate; the form itself is a
+ * resolves the delivery zones; the form itself is a
  * client component because the cart lives in the browser. Guests may check out
  * (an account is optional) — the phone number is the contact channel.
  */
@@ -29,9 +28,6 @@ export default async function CheckoutPage() {
 
   const zonesResult = await makeListDeliveryZones().execute();
   const zones = zonesResult.ok ? zonesResult.value : [];
-
-  const rateResult = await makeGetExchangeRate().execute();
-  const exchangeRate = rateResult.ok ? rateResult.value : null;
 
   // Signed-in customers may pay part of the order with their wallet credit. We
   // pass the available balance and the per-order cap so the form can preview the
@@ -60,7 +56,6 @@ export default async function CheckoutPage() {
           </h2>
           <CheckoutForm
             zones={zones}
-            exchangeRate={exchangeRate}
             availableCreditCents={availableCreditCents}
             maxRedeemPctOfOrder={maxRedeemPctOfOrder}
           />
