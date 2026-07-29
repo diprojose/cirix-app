@@ -125,8 +125,10 @@ export class ZohoCrmReadModel implements CrmReadModel {
     ]);
 
     const normalizedContacts = rawContacts.map((record) => normalizeContactRecord(record));
-    const customerFingerprints = new Set(
-      normalizedContacts.flatMap((record) => [fingerprintEmail(record.email), fingerprintPhone(record.phone)].filter(Boolean))
+    const customerFingerprints = new Set<string>(
+      normalizedContacts.flatMap((record) =>
+        [fingerprintEmail(record.email), fingerprintPhone(record.phone)].filter((value): value is string => Boolean(value))
+      )
     );
 
     const opportunities = rawDeals.map((record) => normalizeOpportunity(record));
