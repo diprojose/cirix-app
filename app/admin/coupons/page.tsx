@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOperator } from "@/lib/auth/dal";
 import { formatPrice } from "@/lib/format/money";
-import { makeListCoupons } from "@/modules/coupons/infrastructure/di/coupons-container";
-import type { CouponDto } from "@/modules/coupons/application/dtos/coupon-dto";
+import { makeListCoupons } from "@/modules/loyalty/coupons/infrastructure/di/coupons-container";
+import type { CouponDto } from "@/modules/loyalty/coupons/application/dtos/coupon-dto";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 import { deleteCouponAction } from "@/app/admin/actions";
 

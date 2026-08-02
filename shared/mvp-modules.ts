@@ -99,4 +99,45 @@ export const MVP_MODULES: MvpModule[] = [
       },
     ],
   },
+  {
+    slug: "n8n",
+    title: "n8n Automation Studio",
+    href: "/n8n",
+    status: "preview",
+    accent: "action",
+    eyebrow: {
+      es: "Suite de automatizacion",
+      en: "Automation suite",
+    },
+    summary: {
+      es: "Presenta automatizaciones operativas en formato canvas para demos de onboarding, CRM y handoffs internos.",
+      en: "Present operational automations in a canvas format for onboarding, CRM, and internal handoff demos.",
+    },
+    badge: {
+      es: "Demo visual",
+      en: "Visual demo",
+    },
+    audience: {
+      es: "Operaciones, revenue ops y preventa tecnica",
+      en: "Operations, revenue ops, and technical presales",
+    },
+    ctaLabel: {
+      es: "Abrir canvas n8n",
+      en: "Open n8n canvas",
+    },
+    capabilities: [
+      {
+        es: "Canvas de nodos con flujo inspirado en automatizaciones reales",
+        en: "Node canvas with flow inspired by real automations",
+      },
+      {
+        es: "Demos de onboarding, handoff comercial y activacion operativa",
+        en: "Onboarding, commercial handoff, and operational activation demos",
+      },
+      {
+        es: "Base visual para futuras integraciones reales",
+        en: "Visual foundation for future real integrations",
+      },
+    ],
+  },
 ];

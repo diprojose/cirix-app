@@ -7,7 +7,7 @@ import { localizeForCurrentRequest } from "@/lib/i18n";
 import {
   makeSaveNotificationPrefs,
   makeMarkNotificationsRead,
-} from "@/modules/notifications/infrastructure/di/notifications-container";
+} from "@/modules/loyalty/notifications/infrastructure/di/notifications-container";
 
 /*
  * Customer-facing notification actions. Each re-checks `requireCustomer` on the

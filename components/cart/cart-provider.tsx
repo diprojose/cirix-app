@@ -9,15 +9,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { CartDto } from "@/modules/cart/application/dtos/cart-dto";
-import type { AddItemToCartInput } from "@/modules/cart/application/use-cases/add-item-to-cart";
+import type { CartDto } from "@/modules/loyalty/cart/application/dtos/cart-dto";
+import type { AddItemToCartInput } from "@/modules/loyalty/cart/application/use-cases/add-item-to-cart";
 import {
   makeAddItemToCart,
   makeChangeItemQuantity,
   makeClearCart,
   makeGetCart,
   makeRemoveItemFromCart,
-} from "@/modules/cart/infrastructure/di/cart-container";
+} from "@/modules/loyalty/cart/infrastructure/di/cart-container";
 
 /** What the cart context exposes to any client component under the provider. */
 type CartContextValue = {

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOperator } from "@/lib/auth/dal";
 import { formatPrice } from "@/lib/format/money";
-import { makeListOrders } from "@/modules/ordering/infrastructure/di/ordering-container";
+import { makeListOrders } from "@/modules/loyalty/ordering/infrastructure/di/ordering-container";
 import { ORDER_STATUS_LABELS } from "@/components/orders/order-status";
 import { OrderStatusBadge } from "@/components/admin/order-status-badge";
-import type { OrderStatus } from "@/modules/ordering/domain/value-objects/order-status";
+import type { OrderStatus } from "@/modules/loyalty/ordering/domain/value-objects/order-status";
 
 export const metadata: Metadata = { title: "Pedidos" };
 

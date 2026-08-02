@@ -4,13 +4,13 @@ import { formatPrice } from "@/lib/format/money";
 import {
   makeGetLiabilityReport,
   makeGetWallet,
-} from "@/modules/rewards/infrastructure/di/rewards-container";
+} from "@/modules/loyalty/rewards/infrastructure/di/rewards-container";
 import {
   makeGetSegmentDistribution,
   makeListInactiveCustomers,
-} from "@/modules/customers/infrastructure/di/customers-container";
-import { makeGetReferralFunnel } from "@/modules/referrals/infrastructure/di/referrals-container";
-import { makeListPendingFraudAlerts } from "@/modules/fraud/infrastructure/di/fraud-container";
+} from "@/modules/loyalty/customers/infrastructure/di/customers-container";
+import { makeGetReferralFunnel } from "@/modules/loyalty/referrals/infrastructure/di/referrals-container";
+import { makeListPendingFraudAlerts } from "@/modules/loyalty/fraud/infrastructure/di/fraud-container";
 
 export const metadata: Metadata = { title: "KPIs" };
 

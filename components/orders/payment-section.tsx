@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { reportPaymentAction } from "@/app/checkout/actions";
-import type { PaymentReportDto } from "@/modules/ordering/application/dtos/order-dto";
-import type { PaymentMethod } from "@/modules/ordering/domain/value-objects/payment-method";
-import type { BUSINESS_PROFILE } from "@/modules/ordering/infrastructure/config/business-profile";
+import type { PaymentReportDto } from "@/modules/loyalty/ordering/application/dtos/order-dto";
+import type { PaymentMethod } from "@/modules/loyalty/ordering/domain/value-objects/payment-method";
+import type { BUSINESS_PROFILE } from "@/modules/loyalty/ordering/infrastructure/config/business-profile";
 import { PAYMENT_METHOD_LABELS } from "./order-status";
 
 /** The payment/contact data the server page passes down (plain config). */

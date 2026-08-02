@@ -1,4 +1,4 @@
-import type { CouponDto } from "@/modules/coupons/application/dtos/coupon-dto";
+import type { CouponDto } from "@/modules/loyalty/coupons/application/dtos/coupon-dto";
 import { saveCouponAction } from "@/app/admin/actions";
 
 /** Shared input styling for the coupon fields (matches the product form). */

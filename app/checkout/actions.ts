@@ -1,24 +1,24 @@
 "use server";
 
 import { getViewer } from "@/lib/auth/dal";
-import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
+import { makeGetExchangeRate } from "@/modules/loyalty/pricing/infrastructure/di/pricing-container";
 import { canAccessOrder } from "@/lib/auth/order-access";
 import {
   makePlaceOrder,
   makeReportPayment,
   makeApplyOrderDiscount,
   makeGetOrderById,
-} from "@/modules/ordering/infrastructure/di/ordering-container";
+} from "@/modules/loyalty/ordering/infrastructure/di/ordering-container";
 import {
   makeGetWallet,
   makeRedeemReward,
-} from "@/modules/rewards/infrastructure/di/rewards-container";
+} from "@/modules/loyalty/rewards/infrastructure/di/rewards-container";
 import {
   makeValidateCoupon,
   makeRedeemCoupon,
-} from "@/modules/coupons/infrastructure/di/coupons-container";
-import { makeGetCustomerSegment } from "@/modules/customers/infrastructure/di/customers-container";
-import type { PlaceOrderItemInput } from "@/modules/ordering/application/use-cases/place-order";
+} from "@/modules/loyalty/coupons/infrastructure/di/coupons-container";
+import { makeGetCustomerSegment } from "@/modules/loyalty/customers/infrastructure/di/customers-container";
+import type { PlaceOrderItemInput } from "@/modules/loyalty/ordering/application/use-cases/place-order";
 
 /** What the checkout form submits. Prices are intentionally absent. */
 export type PlaceOrderActionInput = {

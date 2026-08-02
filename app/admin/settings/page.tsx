@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireOperator } from "@/lib/auth/dal";
 import { formatVes } from "@/lib/format/money";
-import { makeGetExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
+import { makeGetExchangeRate } from "@/modules/loyalty/pricing/infrastructure/di/pricing-container";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 import { setManualRateAction } from "@/app/admin/actions";
 

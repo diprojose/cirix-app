@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
+import type { ProductDto } from "@/modules/loyalty/catalog/application/dtos/product-dto";
 import { MinusIcon, PlusIcon } from "@/components/store/icons";
 import { useCart } from "./cart-provider";
 

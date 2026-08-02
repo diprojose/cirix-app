@@ -6,15 +6,15 @@ import { requireOperator } from "@/lib/auth/dal";
 import {
   makeReviewPayment,
   makeAdvanceOrderStatus,
-} from "@/modules/ordering/infrastructure/di/ordering-container";
-import type { OrderAction } from "@/modules/ordering/application/use-cases/advance-order-status";
+} from "@/modules/loyalty/ordering/infrastructure/di/ordering-container";
+import type { OrderAction } from "@/modules/loyalty/ordering/application/use-cases/advance-order-status";
 import {
   makeCreateProduct,
   makeUpdateProduct,
   makeDeleteProduct,
-} from "@/modules/catalog/infrastructure/di/catalog-container";
-import { makeSetManualExchangeRate } from "@/modules/pricing/infrastructure/di/pricing-container";
-import { makeResolveUserByEmail } from "@/modules/iam/infrastructure/di/iam-container";
+} from "@/modules/loyalty/catalog/infrastructure/di/catalog-container";
+import { makeSetManualExchangeRate } from "@/modules/loyalty/pricing/infrastructure/di/pricing-container";
+import { makeResolveUserByEmail } from "@/core/iam/infrastructure/di/iam-container";
 import {
   makeAccruePurchaseReward,
   makeReverseOrderRewards,
@@ -22,27 +22,27 @@ import {
   makeReleaseDueRewards,
   makeExpireRewards,
   makeAdjustBalanceManually,
-} from "@/modules/rewards/infrastructure/di/rewards-container";
+} from "@/modules/loyalty/rewards/infrastructure/di/rewards-container";
 import {
   makeCreateCoupon,
   makeUpdateCoupon,
   makeDeleteCoupon,
   makeReverseCouponRedemption,
-} from "@/modules/coupons/infrastructure/di/coupons-container";
+} from "@/modules/loyalty/coupons/infrastructure/di/coupons-container";
 import {
   makeRecordReferredPurchase,
   makeReverseReferralOnOrderCancel,
-} from "@/modules/referrals/infrastructure/di/referrals-container";
+} from "@/modules/loyalty/referrals/infrastructure/di/referrals-container";
 import {
   makeRecordConfirmedOrder,
   makeRecalculateSegments,
   makeGenerateWinBack,
-} from "@/modules/customers/infrastructure/di/customers-container";
+} from "@/modules/loyalty/customers/infrastructure/di/customers-container";
 import {
   makeRaiseFraudAlert,
   makeResolveFraudAlert,
-} from "@/modules/fraud/infrastructure/di/fraud-container";
-import { makeSendNotification } from "@/modules/notifications/infrastructure/di/notifications-container";
+} from "@/modules/loyalty/fraud/infrastructure/di/fraud-container";
+import { makeSendNotification } from "@/modules/loyalty/notifications/infrastructure/di/notifications-container";
 import { formatPrice } from "@/lib/format/money";
 
 /*

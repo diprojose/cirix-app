@@ -4,12 +4,12 @@ import {
   makeReleaseDueRewards,
   makeExpireRewards,
   makeListExpiringSoon,
-} from "@/modules/rewards/infrastructure/di/rewards-container";
+} from "@/modules/loyalty/rewards/infrastructure/di/rewards-container";
 import {
   makeRecalculateSegments,
   makeGenerateWinBack,
-} from "@/modules/customers/infrastructure/di/customers-container";
-import { makeSendNotification } from "@/modules/notifications/infrastructure/di/notifications-container";
+} from "@/modules/loyalty/customers/infrastructure/di/customers-container";
+import { makeSendNotification } from "@/modules/loyalty/notifications/infrastructure/di/notifications-container";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

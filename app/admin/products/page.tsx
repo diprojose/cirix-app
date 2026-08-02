@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { requireOperator } from "@/lib/auth/dal";
 import { formatPrice } from "@/lib/format/money";
-import { makeListAllProducts } from "@/modules/catalog/infrastructure/di/catalog-container";
+import { makeListAllProducts } from "@/modules/loyalty/catalog/infrastructure/di/catalog-container";
 import { departmentLabel } from "@/components/store/departments";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 import { deleteProductAction } from "@/app/admin/actions";

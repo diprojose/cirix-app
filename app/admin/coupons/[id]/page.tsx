@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireOperator } from "@/lib/auth/dal";
-import { makeGetCouponById } from "@/modules/coupons/infrastructure/di/coupons-container";
+import { makeGetCouponById } from "@/modules/loyalty/coupons/infrastructure/di/coupons-container";
 import { CouponForm } from "@/components/admin/coupon-form";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 

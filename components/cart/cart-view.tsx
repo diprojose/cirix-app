@@ -5,8 +5,8 @@ import { formatPrice } from "@/lib/format/money";
 import { QuantityStepper } from "@/components/store/quantity-stepper";
 import { ProductThumb } from "@/components/store/product-thumb";
 import { BagIcon, TrashIcon } from "@/components/store/icons";
-import { MAX_QUANTITY } from "@/modules/cart/domain/value-objects/quantity";
-import type { CartLineDto } from "@/modules/cart/application/dtos/cart-dto";
+import { MAX_QUANTITY } from "@/modules/loyalty/cart/domain/value-objects/quantity";
+import type { CartLineDto } from "@/modules/loyalty/cart/application/dtos/cart-dto";
 import { useCart } from "./cart-provider";
 
 /** Primary CTA treatment, shared by the checkout link and the empty-state link. */

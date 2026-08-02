@@ -1,5 +1,5 @@
-import type { CommercialLeadInput } from "@/modules/crm/application/dtos/commercial-lead-dto";
-import { makeCaptureCommercialLead } from "@/modules/crm/infrastructure/di/crm-container";
+import type { CommercialLeadInput } from "@/modules/zoho/crm/application/dtos/commercial-lead-dto";
+import { makeCaptureCommercialLead } from "@/modules/zoho/crm/infrastructure/di/crm-container";
 
 const ERROR_MESSAGES: Record<string, string> = {
   "crm/invalid-commercial-lead": "Review the commercial lead fields and try again.",

@@ -1,4 +1,4 @@
-import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
+import type { ProductDto } from "@/modules/loyalty/catalog/application/dtos/product-dto";
 import { DEPARTMENT_ORDER, departmentLabel } from "@/components/store/departments";
 import { saveProductAction } from "@/app/admin/actions";
 

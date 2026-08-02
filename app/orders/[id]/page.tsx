@@ -14,9 +14,9 @@ import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_STEPS,
 } from "@/components/orders/order-status";
-import { makeGetOrderById } from "@/modules/ordering/infrastructure/di/ordering-container";
-import { BUSINESS_PROFILE } from "@/modules/ordering/infrastructure/config/business-profile";
-import type { OrderDto } from "@/modules/ordering/application/dtos/order-dto";
+import { makeGetOrderById } from "@/modules/loyalty/ordering/infrastructure/di/ordering-container";
+import { BUSINESS_PROFILE } from "@/modules/loyalty/ordering/infrastructure/config/business-profile";
+import type { OrderDto } from "@/modules/loyalty/ordering/application/dtos/order-dto";
 
 export const metadata: Metadata = {
   title: "Tu pedido",

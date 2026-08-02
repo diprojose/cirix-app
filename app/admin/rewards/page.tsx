@@ -4,7 +4,7 @@ import { formatPrice } from "@/lib/format/money";
 import {
   makeGetRewardRules,
   makeGetLiabilityReport,
-} from "@/modules/rewards/infrastructure/di/rewards-container";
+} from "@/modules/loyalty/rewards/infrastructure/di/rewards-container";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 import {
   saveRewardRulesAction,

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireOperator } from "@/lib/auth/dal";
-import { makeGetProductById } from "@/modules/catalog/infrastructure/di/catalog-container";
+import { makeGetProductById } from "@/modules/loyalty/catalog/infrastructure/di/catalog-container";
 import { ProductForm } from "@/components/admin/product-form";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 

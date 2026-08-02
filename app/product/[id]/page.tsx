@@ -4,7 +4,7 @@ import { getViewer } from "@/lib/auth/dal";
 import {
   makeGetProductById,
   makeListAvailableProducts,
-} from "@/modules/catalog/infrastructure/di/catalog-container";
+} from "@/modules/loyalty/catalog/infrastructure/di/catalog-container";
 import { formatPrice } from "@/lib/format/money";
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";

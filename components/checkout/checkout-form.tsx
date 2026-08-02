@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/format/money";
 import { useCart } from "@/components/cart/cart-provider";
 import { placeOrderAction, validateCouponAction } from "@/app/checkout/actions";
-import type { DeliveryZone } from "@/modules/ordering/domain/value-objects/delivery-method";
+import type { DeliveryZone } from "@/modules/loyalty/ordering/domain/value-objects/delivery-method";
 
 /** Shared input styling for the checkout fields. */
 const FIELD_CLASS =

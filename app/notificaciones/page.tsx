@@ -4,7 +4,7 @@ import { getViewer, requireCustomer } from "@/lib/auth/dal";
 import {
   makeListNotifications,
   makeGetNotificationPrefs,
-} from "@/modules/notifications/infrastructure/di/notifications-container";
+} from "@/modules/loyalty/notifications/infrastructure/di/notifications-container";
 import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";

@@ -6,11 +6,11 @@ import { BottomNav } from "@/components/store/bottom-nav";
 import { SubHeader } from "@/components/store/sub-header";
 import { CONTAINER_READ } from "@/components/store/layout";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
-import { makeListDeliveryZones } from "@/modules/ordering/infrastructure/di/ordering-container";
+import { makeListDeliveryZones } from "@/modules/loyalty/ordering/infrastructure/di/ordering-container";
 import {
   makeGetWallet,
   makeGetRewardRules,
-} from "@/modules/rewards/infrastructure/di/rewards-container";
+} from "@/modules/loyalty/rewards/infrastructure/di/rewards-container";
 
 export const metadata: Metadata = {
   title: "Finalizar pedido",

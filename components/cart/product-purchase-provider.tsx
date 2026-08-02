@@ -8,8 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { ProductDto } from "@/modules/catalog/application/dtos/product-dto";
-import { MAX_QUANTITY } from "@/modules/cart/domain/value-objects/quantity";
+import type { ProductDto } from "@/modules/loyalty/catalog/application/dtos/product-dto";
+import { MAX_QUANTITY } from "@/modules/loyalty/cart/domain/value-objects/quantity";
 import { useCart } from "./cart-provider";
 
 /** What the product-purchase context exposes on a product detail page. */

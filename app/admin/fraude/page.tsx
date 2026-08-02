@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireOperator } from "@/lib/auth/dal";
-import { makeListPendingFraudAlerts } from "@/modules/fraud/infrastructure/di/fraud-container";
+import { makeListPendingFraudAlerts } from "@/modules/loyalty/fraud/infrastructure/di/fraud-container";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 import { raiseFraudAlertAction, resolveFraudAlertAction } from "@/app/admin/actions";
 

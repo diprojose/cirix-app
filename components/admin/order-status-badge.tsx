@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@/modules/ordering/domain/value-objects/order-status";
+import type { OrderStatus } from "@/modules/loyalty/ordering/domain/value-objects/order-status";
 import { ORDER_STATUS_LABELS } from "@/components/orders/order-status";
 
 /** Badge tint per status family: attention, in-flight, done, cancelled. */

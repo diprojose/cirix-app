@@ -1,5 +1,5 @@
-import type { OrderStatus } from "@/modules/ordering/domain/value-objects/order-status";
-import type { PaymentMethod } from "@/modules/ordering/domain/value-objects/payment-method";
+import type { OrderStatus } from "@/modules/loyalty/ordering/domain/value-objects/order-status";
+import type { PaymentMethod } from "@/modules/loyalty/ordering/domain/value-objects/payment-method";
 
 /** Customer-facing Spanish label for each order status. */
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

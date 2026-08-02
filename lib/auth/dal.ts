@@ -3,11 +3,11 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { localizeForCurrentRequest } from "@/lib/i18n";
-import { makeGetViewer } from "@/modules/iam/infrastructure/di/iam-container";
+import { makeGetViewer } from "@/core/iam/infrastructure/di/iam-container";
 import {
   guestViewer,
   type ViewerDto,
-} from "@/modules/iam/application/dtos/viewer-dto";
+} from "@/core/iam/application/dtos/viewer-dto";
 import { SESSION_COOKIE_NAME } from "./session-cookie";
 
 /*

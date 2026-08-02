@@ -4,8 +4,8 @@ import {
   makeCreateSession,
   makeGetViewer,
   makeRevokeSession,
-} from "@/modules/iam/infrastructure/di/iam-container";
-import { makeRegisterReferral } from "@/modules/referrals/infrastructure/di/referrals-container";
+} from "@/core/iam/infrastructure/di/iam-container";
+import { makeRegisterReferral } from "@/modules/loyalty/referrals/infrastructure/di/referrals-container";
 import { adminAuth } from "@/shared/infrastructure/firebase-admin";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
 import { REFERRAL_COOKIE_NAME } from "@/lib/referrals/referral-cookie";

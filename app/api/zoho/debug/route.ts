@@ -1,4 +1,4 @@
-import { ZohoCrmClient, requireEnv } from "@/modules/crm/infrastructure/adapters/zoho-crm-client";
+import { ZohoCrmClient, requireEnv } from "@/modules/zoho/crm/infrastructure/adapters/zoho-crm-client";
 
 const LEAD_FIELDS = [
   "id",
