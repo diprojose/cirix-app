@@ -67,17 +67,17 @@ const SIDEBAR_GROUPS: Array<{
 
 export function CrmShell({ locale, dashboard, warning, children }: CrmShellProps) {
   return (
-    <div className="min-h-dvh bg-[linear-gradient(180deg,#f7f6f1_0%,#efede6_100%)]">
+    <div className="min-h-dvh bg-bg">
       <div className="mx-auto flex min-h-[calc(100dvh-1rem)] w-full max-w-[1600px] overflow-hidden bg-stone-100 shadow-[0_24px_70px_-28px_rgba(16,24,40,0.35)] md:min-h-[calc(100dvh-2rem)]">
-        <aside className="hidden w-[280px] shrink-0 flex-col bg-[#171a37] text-white lg:flex">
+        <aside className="hidden w-[280px] shrink-0 flex-col bg-brand-900 text-white lg:flex">
           <div className="flex items-center justify-between px-5 py-5">
             <div className="flex items-center gap-3">
-              <div className="grid size-9 place-items-center rounded-xl bg-[linear-gradient(135deg,#646cff,#7c5cff_55%,#4c9cff)] text-sm font-bold">
+              <div className="grid size-9 place-items-center rounded-xl bg-action-fill text-sm font-bold">
                 Z
               </div>
               <div>
                 <p className="text-[1.05rem] font-semibold tracking-[-0.02em]">Zoho CRM</p>
-                <p className="text-xs text-white/55">Mixmag workspace</p>
+                <p className="text-xs text-white/55">Cirix Tech Platform workspace</p>
               </div>
             </div>
             <span className="rounded-lg bg-white/8 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
@@ -120,10 +120,10 @@ export function CrmShell({ locale, dashboard, warning, children }: CrmShellProps
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 bg-[#fafafa]">
+        <div className="min-w-0 flex-1 bg-surface">
           <header className="bg-white">
             {warning ? (
-              <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 md:px-6">
+              <div className="border-b border-action-fill bg-action-subtle px-4 py-3 text-sm text-action-strong md:px-6">
                 {warning}
               </div>
             ) : null}
@@ -155,7 +155,7 @@ export function CrmShell({ locale, dashboard, warning, children }: CrmShellProps
                 <IconButton label={pick(locale, { es: "Alertas", en: "Alerts" })}>!</IconButton>
                 <Link
                   href={localizeHref(locale, "/zoho/demo-form")}
-                  className="inline-flex min-h-10 items-center rounded-xl bg-[#59c36a] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#49b65b]"
+                  className="inline-flex min-h-10 items-center rounded-xl bg-cirix-cyan px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
                 >
                   + {pick(locale, { es: "Nuevo lead", en: "New lead" })}
                 </Link>

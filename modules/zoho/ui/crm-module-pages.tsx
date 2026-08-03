@@ -17,9 +17,9 @@ const STAGE_LABELS: Record<LifecycleStage, Record<Locale, string>> = {
 
 const STAGE_THEME: Record<LifecycleStage, { chip: string; panel: string }> = {
   subscriber: { chip: "bg-sky-100 text-sky-700", panel: "bg-sky-50" },
-  lead: { chip: "bg-amber-100 text-amber-800", panel: "bg-amber-50" },
-  prospect: { chip: "bg-violet-100 text-violet-700", panel: "bg-violet-50" },
-  customer: { chip: "bg-emerald-100 text-emerald-700", panel: "bg-emerald-50" },
+  lead: { chip: "bg-action-soft text-action-strong", panel: "bg-action-subtle" },
+  prospect: { chip: "bg-brand-100 text-accent-strong", panel: "bg-brand-50" },
+  customer: { chip: "bg-cirix-cyan/15 text-brand-700", panel: "bg-cirix-cyan/15" },
 };
 
 type DashboardPageProps = {

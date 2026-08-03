@@ -47,24 +47,24 @@ const STAGE_THEME: Record<
   { chip: string; panel: string; ring: string }
 > = {
   subscriber: {
-    chip: "bg-sky-100 text-sky-700",
-    panel: "bg-sky-50",
-    ring: "ring-sky-200",
+    chip: "bg-brand-100 text-accent-strong",
+    panel: "bg-brand-50",
+    ring: "ring-brand-200",
   },
   lead: {
-    chip: "bg-amber-100 text-amber-800",
-    panel: "bg-amber-50",
-    ring: "ring-amber-200",
+    chip: "bg-action-soft text-action-strong",
+    panel: "bg-action-subtle",
+    ring: "ring-action-fill/30",
   },
   prospect: {
-    chip: "bg-violet-100 text-violet-700",
-    panel: "bg-violet-50",
-    ring: "ring-violet-200",
+    chip: "bg-brand-100 text-accent-strong",
+    panel: "bg-brand-50",
+    ring: "ring-brand-200",
   },
   customer: {
-    chip: "bg-emerald-100 text-emerald-700",
-    panel: "bg-emerald-50",
-    ring: "ring-emerald-200",
+    chip: "bg-cirix-cyan/15 text-brand-700",
+    panel: "bg-cirix-cyan/15",
+    ring: "ring-brand-200",
   },
 };
 
@@ -342,7 +342,7 @@ export function CrmWorkspace({
                               {contact?.fullName ?? "Unknown contact"} · {opportunity.owner}
                             </p>
                           </div>
-                          <span className="rounded-pill bg-amber-100 px-3 py-1 text-caption font-semibold text-amber-800">
+                          <span className="rounded-pill bg-action-soft px-3 py-1 text-caption font-semibold text-action-strong">
                             {opportunity.stage}
                           </span>
                         </div>

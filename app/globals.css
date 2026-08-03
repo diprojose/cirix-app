@@ -1,100 +1,104 @@
 @import "tailwindcss";
 
 @theme {
-  /* ---- Brand ramp (produce green) — chrome, surfaces, identity ---- */
-  --color-brand-50: oklch(0.975 0.012 150);
-  --color-brand-100: oklch(0.945 0.032 150);
-  --color-brand-200: oklch(0.895 0.058 150);
-  --color-brand-300: oklch(0.825 0.085 150);
-  --color-brand-400: oklch(0.73 0.11 150);
-  --color-brand-500: oklch(0.63 0.125 150);
-  --color-brand-600: oklch(0.53 0.12 151); /* AA as text on bg/surface (4.7:1) */
-  --color-brand-700: oklch(0.455 0.1 152); /* AA fill with white text (~5.2:1) */
-  --color-brand-800: oklch(0.375 0.08 153);
-  --color-brand-900: oklch(0.305 0.062 154);
-  --color-brand-950: oklch(0.225 0.045 155);
+  /* Cirix brand palette. Values follow the public digital brand system. */
+  --color-brand-50: #e9f1fb;
+  --color-brand-100: #d5e4f6;
+  --color-brand-200: #aec9eb;
+  --color-brand-300: #82a9dc;
+  --color-brand-400: #5688cd;
+  --color-brand-500: #1c5aae;
+  --color-brand-600: #16498f;
+  --color-brand-700: #10386f;
+  --color-brand-800: #0a244a;
+  --color-brand-900: #051934;
+  --color-brand-950: #030e1d;
 
-  /* ---- Action ramp (burnt orange) — CTAs, add controls, wallet value ---- */
-  --color-action-50: oklch(0.972 0.016 55);
-  --color-action-100: oklch(0.942 0.038 52);
-  --color-action-200: oklch(0.888 0.072 50);
-  --color-action-300: oklch(0.815 0.11 48);
-  --color-action-400: oklch(0.745 0.14 46);
-  --color-action-500: oklch(0.68 0.155 45); /* decorative only, never white text */
-  --color-action-600: oklch(0.565 0.16 42); /* AA as text on bg/surface (4.8:1) */
-  --color-action-700: oklch(0.48 0.15 40); /* AA fill with white text (~4.8:1) */
-  --color-action-800: oklch(0.405 0.125 38);
-  --color-action-900: oklch(0.335 0.098 36);
-  --color-action-950: oklch(0.245 0.07 34);
+  --color-action-50: #fff0eb;
+  --color-action-100: #ffdcd1;
+  --color-action-200: #ffb9a3;
+  --color-action-300: #ff9374;
+  --color-action-400: #f96a40;
+  --color-action-500: #e54700;
+  --color-action-600: #d23d00;
+  --color-action-700: #b33300;
+  --color-action-800: #8f2900;
+  --color-action-900: #6e1f00;
+  --color-action-950: #451400;
 
-  /* ---- Warm neutrals (stone) — never pure #000 / #fff ---- */
-  --color-stone-0: oklch(0.995 0.002 90); /* surface / cards */
-  --color-stone-50: oklch(0.982 0.004 90); /* page background */
-  --color-stone-100: oklch(0.962 0.005 90);
-  --color-stone-200: oklch(0.922 0.006 88); /* hairline borders */
-  --color-stone-300: oklch(0.862 0.007 88);
-  --color-stone-400: oklch(0.72 0.008 86); /* disabled text / icons */
-  --color-stone-500: oklch(0.545 0.009 85); /* muted text — AA on stone-50 (4.7:1) */
-  --color-stone-600: oklch(0.5 0.01 84);
-  --color-stone-700: oklch(0.4 0.011 83); /* body */
-  --color-stone-800: oklch(0.305 0.011 82);
-  --color-stone-900: oklch(0.235 0.012 80); /* titles */
-  --color-stone-950: oklch(0.18 0.01 78); /* near-black controls */
+  --color-red-50: #ffe8ed;
+  --color-red-100: #ffcbd5;
+  --color-red-200: #ff9aac;
+  --color-red-300: #ff647f;
+  --color-red-400: #f93258;
+  --color-red-500: #e5002b;
+  --color-red-600: #c90027;
+  --color-red-700: #a70020;
+  --color-red-800: #850019;
+  --color-red-900: #640013;
+  --color-red-950: #3f000c;
 
-  /* ---- Semantic layer (SWAPPABLE — retheme by editing only here) ----
-     The rule the whole app follows: GREEN is brand and chrome, ORANGE is value
-     and action. A control the user presses to move forward, or a number that
-     represents money they earned, is orange. Everything else is green or
-     neutral. One action colour, page-wide. */
-  --color-bg: var(--color-stone-50);
-  --color-surface: var(--color-stone-0);
-  --color-border: var(--color-stone-200);
-  --color-text: var(--color-stone-900);
-  --color-text-muted: var(--color-stone-500);
-  --color-ink: var(--color-stone-950);
+  --color-cirix-cyan: #08b9e4;
+  --color-cirix-coral: #f93d22;
+  --color-cirix-gray: #a0a1a8;
 
-  --color-accent: var(--color-brand-600); /* brand marks, links, chrome */
-  --color-accent-strong: var(--color-brand-700); /* hover / press */
-  --color-accent-fill: var(--color-brand-700); /* green fill with white text */
-  --color-accent-soft: var(--color-brand-100); /* decorative surfaces */
-  --color-accent-subtle: var(--color-brand-50); /* faint fills, thumb backdrop */
-  --color-on-accent: var(--color-stone-0);
+  /* Semantic contract consumed by components. */
+  --color-bg: #051934;
+  --color-surface: #0a244a;
+  --color-border: #1c3d67;
+  --color-text: #ffffff;
+  --color-text-muted: #a0a1a8;
+  --color-ink: #ffffff;
 
-  --color-action: var(--color-action-600); /* action text on light surfaces */
-  --color-action-strong: var(--color-action-800); /* hover / press */
-  --color-action-fill: var(--color-action-700); /* CTA fill with white text */
-  --color-action-soft: var(--color-action-100); /* wallet chips, soft badges */
-  --color-action-soft-strong: var(--color-action-200); /* hover on a soft badge */
-  --color-action-subtle: var(--color-action-50);
-  --color-on-action: var(--color-stone-0);
+  --color-accent: #08b9e4;
+  --color-accent-strong: #5ad9f3;
+  --color-accent-fill: #1c5aae;
+  --color-accent-soft: #0a244a;
+  --color-accent-subtle: #051934;
+  --color-on-accent: #ffffff;
 
-  --color-danger: oklch(0.52 0.19 27);
-  --color-on-danger: var(--color-stone-0);
+  --color-action: #ff647f;
+  --color-action-strong: #ff647f;
+  --color-action-fill: var(--color-red-500);
+  --color-action-soft: #3f000c;
+  --color-action-soft-strong: #640013;
+  --color-action-subtle: #210007;
+  --color-on-action: #ffffff;
 
-  /* ---- Radii — tighter than a boutique scale: a dense grid and 32px corners
-     fight each other. `2xl`/`3xl` are redefined because Tailwind v4's @theme
-     extends rather than replaces, so the stock values would still resolve and
-     silently sit outside this scale. ---- */
-  --radius-sm: 0.5rem; /* 8 — inline chips, focus rings */
-  --radius-md: 0.75rem; /* 12 — thumbnails, inputs */
-  --radius-lg: 1rem; /* 16 — cards, line items */
-  --radius-xl: 1.5rem; /* 24 — panels, summary, hero */
-  --radius-2xl: 1rem; /* alias of lg, so legacy usage lands on the scale */
-  --radius-3xl: 1.5rem; /* alias of xl */
+  --color-danger: #e5002b;
+  --color-on-danger: #ffffff;
+
+  /* Neutral aliases retained for existing utility classes. */
+  --color-stone-0: #0a244a;
+  --color-stone-50: #051934;
+  --color-stone-100: #102f55;
+  --color-stone-200: #1c3d67;
+  --color-stone-300: #3a5878;
+  --color-stone-400: #7186a0;
+  --color-stone-500: #a0a1a8;
+  --color-stone-600: #b8bec8;
+  --color-stone-700: #d3d8df;
+  --color-stone-800: #e5e8ed;
+  --color-stone-900: #ffffff;
+  --color-stone-950: #ffffff;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
   --radius-pill: 62.4375rem;
 
-  /* ---- Shadows (diffuse, warm-tinted) ---- */
-  --shadow-xs: 0 1px 2px oklch(0.3 0.02 90 / 0.06);
-  --shadow-card: 0 8px 24px -12px oklch(0.3 0.02 90 / 0.18);
-  --shadow-float: 0 14px 34px -10px oklch(0.3 0.02 90 / 0.22);
-  --shadow-accent: 0 10px 22px -8px oklch(0.455 0.1 152 / 0.4);
-  --shadow-action: 0 10px 22px -8px oklch(0.48 0.15 40 / 0.4);
+  --shadow-xs: 0 1px 2px rgb(5 25 52 / 0.06);
+  --shadow-card: 0 8px 24px -12px rgb(5 25 52 / 0.2);
+  --shadow-float: 0 14px 34px -10px rgb(5 25 52 / 0.28);
+  --shadow-accent: 0 10px 22px -8px rgb(28 90 174 / 0.35);
+  --shadow-action: 0 10px 22px -8px rgb(229 0 43 / 0.35);
 
-  /* ---- Motion ---- */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* ---- Type scale (product register, ratio ~1.2) ---- */
   --text-display: 1.75rem;
   --text-display--line-height: 2rem;
   --text-display--letter-spacing: -0.02em;
@@ -102,7 +106,6 @@
   --text-price-lg--line-height: 1.75rem;
   --text-h-section: 1.125rem;
   --text-h-section--line-height: 1.5rem;
-  --text-h-section--letter-spacing: -0.01em;
   --text-title: 1rem;
   --text-title--line-height: 1.375rem;
   --text-body: 0.9375rem;
@@ -112,22 +115,43 @@
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
 
-  /* ---- Typography ---- */
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-outfit), var(--font-sans);
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-/* Light by decision (not by default): a grocery storefront is a bright, plain
-   scene so the produce photography carries the colour. No dark ramp for now. */
+html {
+  background: var(--color-bg);
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
 }
 
-/* Reduced motion is honoured globally rather than per component: the app has
-   ~20 motion sites and guarding each one individually is how the three that
-   were guarded ended up being the only three. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+::selection {
+  background: var(--color-action-fill);
+  color: var(--color-on-action);
+}
+
+@keyframes cirix-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: cirix-marquee 18s linear infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -138,7 +162,6 @@ body {
     scroll-behavior: auto !important;
   }
 
-  /* Press feedback collapses to no movement rather than a fast movement. */
   .motion-scale-guard:active {
     transform: none !important;
   }

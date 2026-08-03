@@ -14,7 +14,7 @@ const FIELD_CLASS =
  * Fraud review panel (US-F4, UC-24): the queue of pending alerts an analyst can
  * approve (clear) or block (which blocks the referral and reverses its reward),
  * plus a form to raise an alert against a customer by email. Automated
- * device/payment/address detection (BR-09) is not built yet — mixmag does not
+ * device/payment/address detection (BR-09) is not built yet — Cirix Tech Platform does not
  * collect that data — so alerts are raised manually for now.
  */
 export default async function AdminFraudPage({

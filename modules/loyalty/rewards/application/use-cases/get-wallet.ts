@@ -11,7 +11,7 @@ export type GetWalletInput = { customerUid: string };
  * Returns a customer's wallet — folded available/pending balances, next expiry
  * and full line history (US-A1, US-A2). Isolation is enforced by the caller
  * always passing the authenticated viewer's own uid; the use case never trusts
- * a client-supplied id, which is how mixmag achieves the spec's per-customer
+ * a client-supplied id, which is how Cirix Tech Platform achieves the spec's per-customer
  * isolation without database row-level security.
  */
 export class GetWallet implements UseCase<GetWalletInput, WalletDto> {

@@ -29,7 +29,7 @@ export async function TopNav({
           href="/loyalty"
           className="rounded-sm text-xl font-bold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          mixmag
+          Cirix
         </LocalizedLink>
 
         {searchable ? (

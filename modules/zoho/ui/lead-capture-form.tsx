@@ -51,7 +51,7 @@ export function LeadCaptureForm({
       phone: String(formData.get("phone") ?? ""),
       email: String(formData.get("email") ?? ""),
       message: String(formData.get("message") ?? ""),
-      source: "mixmag web form",
+      source: "Cirix Tech Platform web form",
       campaign: String(formData.get("campaign") ?? ""),
       interestCategory: String(formData.get("interestCategory") ?? ""),
       locale,
@@ -203,7 +203,7 @@ export function LeadCaptureForm({
           <div className="space-y-3">
             <p
               role="status"
-              className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+              className="rounded-xl bg-cirix-cyan/15 px-4 py-3 text-sm font-medium text-brand-700"
             >
               {state.message}
             </p>

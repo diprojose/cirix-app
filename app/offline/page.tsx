@@ -3,7 +3,7 @@ import Link from "next/link";
 import { COLUMN } from "@/components/store/layout";
 
 export const metadata: Metadata = {
-  title: "Sin conexión — mixmag",
+  title: "Sin conexión — Cirix Tech Platform",
 };
 
 /**
@@ -17,7 +17,7 @@ export default function OfflinePage() {
     <main
       className={`${COLUMN} flex min-h-dvh flex-col items-center justify-center gap-3 text-center`}
     >
-      <p className="text-h-section font-bold tracking-tight text-accent">mixmag</p>
+      <p className="text-h-section font-bold tracking-tight text-accent">Cirix Tech Platform</p>
       <h1 className="text-display font-bold text-text">Sin conexión</h1>
       <p className="text-balance text-body text-text-muted">
         No tienes conexión a internet en este momento. Vuelve a intentarlo cuando recuperes la

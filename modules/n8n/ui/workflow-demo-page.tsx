@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { N8N_DEMO_WORKFLOW, type WorkflowNode, type WorkflowStatus } from "@/modules/n8n/lib/demo-workflow";
 
@@ -14,30 +13,23 @@ const STATUS_LABELS: Record<WorkflowStatus, { es: string; en: string }> = {
 };
 
 const NODE_STYLES: Record<WorkflowNode["kind"], string> = {
-  trigger: "border-[var(--landing-accent)]/35 bg-surface/96",
+  trigger: "border-[var(--color-action-fill)]/35 bg-surface/96",
   agent: "border-accent/18 bg-surface/96",
   decision: "border-action/22 bg-surface/96",
   action: "border-border bg-surface/96",
 };
 
 const ICON_STYLES: Record<WorkflowNode["kind"], string> = {
-  trigger: "bg-[var(--landing-accent-soft)] text-[var(--landing-accent-strong)]",
+  trigger: "bg-[var(--color-action-soft)] text-[var(--color-action-strong)]",
   agent: "bg-accent-soft text-accent-strong",
   decision: "bg-action-soft text-action-strong",
-  action: "bg-[var(--landing-accent-soft)] text-[var(--landing-accent-strong)]",
+  action: "bg-[var(--color-action-soft)] text-[var(--color-action-strong)]",
 };
 
 const TONE_STYLES: Record<NonNullable<WorkflowNode["tone"]>, string> = {
-  brand: "border-[var(--landing-accent)]/18 bg-[var(--landing-accent-soft)] text-[var(--landing-accent-strong)]",
+  brand: "border-[var(--color-action-fill)]/18 bg-[var(--color-action-soft)] text-[var(--color-action-strong)]",
   accent: "border-accent/15 bg-accent-soft text-accent-strong",
   action: "border-action/15 bg-action-soft text-action-strong",
-};
-
-const landingTheme: CSSProperties = {
-  ["--landing-accent" as string]: "oklch(0.62 0.24 28)",
-  ["--landing-accent-strong" as string]: "oklch(0.52 0.21 28)",
-  ["--landing-accent-soft" as string]: "oklch(0.95 0.04 28)",
-  ["--landing-accent-subtle" as string]: "oklch(0.985 0.016 28)",
 };
 
 export async function WorkflowDemoPage() {
@@ -46,8 +38,7 @@ export async function WorkflowDemoPage() {
 
   return (
     <main
-      style={landingTheme}
-      className="min-h-dvh bg-[radial-gradient(circle_at_top_left,var(--landing-accent-soft),transparent_34%),radial-gradient(circle_at_85%_18%,rgba(164,206,255,0.22),transparent_28%),linear-gradient(180deg,var(--landing-accent-subtle),var(--color-bg))] text-text"
+      className="min-h-dvh bg-[radial-gradient(circle_at_top_left,rgb(229_0_43_/_0.16),transparent_34%),radial-gradient(circle_at_85%_18%,rgb(28_90_174_/_0.32),transparent_28%),linear-gradient(180deg,#030e1d,#051934)] text-text"
     >
       <section className="mx-auto flex w-full max-w-[90rem] flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
         <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-card">
@@ -64,7 +55,7 @@ export async function WorkflowDemoPage() {
                   })}
                 </p>
               </div>
-              <div className="rounded-full border border-[var(--landing-accent)] bg-[var(--landing-accent-soft)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--landing-accent-strong)]">
+              <div className="rounded-full border border-[var(--color-action-fill)] bg-[var(--color-action-soft)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-action-strong)]">
                 {pick(locale, { es: "demo estatico", en: "static demo" })}
               </div>
             </div>
@@ -78,18 +69,18 @@ export async function WorkflowDemoPage() {
                 minWidth: "100%",
                 height: `${CANVAS_HEIGHT}px`,
                 backgroundImage:
-                  "radial-gradient(circle at 1px 1px, rgba(198,58,42,0.14) 1px, transparent 0)",
+                  "radial-gradient(circle at 1px 1px, rgb(229 0 43 / 0.24) 1px, transparent 0)",
                 backgroundSize: "25px 25px",
               }}
             >
-              <div className="absolute left-6 top-5 rounded-full border border-[var(--landing-accent)]/16 bg-[var(--landing-accent-soft)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--landing-accent-strong)]">
+              <div className="absolute left-6 top-5 rounded-full border border-[var(--color-action-fill)]/16 bg-[var(--color-action-soft)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-action-strong)]">
                 {pick(locale, { es: "Carril email > lead", en: "Email > lead lane" })}
               </div>
               <div className="absolute left-6 top-[328px] rounded-full border border-action/16 bg-action-soft px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-action-strong">
                 {pick(locale, { es: "Carril llamadas", en: "Inbound call lane" })}
               </div>
-              <div className="absolute left-5 top-[48px] h-[246px] w-[1400px] rounded-[1.5rem] border border-[var(--landing-accent)]/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.45),rgba(255,255,255,0.22))]" />
-              <div className="absolute left-5 top-[356px] h-[270px] w-[1400px] rounded-[1.5rem] border border-action/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.18))]" />
+              <div className="absolute left-5 top-[48px] h-[246px] w-[1400px] rounded-[1.5rem] border border-[var(--color-action-fill)]/7 bg-[linear-gradient(180deg,rgb(28 90 174 / 0.10),rgb(5 25 52 / 0.35))]" />
+              <div className="absolute left-5 top-[356px] h-[270px] w-[1400px] rounded-[1.5rem] border border-action/8 bg-[linear-gradient(180deg,rgb(28 90 174 / 0.08),rgba(255,255,255,0.18))]" />
 
               <svg
                 className="pointer-events-none absolute inset-0 h-full w-full"
@@ -146,7 +137,7 @@ export async function WorkflowDemoPage() {
                     <g key={edge.id}>
                       <path
                         d={path}
-                        stroke="rgba(128, 95, 73, 0.48)"
+                        stroke="rgb(8 185 228 / 0.52)"
                         strokeWidth="3"
                         strokeDasharray="7 11"
                         strokeLinecap="round"
@@ -159,18 +150,18 @@ export async function WorkflowDemoPage() {
                             width={labelWidth}
                             height="24"
                             rx="12"
-                            fill="rgba(250,249,246,0.92)"
-                            stroke="rgba(210,191,175,0.9)"
+                            fill="rgb(10 36 74 / 0.95)"
+                            stroke="rgb(28 90 174 / 0.8)"
                           />
                           <text
                             x={labelX}
                             y={labelY}
                             textAnchor="middle"
                             dominantBaseline="middle"
-                            fill="rgba(85, 67, 58, 0.85)"
+                            fill="rgb(255 255 255 / 0.86)"
                             fontSize="10"
                             fontWeight="600"
-                            fontFamily="var(--font-poppins), ui-sans-serif, system-ui, sans-serif"
+                            fontFamily="var(--font-sans), ui-sans-serif, system-ui, sans-serif"
                           >
                             {edgeLabel}
                           </text>
@@ -184,7 +175,7 @@ export async function WorkflowDemoPage() {
               {workflow.nodes.map((node) => (
                 <article
                   key={node.id}
-                  className={`absolute flex h-[124px] w-[230px] flex-col rounded-[1.55rem] border px-4 py-4 shadow-[0_8px_24px_-12px_rgba(87,61,46,0.18)] backdrop-blur-[2px] ${NODE_STYLES[node.kind]}`}
+                  className={`absolute flex h-[124px] w-[230px] flex-col rounded-[1.55rem] border px-4 py-4 shadow-[0_8px_24px_-12px_rgb(3 14 29 / 0.35)] backdrop-blur-[2px] ${NODE_STYLES[node.kind]}`}
                   style={{ left: `${node.x}px`, top: `${node.y}px` }}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -216,7 +207,7 @@ export async function WorkflowDemoPage() {
 
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--landing-accent-strong)]">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-action-strong)]">
               {pick(locale, { es: "Automatizaciones", en: "Automations" })}
             </h2>
             <div className="text-xs text-text-muted">

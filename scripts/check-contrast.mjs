@@ -12,14 +12,22 @@ import { readFileSync } from "node:fs";
 
 const CSS = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 
-/** Reads `--color-<name>: oklch(L C H)` out of the @theme block. */
-function token(name) {
-  const re = new RegExp(`--color-${name}:\\s*oklch\\(([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)\\)`);
-  const m = re.exec(CSS);
-  if (!m) throw new Error(`Token --color-${name} not found (or not a literal oklch()).`);
-  return [Number(m[1]), Number(m[2]), Number(m[3])];
+/** Reads a literal hex/oklch token or follows a semantic var reference. */
+function token(name, seen = new Set()) {
+  if (seen.has(name)) throw new Error("Circular token reference at --color-" + name);
+  seen.add(name);
+  const re = new RegExp("--color-" + name + ":\\s*([^;]+)");
+  const match = re.exec(CSS);
+  if (!match) throw new Error("Token --color-" + name + " not found.");
+  const value = match[1].trim();
+  const oklch = value.match(/^oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)$/);
+  if (oklch) return toRgb(oklch.slice(1).map(Number));
+  const hex = value.match(/^#([0-9a-f]{6})$/i);
+  if (hex) return hex[1].match(/../g).map((channel) => parseInt(channel, 16));
+  const reference = value.match(/^var\(--color-([^)]+)\)$/);
+  if (reference) return token(reference[1], seen);
+  throw new Error("Token --color-" + name + " must be a literal hex/oklch or a color token reference.");
 }
-
 /** OKLCH -> sRGB 0-255, via oklab. */
 function toRgb([L, C, Hdeg]) {
   const h = (Hdeg * Math.PI) / 180;
@@ -54,23 +62,22 @@ const contrast = (a, b) => {
 // Every pair where real text sits on a real surface. `large` marks text at
 // >=18.66px bold, where AA is 3:1 instead of 4.5:1.
 const PAIRS = [
-  ["on-accent sobre accent-fill", "stone-0", "brand-700"],
-  ["on-action sobre action-fill", "stone-0", "action-700"],
-  ["text sobre surface", "stone-900", "stone-0"],
-  ["text sobre bg", "stone-900", "stone-50"],
-  ["text-muted sobre bg", "stone-500", "stone-50"],
-  ["text-muted sobre surface", "stone-500", "stone-0"],
-  ["accent como texto sobre bg", "brand-600", "stone-50"],
-  ["action como texto sobre surface", "action-600", "stone-0"],
-  ["action-strong sobre action-soft", "action-800", "action-100"],
-  ["accent-strong sobre accent-soft", "brand-700", "brand-100"],
-  ["on-danger sobre danger", "stone-0", "danger"],
+  ["on-accent sobre accent-fill", "on-accent", "accent-fill"],
+  ["on-action sobre action-fill", "on-action", "action-fill"],
+  ["text sobre surface", "text", "surface"],
+  ["text sobre bg", "text", "bg"],
+  ["text-muted sobre bg", "text-muted", "bg"],
+  ["text-muted sobre surface", "text-muted", "surface"],
+  ["accent como texto sobre bg", "accent", "bg"],
+  ["action como texto sobre surface", "action", "surface"],
+  ["action-strong sobre action-soft", "action-strong", "action-soft"],
+  ["accent-strong sobre accent-soft", "accent-strong", "accent-soft"],
+  ["on-danger sobre danger", "on-danger", "danger"],
 ];
-
 let failed = 0;
 console.log("Contraste WCAG (AA normal = 4.5:1)\n");
 for (const [label, fg, bg] of PAIRS) {
-  const ratio = contrast(toRgb(token(fg)), toRgb(token(bg)));
+  const ratio = contrast(token(fg), token(bg));
   const ok = ratio >= 4.5;
   if (!ok) failed += 1;
   console.log(`${ok ? "PASA " : "FALLA"}  ${label.padEnd(36)} ${ratio.toFixed(2)}:1`);

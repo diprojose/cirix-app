@@ -1,7 +1,7 @@
 /**
  * Generates the PWA icon set as opaque PNGs, with no image dependency.
  *
- * The icons are still placeholders standing in for real mixmag artwork, but
+ * The icons are still placeholders standing in for real Cirix Tech Platform artwork, but
  * they now carry the grocery brand green and a simple leaf mark instead of the
  * previous flat pink squares. Everything is drawn analytically, so re-running
  * this after a token change reproduces the whole set.

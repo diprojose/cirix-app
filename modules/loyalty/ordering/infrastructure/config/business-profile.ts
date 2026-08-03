@@ -5,7 +5,7 @@
  * Placeholder values — replace with the business's real accounts before launch.
  */
 export const BUSINESS_PROFILE = {
-  name: "mixmag",
+  name: "Cirix Tech Platform",
   /** E.164 number that receives order messages, without the leading `+`. */
   whatsappNumber: "584120000000",
   pagoMovil: {
@@ -16,11 +16,11 @@ export const BUSINESS_PROFILE = {
   transfer: {
     bank: "Banco de Venezuela",
     accountNumber: "0102-0000-00-0000000000",
-    holder: "mixmag C.A.",
+    holder: "Cirix Tech Platform C.A.",
     documentId: "J-00000000-0",
   },
   zelle: {
-    email: "pagos@mixmag.example",
-    holder: "mixmag",
+    email: "pagos@Cirix Tech Platform.example",
+    holder: "Cirix Tech Platform",
   },
 } as const;

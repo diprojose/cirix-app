@@ -11,7 +11,7 @@ export type ReverseOrderRewardsInput = { orderId: string };
 export type ReverseSummary = { reversedEarn: boolean; reversedBurn: boolean };
 
 /**
- * Reverses an order's reward effects when the order is cancelled (mixmag's
+ * Reverses an order's reward effects when the order is cancelled (Cirix Tech Platform's
  * refund trigger, BR-12). It reverses the order's earn line — whether still
  * `pending` or already `available` — and, if the customer had spent credit on
  * this order, reverses that `burn` line too, returning the credit to their

@@ -33,7 +33,7 @@ export default async function LoginPage({
       </div>
 
       <header className="flex flex-col gap-2 text-center">
-        <p className="text-h-section font-bold tracking-tight text-accent">mixmag</p>
+        <p className="text-h-section font-bold tracking-tight text-accent">Cirix Tech Platform</p>
         <h1 className="text-display font-bold tracking-tight text-text">
           {pick(locale, { es: "Bienvenido", en: "Welcome" })}
         </h1>

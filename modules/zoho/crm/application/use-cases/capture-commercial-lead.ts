@@ -117,7 +117,7 @@ export function toZohoPayload(lead: NormalizedCommercialLeadInput): Record<strin
     Email: lead.email,
     Lead_Source: lead.source,
     Description: lead.message,
-    Company: "mixmag web inquiry",
+    Company: "Cirix Tech Platform web inquiry",
     Campaign_Name_Web: lead.campaign,
     Interest_Category_Web: lead.interestCategory,
     Locale_Web: lead.locale,

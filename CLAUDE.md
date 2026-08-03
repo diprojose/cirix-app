@@ -1,6 +1,6 @@
-# mixmag
+# Cirix Tech Platform
 
-**mixmag** es un **MVP de e-commerce de supermercado** para el estado de **Florida**, construido como aplicación web progresiva (**PWA**) con Next.js. Es una **demostración**: su propósito es enseñar, con la menor fricción posible, cómo funciona un programa de **retención** basado en un **Ledger de Recompensas (wallet)** append-only, alimentado por **cupones**, **referidos** y un **hook de recompra**.
+**Cirix Tech Platform** es un **MVP de e-commerce de supermercado** para el estado de **Florida**, construido como aplicación web progresiva (**PWA**) con Next.js. Es una **demostración**: su propósito es enseñar, con la menor fricción posible, cómo funciona un programa de **retención** basado en un **Ledger de Recompensas (wallet)** append-only, alimentado por **cupones**, **referidos** y un **hook de recompra**.
 
 > **Principio rector: la retención es el motor; los cupones y los referidos son el combustible. Todos operan sobre un único Ledger de Recompensas (wallet) append-only.**
 >

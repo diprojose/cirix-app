@@ -18,7 +18,7 @@ export async function HomeHeader({
         href="/loyalty"
         className="rounded-sm text-h-section font-bold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
-        mixmag
+        Cirix
       </LocalizedLink>
 
       {wallet ? (

@@ -8,7 +8,7 @@ export async function SiteFooter() {
     <footer className="mt-12 hidden border-t border-border bg-surface md:block">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-8 py-10 text-sm text-text-muted md:flex-row md:items-start md:justify-between">
         <div className="max-w-xs">
-          <p className="text-lg font-bold text-text">mixmag</p>
+          <p className="text-lg font-bold text-text">Cirix</p>
           <p className="mt-2">
             {pick(locale, {
               es: "Tu supermercado, a domicilio.",
@@ -30,7 +30,7 @@ export async function SiteFooter() {
             {pick(locale, { es: "Iniciar sesiÃ³n", en: "Sign in" })}
           </LocalizedLink>
         </nav>
-        <p className="text-xs">© mixmag</p>
+        <p className="text-xs">© Cirix</p>
       </div>
     </footer>
   );

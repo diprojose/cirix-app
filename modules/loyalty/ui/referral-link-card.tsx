@@ -23,7 +23,7 @@ export function ReferralLinkCard({ url }: { url: string }) {
   async function share() {
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Te invito a mixmag", url });
+        await navigator.share({ title: "Te invito a Cirix Tech Platform", url });
         return;
       } catch {
         return;

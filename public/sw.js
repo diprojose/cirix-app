@@ -1,5 +1,5 @@
 /*
- * mixmag service worker.
+ * Cirix Tech Platform service worker.
  *
  * Provides the offline capability required for an installable PWA:
  *  - Pre-caches a minimal app shell on install.
@@ -10,7 +10,7 @@
  * Bump CACHE_VERSION on any change so old caches are purged on activation.
  */
 const CACHE_VERSION = "v3";
-const CACHE_NAME = `mixmag-${CACHE_VERSION}`;
+const CACHE_NAME = `Cirix Tech Platform-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 
 // App-shell resources cached up front so the app opens without a network.
@@ -114,7 +114,7 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
   const data = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(data.title || "mixmag", {
+    self.registration.showNotification(data.title || "Cirix Tech Platform", {
       body: data.body,
       icon: data.icon || "/icon-192x192.png",
       badge: "/icon-192x192.png",
