@@ -40,7 +40,8 @@ export type WorkflowDemo = {
 
 export const N8N_DEMO_WORKFLOW: WorkflowDemo = {
   title: "Automation Studio",
-  summary: "Demo visual de automatizaciones operativas para CRM, onboarding interno y activaciones comerciales.",
+  summary:
+    "Automations to capture, validate, and turn leads into commercial meetings using each tenant's availability.",
   nodes: [
     {
       id: "subscriber-list",
@@ -108,19 +109,18 @@ export const N8N_DEMO_WORKFLOW: WorkflowDemo = {
       tone: "accent",
     },
     {
-      id: "needs-review",
-      label: "Manual review",
-      labelEs: "Revisión manual",
-      subtitle: "Lead fails Florida checks",
-      subtitleEs: "El lead no supera las validaciones de Florida",
-      glyph: "!",
+      id: "schedule-appointment",
+      label: "Schedule appointment",
+      labelEs: "Agendar cita",
+      subtitle: "Send a booking link using the tenant calendar",
+      subtitleEs: "Enviar link de reserva con el calendario del cliente",
+      glyph: "C",
       kind: "action",
       x: 1164,
-      y: 224,
-      status: "mock",
-      tone: "brand",
-    },
-    {
+      y: 404,
+      status: "live",
+      tone: "accent",
+    },    {
       id: "inbound-call",
       label: "Inbound call",
       labelEs: "Llamada entrante",
@@ -178,6 +178,7 @@ export const N8N_DEMO_WORKFLOW: WorkflowDemo = {
     { id: "e2", from: "email-sequence", to: "lead-form" },
     { id: "e3", from: "lead-form", to: "validate-florida" },
     { id: "e4", from: "validate-florida", to: "qualified-lead", label: "passes", labelEs: "válido", labelX: 1118, labelY: 70 },
+    { id: "e10", from: "qualified-lead", to: "schedule-appointment", label: "schedule", labelEs: "agendar", labelX: 1302, labelY: 300 },
     { id: "e5", from: "validate-florida", to: "needs-review", label: "fails", labelEs: "inválido", labelX: 1118, labelY: 230 },
     { id: "e6", from: "inbound-call", to: "has-email" },
     { id: "e7", from: "has-email", to: "create-subscriber", label: "email given", labelEs: "con email", labelX: 756, labelY: 516 },
@@ -202,15 +203,6 @@ export const N8N_DEMO_WORKFLOW: WorkflowDemo = {
       detailEs:
         "Cuando entra un lead, validar número de Florida, ubicación en Florida y condado objetivo antes de dejarlo pasar al CRM.",
       status: "conditional",
-    },
-    {
-      title: "Inbound call intake",
-      titleEs: "Registro de llamadas entrantes",
-      detail:
-        "Handle calls to the designated number, ask for an email, and create a subscriber or send the caller to the form based on the response.",
-      detailEs:
-        "Atender llamadas al número designado, pedir correo y, según la respuesta, guardarlo como subscriber o mandarlo al formulario para convertirlo en lead.",
-      status: "mock",
     },
   ],
 };
