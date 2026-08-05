@@ -57,7 +57,7 @@ export function PwaInstaller() {
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {
-      // Storage unavailable (private mode) — dismissal lasts this session only.
+      // Storage unavailable (private mode) â€” dismissal lasts this session only.
     }
   };
 
@@ -84,7 +84,7 @@ export function PwaInstaller() {
   // The product detail page owns the bottom of the screen with its fixed
   // "Agregar al carrito" bar, so suppress the floating install CTA there to
   // avoid stacking two controls. The service worker is still registered above.
-  if (pathname?.startsWith("/product/")) return null;
+  if (pathname?.startsWith("/product/") || pathname?.includes("/n8n")) return null;
 
   if (installEvent) {
     return (
@@ -109,7 +109,7 @@ export function PwaInstaller() {
     return (
       <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex w-[min(92vw,24rem)] -translate-x-1/2 items-center gap-2 md:bottom-6">
         <p className="flex-1 rounded-lg bg-ink/90 px-4 py-2.5 text-center text-caption text-on-accent shadow-float">
-          Para instalar: toca Compartir y luego «Agregar a la pantalla de inicio».
+          Para instalar: toca Compartir y luego Â«Agregar a la pantalla de inicioÂ».
         </p>
         <DismissButton onClick={dismiss} />
       </div>
