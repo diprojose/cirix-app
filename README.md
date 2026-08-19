@@ -34,3 +34,22 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## AI support demo
+
+`/ai-support` runs in deterministic simulated mode by default and makes no
+OpenAI requests. The active mode is shown prominently in the workspace.
+
+To enable live AI for a presentation, configure these server-side variables in
+Vercel and redeploy:
+
+```env
+AI_SUPPORT_ENABLED=true
+OPENAI_API_KEY=...
+AI_SUPPORT_MODEL=gpt-5.6-luna
+AI_RATE_LIMIT_SECRET=<at-least-24-random-characters>
+```
+
+After the presentation, set `AI_SUPPORT_ENABLED=false` and redeploy. Live mode
+uses Firestore documents in `ai_support_rate_limits`; enable a Firestore TTL
+policy for their `expiresAt` field so expired counters are removed automatically.

@@ -84,7 +84,11 @@ export function PwaInstaller() {
   // The product detail page owns the bottom of the screen with its fixed
   // "Agregar al carrito" bar, so suppress the floating install CTA there to
   // avoid stacking two controls. The service worker is still registered above.
-  if (pathname?.startsWith("/product/") || pathname?.includes("/n8n")) return null;
+  if (
+    pathname?.startsWith("/product/") ||
+    pathname?.includes("/n8n") ||
+    pathname?.includes("/ai-support")
+  ) return null;
 
   if (installEvent) {
     return (

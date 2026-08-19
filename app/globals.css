@@ -120,6 +120,17 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+@utility field {
+  min-height: 2.75rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  padding-inline: 0.75rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+}
+
 html {
   background: var(--color-bg);
 }

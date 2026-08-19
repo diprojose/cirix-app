@@ -26,6 +26,7 @@ const PRIVATE_PREFIXES = [
   "/billetera",
   "/referidos",
   "/notificaciones",
+  "/calls",
 ];
 
 function isPrivate(pathname: string): boolean {

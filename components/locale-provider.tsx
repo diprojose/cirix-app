@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext } from "react";
-import type { Locale } from "@/lib/locale";
+import { createContext, useContext, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { stripLocaleFromPathname, type Locale } from "@/lib/locale";
 
 const LocaleContext = createContext<Locale>("es");
 
@@ -12,7 +13,14 @@ export function LocaleProvider({
   locale: Locale;
   children: React.ReactNode;
 }) {
-  return <LocaleContext.Provider value={locale}>{children}</LocaleContext.Provider>;
+  const pathname = usePathname();
+  const routeLocale = stripLocaleFromPathname(pathname).locale ?? locale;
+
+  useEffect(() => {
+    document.documentElement.lang = routeLocale;
+  }, [routeLocale]);
+
+  return <LocaleContext.Provider value={routeLocale}>{children}</LocaleContext.Provider>;
 }
 
 export function useLocale(): Locale {

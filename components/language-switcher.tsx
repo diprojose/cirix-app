@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { LOCALES, pick, stripLocaleFromPathname } from "@/lib/locale";
 import { useLocale } from "@/components/locale-provider";
@@ -18,16 +17,17 @@ export function LanguageSwitcher() {
         const active = target === locale;
         const href = `/${target}${barePath === "/" ? "" : barePath}${query ? `?${query}` : ""}`;
         return (
-          <Link
+          <a
             key={target}
             href={href}
+            hrefLang={target}
             className={`rounded-pill px-3 py-1 transition-colors ${
               active ? "bg-accent-fill text-on-accent" : "text-text-muted hover:text-text"
             }`}
             aria-current={active ? "page" : undefined}
           >
             {pick(target, { es: "ES", en: "EN" })}
-          </Link>
+          </a>
         );
       })}
     </div>

@@ -140,4 +140,62 @@ export const MVP_MODULES: MvpModule[] = [
       },
     ],
   },
+  {
+    slug: "ai-support",
+    title: "AI Customer Support",
+    href: "/ai-support",
+    status: "preview",
+    accent: "brand",
+    eyebrow: {
+      es: "Suite de inteligencia aplicada",
+      en: "Applied intelligence suite",
+    },
+    summary: {
+      es: "Demuestra soporte conversacional para catalogo, delivery, pagos y loyalty con un modo simulado sin consumo.",
+      en: "Showcase conversational support for catalog, delivery, payments, and loyalty with a zero-token simulated mode.",
+    },
+    badge: {
+      es: "Demo controlado",
+      en: "Controlled demo",
+    },
+    audience: {
+      es: "Ecommerce, soporte y customer experience",
+      en: "Ecommerce, support, and customer experience",
+    },
+    ctaLabel: {
+      es: "Probar asistente",
+      en: "Try assistant",
+    },
+    capabilities: [
+      {
+        es: "Modo simulado por defecto, sin consumo de tokens",
+        en: "Simulated mode by default, with zero token usage",
+      },
+      {
+        es: "Herramientas publicas de catalogo, delivery y loyalty",
+        en: "Public catalog, delivery, and loyalty tools",
+      },
+      {
+        es: "Activacion manual de IA real mediante configuracion",
+        en: "Manual live-AI activation through configuration",
+      },
+    ],
+  },
+  {
+    slug: "call-tracking",
+    title: "Call Tracking",
+    href: "/calls",
+    status: "live",
+    accent: "action",
+    eyebrow: { es: "Suite de atribución telefónica", en: "Phone attribution suite" },
+    summary: { es: "Mide llamadas entrantes, números únicos, atención y recurrencia con reenvío seguro mediante Twilio.", en: "Measure inbound calls, unique callers, answer performance, and repeat activity with secure Twilio forwarding." },
+    badge: { es: "MVP activo", en: "Live MVP" },
+    audience: { es: "Ventas, marketing y operaciones", en: "Sales, marketing, and operations" },
+    ctaLabel: { es: "Ver llamadas", en: "Open calls" },
+    capabilities: [
+      { es: "KPIs de llamadas atendidas y perdidas", en: "Answered and missed call KPIs" },
+      { es: "Historial por número con privacidad", en: "Privacy-aware history by phone" },
+      { es: "Reenvío entrante sin IVR ni grabación", en: "Inbound forwarding without IVR or recording" },
+    ],
+  },
 ];
