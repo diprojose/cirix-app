@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { formatPrice } from "@/lib/format/money";
+import { LocalizedLink } from "@/components/localized-link";
 import { WalletIcon } from "./icons";
 
 /**
@@ -25,7 +25,7 @@ export function WalletBadge({
   className?: string;
 }) {
   return (
-    <Link
+    <LocalizedLink
       href="/billetera"
       className={`inline-flex min-h-11 items-center gap-2 rounded-pill bg-action-soft px-3 text-action-strong transition-colors hover:bg-action-soft-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${className}`}
     >
@@ -41,6 +41,6 @@ export function WalletBadge({
         )}
       </span>
       <span className="sr-only">de saldo disponible. Ver mis movimientos.</span>
-    </Link>
+    </LocalizedLink>
   );
 }

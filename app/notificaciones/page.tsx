@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getViewer, requireCustomer } from "@/lib/auth/dal";
+import { getViewer } from "@/lib/auth/dal";
+import { localizeForCurrentRequest } from "@/lib/i18n";
 import {
   makeListNotifications,
   makeGetNotificationPrefs,
@@ -33,13 +34,22 @@ function shortDate(iso: string): string {
  */
 export default async function NotificationsPage({
   searchParams,
+  basePath = null,
 }: {
   searchParams: Promise<{ saved?: string }>;
+  basePath?: string | null;
 }) {
-  const viewer = await requireCustomer();
+  const viewer = await getViewer();
   const uid = viewer.uid;
-  if (!uid) {
-    redirect("/login");
+  const notificationsPath = `${basePath ?? ""}/notificaciones`;
+  if (!uid || !viewer.permissions.canPlaceOrders) {
+    const returnTo = await localizeForCurrentRequest(notificationsPath);
+    const loginPath = basePath ? `${basePath}/login` : "/login";
+    redirect(
+      await localizeForCurrentRequest(
+        `${loginPath}?from=${encodeURIComponent(returnTo)}`
+      )
+    );
   }
   const { saved } = await searchParams;
 
@@ -73,6 +83,7 @@ export default async function NotificationsPage({
               <h2 className="text-sm font-bold text-text">Avisos</h2>
               {hasUnread && (
                 <form action={markNotificationsReadAction}>
+                  <input type="hidden" name="returnTo" value={notificationsPath} />
                   <button type="submit" className="text-xs font-semibold text-action-strong">
                     Marcar leídas
                   </button>
@@ -110,6 +121,7 @@ export default async function NotificationsPage({
           <section className="space-y-3 rounded-2xl bg-surface p-4 shadow-xs">
             <h2 className="text-sm font-bold text-text">Preferencias</h2>
             <form action={saveNotificationPrefsAction} className="space-y-3">
+              <input type="hidden" name="returnTo" value={notificationsPath} />
               <PrefRow name="inApp" label="En la app" checked={prefs.inApp} />
               <PrefRow name="push" label="Push (próximamente)" checked={prefs.push} />
               <PrefRow name="email" label="Email (próximamente)" checked={prefs.email} />

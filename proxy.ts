@@ -29,8 +29,10 @@ const PRIVATE_PREFIXES = [
 ];
 
 function isPrivate(pathname: string): boolean {
-  return PRIVATE_PREFIXES.some(
+  return (
+    PRIVATE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    ) || /^\/demo\/[^/]+\/(?:billetera|referidos|notificaciones)(?:\/|$)/.test(pathname)
   );
 }
 
@@ -49,7 +51,9 @@ export function proxy(request: NextRequest): NextResponse {
   if (isPrivate(barePathname)) {
     const hasSession = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
     if (!hasSession) {
-      const loginUrl = new URL(localizeHref(resolvedLocale, "/login"), request.url);
+      const demoMatch = barePathname.match(/^\/demo\/([^/]+)\//);
+      const loginPath = demoMatch ? `/demo/${demoMatch[1]}/login` : "/login";
+      const loginUrl = new URL(localizeHref(resolvedLocale, loginPath), request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -69,6 +73,6 @@ export function proxy(request: NextRequest): NextResponse {
 export const config = {
   // Run on everything except API routes, Next internals and static assets.
   matcher: [
-    "/((?!api|_next/static|_next/image|.*\\.png$|manifest.webmanifest|sw.js|offline).*)",
+    "/((?!api(?:/|$)|_next/static|_next/image|offline(?:/|$)|.*\\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mjs|mp3|mp4|ogg|otf|pdf|png|svg|tif|tiff|txt|wasm|wav|webm|webmanifest|webp|woff|woff2|xml)$).*)",
   ],
 };

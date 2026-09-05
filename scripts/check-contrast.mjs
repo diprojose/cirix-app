@@ -9,8 +9,16 @@
  * Run: node scripts/check-contrast.mjs
  */
 import { readFileSync } from "node:fs";
+import ts from "typescript";
 
 const CSS = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const BRAND_CONTRAST_SOURCE = readFileSync(
+  new URL(
+    "../modules/loyalty/branding/application/color-contrast.ts",
+    import.meta.url
+  ),
+  "utf8"
+);
 
 /** Reads a literal hex/oklch token or follows a semantic var reference. */
 function token(name, seen = new Set()) {
@@ -63,7 +71,9 @@ const contrast = (a, b) => {
 // >=18.66px bold, where AA is 3:1 instead of 4.5:1.
 const PAIRS = [
   ["on-accent sobre accent-fill", "on-accent", "accent-fill"],
+  ["on-accent sobre accent-fill-strong", "on-accent", "accent-fill-strong"],
   ["on-action sobre action-fill", "on-action", "action-fill"],
+  ["on-action sobre action-fill-strong", "on-action", "action-fill-strong"],
   ["text sobre surface", "text", "surface"],
   ["text sobre bg", "text", "bg"],
   ["text-muted sobre bg", "text-muted", "bg"],
@@ -81,6 +91,28 @@ for (const [label, fg, bg] of PAIRS) {
   const ok = ratio >= 4.5;
   if (!ok) failed += 1;
   console.log(`${ok ? "PASA " : "FALLA"}  ${label.padEnd(36)} ${ratio.toFixed(2)}:1`);
+}
+
+// Exercise the actual runtime selector against awkward client-supplied fills,
+// not just the built-in CSS preset. Importing transpiled source keeps this test
+// tied to the TypeScript implementation without adding a separate test runner.
+const brandContrastJavaScript = ts.transpileModule(BRAND_CONTRAST_SOURCE, {
+  compilerOptions: {
+    module: ts.ModuleKind.ESNext,
+    target: ts.ScriptTarget.ES2022,
+  },
+}).outputText;
+const brandContrast = await import(
+  `data:text/javascript;base64,${Buffer.from(brandContrastJavaScript).toString("base64")}`
+);
+for (const fill of ["#747474", "#7f7f7f", "#164e3d", "#ff6636"]) {
+  const foreground = brandContrast.readableText(fill);
+  const ratio = brandContrast.contrastRatio(foreground, fill);
+  const ok = ratio >= 4.5;
+  if (!ok) failed += 1;
+  console.log(
+    `${ok ? "PASA " : "FALLA"}  texto calculado sobre ${fill.padEnd(17)} ${ratio.toFixed(2)}:1`
+  );
 }
 
 console.log(

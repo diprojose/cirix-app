@@ -53,7 +53,7 @@ export default async function AdminCouponsPage({
         <h1 className="text-xl font-bold text-text">Cupones ({coupons.length})</h1>
         <Link
           href="/admin/coupons/new"
-          className="rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-4 py-2 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
+          className="rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong px-4 py-2 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
         >
           + Nuevo
         </Link>

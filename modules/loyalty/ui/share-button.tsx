@@ -34,7 +34,7 @@ export function ShareButton({ title, className }: { title: string; className?: s
       type="button"
       aria-label="Compartir"
       onClick={onShare}
-      className={`grid h-11 w-11 place-items-center rounded-pill bg-surface text-ink shadow-xs transition-transform active:scale-95 ${className ?? ""}`}
+      className={`grid h-11 w-11 place-items-center rounded-pill bg-surface text-accent shadow-xs transition-transform active:scale-95 ${className ?? ""}`}
     >
       <ShareIcon className="h-5 w-5" />
     </button>

@@ -21,8 +21,8 @@ export function SearchBar({
 
   const shell =
     variant === "mobile"
-      ? "h-12 rounded-pill bg-surface px-4 shadow-xs"
-      : "h-11 rounded-pill bg-bg px-4";
+      ? "h-12 rounded-2xl border border-border bg-surface px-4 shadow-xs"
+      : "h-11 rounded-xl border border-border bg-bg px-4";
 
   return (
     <div
@@ -33,7 +33,7 @@ export function SearchBar({
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Busca en la tienda"
+        placeholder="¿Qué estás buscando?"
         aria-label="Buscar productos"
         className="w-full bg-transparent text-body text-text placeholder:text-text-muted focus:outline-none [&::-webkit-search-cancel-button]:hidden"
       />

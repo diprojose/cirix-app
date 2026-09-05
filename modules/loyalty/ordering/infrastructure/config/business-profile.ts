@@ -4,7 +4,20 @@
  * domain logic — the single source of truth until an operator screen owns it.
  * Placeholder values — replace with the business's real accounts before launch.
  */
-export const BUSINESS_PROFILE = {
+export type BusinessProfile = {
+  name: string;
+  whatsappNumber: string;
+  pagoMovil: { bank: string; phone: string; documentId: string };
+  transfer: {
+    bank: string;
+    accountNumber: string;
+    holder: string;
+    documentId: string;
+  };
+  zelle: { email: string; holder: string };
+};
+
+export const BUSINESS_PROFILE: BusinessProfile = {
   name: "Cirix Tech Platform",
   /** E.164 number that receives order messages, without the leading `+`. */
   whatsappNumber: "584120000000",
@@ -20,7 +33,23 @@ export const BUSINESS_PROFILE = {
     documentId: "J-00000000-0",
   },
   zelle: {
-    email: "pagos@Cirix Tech Platform.example",
+    email: "pagos@cirix.example",
     holder: "Cirix Tech Platform",
   },
-} as const;
+};
+
+/** Demo-safe contact profile whose customer-facing identity matches the store. */
+export function businessProfileForBrand(displayName: string): BusinessProfile {
+  return {
+    ...BUSINESS_PROFILE,
+    name: displayName,
+    transfer: {
+      ...BUSINESS_PROFILE.transfer,
+      holder: `${displayName} C.A.`,
+    },
+    zelle: {
+      email: "pagos@demo.example",
+      holder: displayName,
+    },
+  };
+}

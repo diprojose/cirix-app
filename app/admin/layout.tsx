@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-5 py-3">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-5 py-3">
           <div className="min-w-0">
             <p className="text-base font-bold text-text">
               {pick(locale, { es: "Panel de operador", en: "Operator panel" })}
@@ -29,13 +29,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             </LocalizedLink>
           </div>
         </div>
-        <div className="mx-auto w-full max-w-3xl px-5 pb-3">
+        <div className="mx-auto w-full max-w-7xl px-5 pb-3">
           <AdminNav />
         </div>
       </header>
 
       <main className="flex-1 pb-16">
-        <div className="mx-auto w-full max-w-3xl px-5 pt-5">{children}</div>
+        <div className="mx-auto w-full max-w-7xl px-5 pt-5">{children}</div>
       </main>
     </div>
   );

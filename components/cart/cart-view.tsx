@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { formatPrice } from "@/lib/format/money";
+import { LocalizedLink } from "@/components/localized-link";
 import { QuantityStepper } from "@/components/store/quantity-stepper";
 import { ProductThumb } from "@/components/store/product-thumb";
 import { BagIcon, TrashIcon } from "@/components/store/icons";
@@ -11,7 +11,7 @@ import { useCart } from "./cart-provider";
 
 /** Primary CTA treatment, shared by the checkout link and the empty-state link. */
 const CTA =
-  "flex h-14 w-full items-center justify-center rounded-pill bg-action-fill text-title font-semibold text-on-action shadow-action transition-[background-color,transform] duration-200 ease-out-quint hover:bg-action-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
+  "flex h-14 w-full items-center justify-center rounded-xl bg-action-fill text-title font-bold text-on-action shadow-action transition-[background-color,transform] duration-200 ease-out-quint hover:bg-action-fill-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
 
 /**
  * CartView is the client body of the `/cart` page. It renders straight from the
@@ -34,42 +34,55 @@ export function CartView() {
   const currency = cart.currency ?? "USD";
 
   return (
-    <div className="space-y-6">
-      <ul className="space-y-3">
-        {cart.lines.map((line) => (
-          <CartLineRow
-            key={line.productId}
-            line={line}
-            onQuantityChange={(next) => void changeQuantity(line.productId, next)}
-            onRemove={() => void removeItem(line.productId)}
-          />
-        ))}
-      </ul>
-
-      <div className="rounded-lg border border-border bg-surface p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-body text-text-muted">Subtotal</span>
-          <span className="text-price-lg font-bold tabular-nums text-text">
-            {formatPrice(cart.subtotalCents, currency)}
-          </span>
+    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start">
+      <div>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <p className="text-sm text-text-muted">
+            {cart.totalQuantity} {cart.totalQuantity === 1 ? "producto" : "productos"}
+          </p>
+          <button
+            type="button"
+            onClick={() => void clear()}
+            className="min-h-11 rounded-xl px-3 text-label font-semibold text-text-muted transition-colors hover:bg-stone-100 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
+          >
+            Vaciar carrito
+          </button>
         </div>
-        <p className="mt-1 text-caption text-text-muted">
-          El envío y los detalles de entrega se calculan al finalizar el pedido.
-        </p>
+        <ul className="space-y-3">
+          {cart.lines.map((line) => (
+            <CartLineRow
+              key={line.productId}
+              line={line}
+              onQuantityChange={(next) => void changeQuantity(line.productId, next)}
+              onRemove={() => void removeItem(line.productId)}
+            />
+          ))}
+        </ul>
       </div>
 
-      <div className="space-y-2">
-        <Link href="/checkout" className={CTA}>
-          Finalizar pedido
-        </Link>
-        <button
-          type="button"
-          onClick={() => void clear()}
-          className="flex min-h-11 w-full items-center justify-center rounded-pill text-label font-medium text-text-muted transition-colors hover:bg-stone-100 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-        >
-          Vaciar carrito
-        </button>
-      </div>
+      <aside className="space-y-4 md:sticky md:top-24">
+        <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
+          <h2 className="text-title font-bold text-text">Resumen</h2>
+          <div className="mt-4 flex items-center justify-between border-b border-border pb-4">
+            <span className="text-body text-text-muted">Subtotal</span>
+            <span className="text-price-lg font-extrabold tabular-nums text-text">
+              {formatPrice(cart.subtotalCents, currency)}
+            </span>
+          </div>
+          <div className="mt-4 rounded-xl bg-accent-subtle p-3">
+            <p className="text-xs font-semibold text-accent">Esta compra suma beneficios</p>
+            <p className="mt-1 text-caption text-text-muted">
+              El saldo final se calcula cuando el pedido sea confirmado.
+            </p>
+          </div>
+          <p className="mt-4 text-caption leading-relaxed text-text-muted">
+            El envío y los detalles de entrega se calculan al finalizar el pedido.
+          </p>
+        </div>
+        <LocalizedLink href="/checkout" className={CTA}>
+          Ir al checkout
+        </LocalizedLink>
+      </aside>
     </div>
   );
 }
@@ -85,7 +98,7 @@ function CartLineRow({
   onRemove: () => void;
 }) {
   return (
-    <li className="flex gap-3 rounded-lg border border-border bg-surface p-3">
+    <li className="flex gap-3 rounded-2xl border border-border bg-surface p-3 shadow-xs">
       <ProductThumb
         id={line.productId}
         name={line.name}
@@ -128,17 +141,19 @@ function CartLineRow({
 /** Shown when the cart is empty after loading. */
 function EmptyCart() {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-      <div className="grid h-20 w-20 place-items-center rounded-pill bg-stone-100 text-text-muted">
+    <div className="flex min-h-[55dvh] flex-col items-center justify-center gap-4 py-16 text-center">
+      <div className="grid h-24 w-24 place-items-center rounded-full bg-accent-subtle text-accent">
         <BagIcon className="h-10 w-10" />
       </div>
       <div>
-        <p className="text-h-section font-bold text-text">Tu carrito está vacío</p>
-        <p className="mt-1 text-body text-text-muted">Agrega productos para verlos aquí.</p>
+        <p className="font-heading text-2xl font-bold text-text">Tu carrito está vacío</p>
+        <p className="mx-auto mt-2 max-w-[32ch] text-body text-text-muted">
+          Llénalo con productos frescos y comienza a acumular beneficios.
+        </p>
       </div>
-      <Link href="/loyalty" className={`${CTA} h-12 max-w-xs`}>
+      <LocalizedLink href="/loyalty" className={`${CTA} h-12 max-w-xs`}>
         Explorar productos
-      </Link>
+      </LocalizedLink>
     </div>
   );
 }

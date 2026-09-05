@@ -40,7 +40,7 @@ export default async function ModulesLandingPage() {
               {pick(locale, { es: "MVPs comerciales para CRM, loyalty y activación de clientes.", en: "Commercial MVPs for CRM, loyalty, and customer activation." })}
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <LocalizedLink href={MVP_MODULES[0].href} className="inline-flex min-h-14 items-center justify-center rounded-xl bg-action-fill px-7 text-title font-bold text-white shadow-action transition-all hover:bg-action-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-900">
+              <LocalizedLink href={MVP_MODULES[0].href} className="inline-flex min-h-14 items-center justify-center rounded-xl bg-action-fill px-7 text-title font-bold text-white shadow-action transition-all hover:bg-action-fill-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-900">
                 {pick(locale, { es: "Explorar MVPs", en: "Explore MVPs" })}
               </LocalizedLink>
               <LocalizedLink href="/login" className="inline-flex min-h-14 items-center justify-center rounded-xl border border-white/20 px-7 text-title font-semibold text-white transition-colors hover:border-white hover:bg-white hover:text-brand-900">
@@ -78,7 +78,7 @@ export default async function ModulesLandingPage() {
                 <h3 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.03em] text-white">{module.title}</h3>
                 <p className="mt-4 max-w-xl text-body leading-relaxed text-cirix-gray">{module.summary[locale]}</p>
               </div>
-              <LocalizedLink href={module.href} className="mt-8 inline-flex min-h-11 w-fit items-center rounded-xl bg-action-fill px-5 text-label font-semibold text-white transition-colors hover:bg-action-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-brand-800">
+              <LocalizedLink href={module.href} className="mt-8 inline-flex min-h-11 w-fit items-center rounded-xl bg-action-fill px-5 text-label font-semibold text-white transition-colors hover:bg-action-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-brand-800">
                 {module.ctaLabel[locale]}<span aria-hidden="true" className="ml-3 transition-transform group-hover:translate-x-1">→</span>
               </LocalizedLink>
             </article>

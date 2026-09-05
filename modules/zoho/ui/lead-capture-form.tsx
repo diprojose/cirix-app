@@ -241,7 +241,7 @@ export function LeadCaptureForm({
       <button
         type="submit"
         disabled={submitting}
-        className="inline-flex min-h-12 items-center justify-center rounded-pill bg-action-fill px-6 text-title font-semibold text-on-action shadow-action transition-colors hover:bg-action-strong disabled:opacity-60"
+        className="inline-flex min-h-12 items-center justify-center rounded-pill bg-action-fill px-6 text-title font-semibold text-on-action shadow-action transition-colors hover:bg-action-fill-strong disabled:opacity-60"
       >
         {submitting
           ? locale === "es"

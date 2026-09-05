@@ -64,6 +64,10 @@ export default async function AdminOrderDetailPage({
       <section className="space-y-1.5 rounded-2xl bg-surface p-4 text-sm shadow-xs">
         <h2 className="text-sm font-bold text-text">Cliente</h2>
         <p className="flex justify-between gap-3">
+          <span className="text-text-muted">Marca</span>
+          <span className="font-medium text-text">{order.brandSlug}</span>
+        </p>
+        <p className="flex justify-between gap-3">
           <span className="text-text-muted">Nombre</span>
           <span className="font-medium text-text">{order.customerName}</span>
         </p>
@@ -234,7 +238,7 @@ export default async function AdminOrderDetailPage({
               <form key={action} action={advanceOrderAction.bind(null, order.id, action)}>
                 <button
                   type="submit"
-                  className="rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-5 py-2.5 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
+                  className="rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong px-5 py-2.5 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
                 >
                   {label}
                 </button>

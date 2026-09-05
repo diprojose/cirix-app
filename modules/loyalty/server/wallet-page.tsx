@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { LocalizedLink } from "@/components/localized-link";
-import { getViewer, requireCustomer } from "@/lib/auth/dal";
+import { getViewer } from "@/lib/auth/dal";
 import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
 import { makeListEligibleCoupons } from "@/modules/loyalty/coupons/infrastructure/di/coupons-container";
 import { makeGetCustomerProfile } from "@/modules/loyalty/customers/infrastructure/di/customers-container";
@@ -13,16 +13,26 @@ import { SubHeader } from "@/modules/loyalty/ui/sub-header";
 import { TopNav } from "@/modules/loyalty/ui/top-nav";
 import { WalletView } from "@/modules/loyalty/ui/wallet-view";
 
-export default async function WalletPage() {
+export default async function WalletPage({
+  basePath = null,
+}: {
+  basePath?: string | null;
+} = {}) {
   const locale = await getCurrentLocale();
-  const viewer = await requireCustomer();
+  const viewer = await getViewer();
   const uid = viewer.uid;
-  if (!uid) {
-    redirect(await localizeForCurrentRequest("/login"));
+  if (!uid || !viewer.permissions.canPlaceOrders) {
+    const walletPath = `${basePath ?? ""}/billetera`;
+    const returnTo = await localizeForCurrentRequest(walletPath);
+    const loginPath = basePath ? `${basePath}/login` : "/login";
+    redirect(
+      await localizeForCurrentRequest(
+        `${loginPath}?from=${encodeURIComponent(returnTo)}`
+      )
+    );
   }
 
-  const [navViewer, walletResult, profileResult] = await Promise.all([
-    getViewer(),
+  const [walletResult, profileResult] = await Promise.all([
     makeGetWallet().execute({ customerUid: uid }),
     makeGetCustomerProfile().execute({ customerUid: uid }),
   ]);
@@ -40,7 +50,7 @@ export default async function WalletPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
-      <TopNav viewer={navViewer} />
+      <TopNav viewer={viewer} />
 
       <SubHeader title={pick(locale, { es: "Mi billetera", en: "My wallet" })} />
 

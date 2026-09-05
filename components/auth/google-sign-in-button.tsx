@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
 import { useLocale } from "@/components/locale-provider";
-import { auth, googleProvider } from "@/lib/firebase/client";
+import {
+  getFirebaseAuth,
+  hasFirebaseClientConfig,
+} from "@/lib/firebase/client";
 import { localizeHref, pick } from "@/lib/locale";
 
 export function GoogleSignInButton({
@@ -22,6 +25,7 @@ export function GoogleSignInButton({
     setError(null);
 
     try {
+      const { auth, googleProvider } = getFirebaseAuth();
       const credential = await signInWithPopup(auth, googleProvider);
       const idToken = await credential.user.getIdToken();
 
@@ -33,7 +37,7 @@ export function GoogleSignInButton({
       if (!response.ok) {
         throw new Error(
           pick(locale, {
-            es: "No se pudo iniciar la sesiÃ³n. Intenta de nuevo.",
+            es: "No se pudo iniciar la sesión. Intenta de nuevo.",
             en: "We couldn't sign you in. Try again.",
           })
         );
@@ -52,9 +56,9 @@ export function GoogleSignInButton({
     } catch (caught) {
       setError(
         caught instanceof Error
-          ? caught.message
-          : pick(locale, {
-              es: "OcurriÃ³ un error al iniciar sesiÃ³n.",
+            ? caught.message
+            : pick(locale, {
+              es: "Ocurrió un error al iniciar sesión.",
               en: "There was an error signing you in.",
             })
       );
@@ -67,7 +71,8 @@ export function GoogleSignInButton({
       <button
         type="button"
         onClick={handleSignIn}
-        disabled={loading}
+        disabled={loading || !hasFirebaseClientConfig}
+        aria-describedby={!hasFirebaseClientConfig ? "firebase-login-help" : undefined}
         className="flex min-h-11 w-full items-center justify-center gap-3 rounded-pill border border-border bg-surface px-5 py-3 text-label font-medium text-text shadow-xs transition-colors hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none"
       >
         <GoogleGlyph />
@@ -78,6 +83,14 @@ export function GoogleSignInButton({
               en: "Continue with Google",
             })}
       </button>
+      {!hasFirebaseClientConfig && (
+        <p id="firebase-login-help" className="text-label leading-relaxed text-text-muted">
+          {pick(locale, {
+            es: "Conecta Firebase para habilitar el acceso; el demo público sigue disponible sin iniciar sesión.",
+            en: "Connect Firebase to enable sign-in; the public demo remains available without an account.",
+          })}
+        </p>
+      )}
       {error && (
         <p role="alert" className="text-label text-danger">
           {error}

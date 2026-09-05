@@ -7,6 +7,7 @@ import { getCurrentLocale, pick } from "@/lib/i18n";
 import { SearchBar } from "./search-bar";
 import { WalletBadge } from "./wallet-badge";
 import { BagIcon } from "./icons";
+import { BrandLogo } from "@/modules/loyalty/branding/ui/brand-logo";
 
 const LINK =
   "rounded-sm py-1 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
@@ -23,13 +24,14 @@ export async function TopNav({
   const locale = await getCurrentLocale();
 
   return (
-    <header className="hidden border-b border-border bg-surface md:block">
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-8 py-3">
+    <header className="sticky top-0 z-30 hidden border-b border-border bg-surface/95 backdrop-blur md:block">
+      <div className="mx-auto flex max-w-7xl items-center gap-6 px-8 py-4">
         <LocalizedLink
           href="/loyalty"
-          className="rounded-sm text-xl font-bold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          aria-label={pick(locale, { es: "Ir al inicio", en: "Go home" })}
+          className="min-w-[12rem] rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          Cirix
+          <BrandLogo />
         </LocalizedLink>
 
         {searchable ? (
@@ -42,8 +44,11 @@ export async function TopNav({
           <LocalizedLink href="/loyalty" className={LINK}>
             {pick(locale, { es: "Inicio", en: "Home" })}
           </LocalizedLink>
-          <LocalizedLink href="/referidos" className={LINK}>
-            {pick(locale, { es: "Invita y gana", en: "Refer & earn" })}
+          <LocalizedLink href="/loyalty#catalogo" className={LINK}>
+            {pick(locale, { es: "Productos", en: "Products" })}
+          </LocalizedLink>
+          <LocalizedLink href="/billetera" className={LINK}>
+            {pick(locale, { es: "Beneficios", en: "Rewards" })}
           </LocalizedLink>
           {viewer.permissions.canOperateStore && (
             <LocalizedLink href="/admin" className={`${LINK} font-semibold text-action-strong`}>
@@ -76,10 +81,10 @@ export async function TopNav({
         ) : (
           <LocalizedLink
             href="/login"
-            className="inline-flex min-h-11 shrink-0 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
-            {pick(locale, { es: "Iniciar sesiÃ³n", en: "Sign in" })}
-          </LocalizedLink>
+              {pick(locale, { es: "Ingresar", en: "Sign in" })}
+            </LocalizedLink>
         )}
       </div>
     </header>

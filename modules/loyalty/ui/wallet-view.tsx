@@ -42,22 +42,22 @@ export async function WalletView({ wallet }: { wallet: WalletDto }) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-br from-action-fill to-action-strong p-5 text-on-action shadow-action">
-        <p className="text-xs font-medium uppercase tracking-wide opacity-90">
+      <section className="rounded-2xl bg-gradient-to-br from-action-fill to-action-fill-strong p-5 text-on-action shadow-action">
+        <p className="text-xs font-medium uppercase tracking-wide">
           {pick(locale, { es: "Credito disponible", en: "Available credit" })}
         </p>
         <p className="mt-1 text-4xl font-extrabold tabular-nums">
           {formatPrice(wallet.availableCents, "USD")}
         </p>
         <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="opacity-90">
+          <span>
             {pick(locale, { es: "Pendiente:", en: "Pending:" })}{" "}
             <span className="font-semibold tabular-nums">
               {formatPrice(wallet.pendingCents, "USD")}
             </span>
           </span>
           {wallet.nextExpiration && (
-            <span className="opacity-90">
+            <span>
               {pick(locale, { es: "Vence", en: "Expires" })}{" "}
               {shortDate(wallet.nextExpiration, locale)}
             </span>

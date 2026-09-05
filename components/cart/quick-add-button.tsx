@@ -40,7 +40,7 @@ export function QuickAddButton({ product }: { product: ProductDto }) {
         onClick={add}
         disabled={!product.available}
         aria-label={`Agregar ${product.name}`}
-        className={`${HIT_AREA} relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-action-fill text-on-action shadow-action transition-[transform,background-color] duration-150 ease-out-quint hover:bg-action-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none disabled:active:scale-100`}
+        className={`${HIT_AREA} relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-action-fill text-on-action shadow-action transition-[transform,background-color] duration-150 ease-out-quint hover:bg-action-fill-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none disabled:active:scale-100`}
       >
         <PlusIcon className="h-5 w-5" />
       </button>

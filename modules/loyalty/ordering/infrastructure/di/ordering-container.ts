@@ -1,9 +1,13 @@
 import "server-only";
-import { adminFirestore } from "@/shared/infrastructure/firebase-admin";
+import {
+  adminFirestore,
+  hasFirebaseAdminConfig,
+} from "@/shared/infrastructure/firebase-admin";
 import { getProductRepository } from "@/modules/loyalty/catalog/infrastructure/di/catalog-container";
 import type { OrderRepository } from "../../domain/repositories/order-repository";
 import type { DeliveryZoneCatalog } from "../../domain/repositories/delivery-zone-catalog";
 import { FirestoreOrderRepository } from "../persistence/firestore-order-repository";
+import { InMemoryOrderRepository } from "../persistence/in-memory-order-repository";
 import { StaticDeliveryZoneCatalog } from "../config/delivery-zones";
 import { PlaceOrder } from "../../application/use-cases/place-order";
 import { GetOrderById } from "../../application/use-cases/get-order-by-id";
@@ -24,10 +28,23 @@ import { ApplyOrderDiscount } from "../../application/use-cases/apply-order-disc
 
 let orderRepository: OrderRepository | null = null;
 
+function missingProductionPersistence(): never {
+  throw new Error(
+    "Order persistence is unavailable: configure Firebase Admin for production."
+  );
+}
+
 /** The Firestore-backed order repository, created lazily so importing the
  * container does not require Firebase credentials at build time. */
 function getOrderRepository(): OrderRepository {
-  orderRepository ??= new FirestoreOrderRepository(adminFirestore());
+  if (orderRepository) return orderRepository;
+  if (hasFirebaseAdminConfig()) {
+    orderRepository = new FirestoreOrderRepository(adminFirestore());
+  } else if (process.env.NODE_ENV !== "production") {
+    orderRepository = new InMemoryOrderRepository();
+  } else {
+    return missingProductionPersistence();
+  }
   return orderRepository;
 }
 

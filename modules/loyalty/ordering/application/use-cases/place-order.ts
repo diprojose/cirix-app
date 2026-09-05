@@ -26,6 +26,7 @@ export type PlaceOrderItemInput = {
 
 /** Input for {@link PlaceOrder}: everything the checkout form collects. */
 export type PlaceOrderInput = {
+  brandSlug: string;
   customerName: string;
   customerPhone: string;
   items: PlaceOrderItemInput[];
@@ -101,6 +102,7 @@ export class PlaceOrder implements UseCase<PlaceOrderInput, OrderDto> {
     }
 
     const order = Order.create({
+      brandSlug: input.brandSlug,
       customer: customer.value,
       lines,
       delivery: delivery.value,

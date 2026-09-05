@@ -55,6 +55,9 @@ export default async function AdminOrdersPage() {
                         {order.customerName}
                       </span>
                     </p>
+                    <p className="mt-1 inline-flex rounded-pill bg-accent-soft px-2 py-0.5 text-[0.65rem] font-semibold text-accent-strong">
+                      {order.brandSlug}
+                    </p>
                     <p className="mt-0.5 text-xs text-text-muted">
                       {order.delivery.kind === "pickup"
                         ? "Retiro"

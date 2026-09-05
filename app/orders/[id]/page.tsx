@@ -15,8 +15,14 @@ import {
   ORDER_STATUS_STEPS,
 } from "@/components/orders/order-status";
 import { makeGetOrderById } from "@/modules/loyalty/ordering/infrastructure/di/ordering-container";
-import { BUSINESS_PROFILE } from "@/modules/loyalty/ordering/infrastructure/config/business-profile";
+import {
+  businessProfileForBrand,
+  type BusinessProfile,
+} from "@/modules/loyalty/ordering/infrastructure/config/business-profile";
 import type { OrderDto } from "@/modules/loyalty/ordering/application/dtos/order-dto";
+import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { DEFAULT_BRAND_PROFILE } from "@/modules/loyalty/branding/infrastructure/brand-profile-seed";
+import { BrandTheme } from "@/modules/loyalty/branding/ui/brand-theme";
 
 export const metadata: Metadata = {
   title: "Tu pedido",
@@ -35,8 +41,11 @@ export const metadata: Metadata = {
  */
 export default async function OrderPage({
   params,
+  expectedBrandSlug,
 }: {
   params: Promise<{ id: string }>;
+  /** Set by white-label routes so an order cannot be replayed under another brand. */
+  expectedBrandSlug?: string;
 }) {
   const { id } = await params;
   const viewer = await getViewer();
@@ -52,39 +61,59 @@ export default async function OrderPage({
     notFound();
   }
 
+  if (expectedBrandSlug && order.brandSlug !== expectedBrandSlug) {
+    notFound();
+  }
+
+  const orderBrand = await getBrandProfile(order.brandSlug);
+  if (!orderBrand || !orderBrand.active) {
+    notFound();
+  }
+
   const shortId = order.id.slice(0, 8).toUpperCase();
   const canReport = order.status === "received" || order.status === "payment_reported";
+  const businessProfile = businessProfileForBrand(orderBrand.displayName);
+  const basePath =
+    expectedBrandSlug || order.brandSlug !== DEFAULT_BRAND_PROFILE.slug
+      ? `/demo/${order.brandSlug}`
+      : null;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
-      {/* Desktop / web horizon: top navigation bar (hidden below md). */}
-      <TopNav viewer={viewer} />
-      <SubHeader title={`Pedido #${shortId}`} />
+    <BrandTheme profile={orderBrand} basePath={basePath}>
+      <div className="flex min-h-dvh flex-col bg-bg">
+        {/* Desktop / web horizon: top navigation bar (hidden below md). */}
+        <TopNav viewer={viewer} />
+        <SubHeader title={`Pedido #${shortId}`} />
 
-      <main className="flex-1 pb-28 md:pb-12">
-        <div className={`${CONTAINER_READ} space-y-4 pt-4 md:pt-8`}>
-          <h2 className="hidden text-display font-bold text-text md:block">
-            Pedido #{shortId}
-          </h2>
+        <main className="flex-1 pb-28 md:pb-12">
+          <div className={`${CONTAINER_READ} space-y-4 pt-4 md:pt-8`}>
+            <h2 className="hidden text-display font-bold text-text md:block">
+              Pedido #{shortId}
+            </h2>
 
-          <StatusCard order={order} />
-          <SummaryCard order={order} />
-          <PaymentSection
-            orderId={order.id}
-            profile={BUSINESS_PROFILE}
-            canReport={canReport}
-            payments={order.payments}
-          />
-          <WhatsAppCard order={order} shortId={shortId} />
-        </div>
-      </main>
+            <StatusCard order={order} />
+            <SummaryCard order={order} />
+            <PaymentSection
+              orderId={order.id}
+              profile={businessProfile}
+              canReport={canReport}
+              payments={order.payments}
+            />
+            <WhatsAppCard
+              order={order}
+              shortId={shortId}
+              businessProfile={businessProfile}
+            />
+          </div>
+        </main>
 
-      {/* Desktop / web horizon: footer. */}
-      <SiteFooter />
+        {/* Desktop / web horizon: footer. */}
+        <SiteFooter />
 
-      {/* Mobile / PWA horizon: floating tab bar. */}
-      <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
-    </div>
+        {/* Mobile / PWA horizon: floating tab bar. */}
+        <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
+      </div>
+    </BrandTheme>
   );
 }
 
@@ -238,7 +267,15 @@ function SummaryCard({ order }: { order: OrderDto }) {
 }
 
 /** Hands the order summary off to the business's WhatsApp. */
-function WhatsAppCard({ order, shortId }: { order: OrderDto; shortId: string }) {
+function WhatsAppCard({
+  order,
+  shortId,
+  businessProfile,
+}: {
+  order: OrderDto;
+  shortId: string;
+  businessProfile: BusinessProfile;
+}) {
   const lines = order.lines
     .map((line) => `• ${line.quantity}× ${line.name}`)
     .join("\n");
@@ -250,12 +287,12 @@ function WhatsAppCard({ order, shortId }: { order: OrderDto; shortId: string }) 
 
   const message =
     `Hola, soy ${order.customerName} 👋\n` +
-    `Acabo de hacer el pedido #${shortId} en ${BUSINESS_PROFILE.name}:\n` +
+    `Acabo de hacer el pedido #${shortId} en ${businessProfile.name}:\n` +
     `${lines}\n` +
     `Total: ${total}\n` +
     `${fulfillment}`;
 
-  const href = `https://wa.me/${BUSINESS_PROFILE.whatsappNumber}?text=${encodeURIComponent(message)}`;
+  const href = `https://wa.me/${businessProfile.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
   return (
     <section className="space-y-2 rounded-2xl bg-surface p-4 shadow-xs">

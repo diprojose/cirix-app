@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getViewer, requireCustomer } from "@/lib/auth/dal";
+import { getViewer } from "@/lib/auth/dal";
 import { formatPrice } from "@/lib/format/money";
+import { localizeForCurrentRequest } from "@/lib/i18n";
 import type { ReferralState } from "@/modules/loyalty/referrals/domain/value-objects/referral-state";
 import {
   makeGetMyReferrals,
@@ -27,15 +28,25 @@ const STATE_LABELS: Record<ReferralState, string> = {
   bloqueado: "Bloqueado",
 };
 
-export default async function ReferralsPage() {
-  const viewer = await requireCustomer();
+export default async function ReferralsPage({
+  basePath = null,
+}: {
+  basePath?: string | null;
+} = {}) {
+  const viewer = await getViewer();
   const uid = viewer.uid;
-  if (!uid) {
-    redirect("/login");
+  if (!uid || !viewer.permissions.canPlaceOrders) {
+    const referralsPath = `${basePath ?? ""}/referidos`;
+    const returnTo = await localizeForCurrentRequest(referralsPath);
+    const loginPath = basePath ? `${basePath}/login` : "/login";
+    redirect(
+      await localizeForCurrentRequest(
+        `${loginPath}?from=${encodeURIComponent(returnTo)}`
+      )
+    );
   }
 
-  const [navViewer, linkResult, referralsResult, headerList] = await Promise.all([
-    getViewer(),
+  const [linkResult, referralsResult, headerList] = await Promise.all([
     makeGetOrCreateReferralLink().execute({ referrerUid: uid }),
     makeGetMyReferrals().execute({ referrerUid: uid }),
     headers(),
@@ -49,7 +60,7 @@ export default async function ReferralsPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
-      <TopNav viewer={navViewer} />
+      <TopNav viewer={viewer} />
 
       <SubHeader title="Invita y gana" />
 

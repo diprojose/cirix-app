@@ -1,28 +1,53 @@
 import { redirect } from "next/navigation";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { LoginBrandHeader } from "@/components/auth/login-brand-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
 import { COLUMN } from "@/components/store/layout";
 import { getViewer } from "@/lib/auth/dal";
-import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
+import {
+  getCurrentLocale,
+  localizeForCurrentRequest,
+  localizeHref,
+  pick,
+} from "@/lib/i18n";
+
+const INTERNAL_ORIGIN = "https://internal.invalid";
+
+/** Rejects protocol-relative, backslash and otherwise external return targets. */
+function safeInternalPath(value: string | undefined): string | null {
+  if (!value?.startsWith("/") || value.startsWith("//")) return null;
+
+  try {
+    const parsed = new URL(value, INTERNAL_ORIGIN);
+    if (parsed.origin !== INTERNAL_ORIGIN) return null;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
+}
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ from?: string }>;
 }) {
-  const locale = await getCurrentLocale();
-  const viewer = await getViewer();
+  const [{ from }, locale, viewer] = await Promise.all([
+    searchParams,
+    getCurrentLocale(),
+    getViewer(),
+  ]);
+  const internalFrom = safeInternalPath(from);
+  const redirectTo = internalFrom ? localizeHref(locale, internalFrom) : null;
+
   if (viewer.authenticated) {
     redirect(
-      await localizeForCurrentRequest(
-        viewer.permissions.canOperateStore ? "/admin" : "/loyalty"
-      )
+      redirectTo ??
+        (await localizeForCurrentRequest(
+          viewer.permissions.canOperateStore ? "/admin" : "/loyalty"
+        ))
     );
   }
-
-  const { from } = await searchParams;
-  const redirectTo = from && from.startsWith("/") ? from : null;
 
   return (
     <main
@@ -32,18 +57,7 @@ export default async function LoginPage({
         <LanguageSwitcher />
       </div>
 
-      <header className="flex flex-col gap-2 text-center">
-        <p className="text-h-section font-bold tracking-tight text-accent">Cirix Tech Platform</p>
-        <h1 className="text-display font-bold tracking-tight text-text">
-          {pick(locale, { es: "Bienvenido", en: "Welcome" })}
-        </h1>
-        <p className="text-body text-text-muted">
-          {pick(locale, {
-            es: "Inicia sesion para hacer pedidos y acumular saldo con cada compra.",
-            en: "Sign in to place orders and earn wallet credit with every purchase.",
-          })}
-        </p>
-      </header>
+      <LoginBrandHeader />
 
       <GoogleSignInButton redirectTo={redirectTo} />
 

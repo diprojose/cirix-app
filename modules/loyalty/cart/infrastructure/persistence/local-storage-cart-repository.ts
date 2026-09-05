@@ -10,6 +10,13 @@ import {
 /** Versioned storage key; bumping the version segment orphans old carts safely. */
 const STORAGE_KEY = "mixmag.cart.v1";
 
+/** A demo customer gets an isolated basket, even in two side-by-side tabs. */
+function storageKey(): string {
+  if (typeof window === "undefined") return STORAGE_KEY;
+  const match = window.location.pathname.match(/\/demo\/([^/]+)/);
+  return match?.[1] ? `${STORAGE_KEY}.${decodeURIComponent(match[1])}` : STORAGE_KEY;
+}
+
 /**
  * LocalStorageCartRepository persists a guest cart in the browser's
  * `localStorage`. It is the concrete adapter behind the {@link CartRepository}
@@ -26,7 +33,7 @@ export class LocalStorageCartRepository implements CartRepository {
 
     let raw: string | null;
     try {
-      raw = window.localStorage.getItem(STORAGE_KEY);
+      raw = window.localStorage.getItem(storageKey());
     } catch {
       return Cart.create();
     }
@@ -54,7 +61,7 @@ export class LocalStorageCartRepository implements CartRepository {
       return;
     }
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toSnapshot(cart)));
+      window.localStorage.setItem(storageKey(), JSON.stringify(toSnapshot(cart)));
     } catch {
       // Storage full or unavailable (e.g. private mode): keep the in-memory cart.
     }
@@ -89,7 +96,7 @@ export class LocalStorageCartRepository implements CartRepository {
       return;
     }
     try {
-      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(storageKey());
     } catch {
       // Ignore: nothing else we can do if storage is unavailable.
     }

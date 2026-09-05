@@ -19,9 +19,12 @@ import {
 } from "@/modules/loyalty/coupons/infrastructure/di/coupons-container";
 import { makeGetCustomerSegment } from "@/modules/loyalty/customers/infrastructure/di/customers-container";
 import type { PlaceOrderItemInput } from "@/modules/loyalty/ordering/application/use-cases/place-order";
+import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { hasFirebaseAdminConfig } from "@/shared/infrastructure/firebase-admin";
 
 /** What the checkout form submits. Prices are intentionally absent. */
 export type PlaceOrderActionInput = {
+  brandSlug: string;
   customerName: string;
   customerPhone: string;
   items: PlaceOrderItemInput[];
@@ -43,6 +46,7 @@ export type OrderActionResult =
 const ERROR_MESSAGES: Record<string, string> = {
   "ordering/invalid-customer":
     "Revisa tu nombre y teléfono (ej. 0412-1234567).",
+  "ordering/invalid-brand": "Esta tienda ya no está disponible.",
   "ordering/invalid-scheduled-date":
     "Elige una fecha de entrega válida (hoy o después).",
   "ordering/delivery-zone-not-found": "La zona de entrega seleccionada no existe.",
@@ -57,6 +61,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 const GENERIC_ERROR = "No pudimos procesar tu pedido. Intenta de nuevo.";
+const PERSISTENCE_ERROR =
+  "Este demo no tiene habilitado el guardado de pedidos. Configura Firebase para completar la compra.";
 
 /**
  * Places the order: resolves the signed-in viewer (guests may order too),
@@ -66,42 +72,61 @@ const GENERIC_ERROR = "No pudimos procesar tu pedido. Intenta de nuevo.";
 export async function placeOrderAction(
   input: PlaceOrderActionInput
 ): Promise<OrderActionResult> {
-  const viewer = await getViewer();
-
-  const rateResult = await makeGetExchangeRate().execute();
-  const exchangeRate = rateResult.ok ? rateResult.value : null;
-
-  const result = await makePlaceOrder().execute({
-    customerName: input.customerName,
-    customerPhone: input.customerPhone,
-    items: input.items,
-    delivery: input.delivery,
-    scheduledDate: input.scheduledDate,
-    notes: input.notes,
-    exchangeRate,
-    customerUid: viewer.authenticated ? viewer.uid : null,
-  });
-
-  if (!result.ok) {
-    return { ok: false, message: ERROR_MESSAGES[result.error.code] ?? GENERIC_ERROR };
+  const brand = await getBrandProfile(input.brandSlug ?? "");
+  if (!brand || !brand.active) {
+    return { ok: false, message: ERROR_MESSAGES["ordering/invalid-brand"] };
   }
 
-  // Discount at checkout: a coupon takes precedence over wallet credit — the two
-  // never stack (mutual exclusion, BR-07). Both run after placement (the order is
-  // already safely created) and are best-effort: the customer saw the discount
-  // validate in the preview, and a rare post-place hiccup must not lose the order.
-  if (input.couponCode) {
-    await applyCouponDiscount(
-      input.couponCode,
-      viewer.authenticated ? viewer.uid : null,
-      result.value.id,
-      result.value.subtotalCents
-    );
-  } else if (input.redeemCredit && viewer.authenticated && viewer.uid) {
-    await applyWalletCredit(viewer.uid, result.value.id, result.value.subtotalCents);
-  }
+  try {
+    const viewer = await getViewer();
+    const rateResult = await makeGetExchangeRate().execute();
+    const exchangeRate = rateResult.ok ? rateResult.value : null;
 
-  return { ok: true, orderId: result.value.id };
+    const result = await makePlaceOrder().execute({
+      brandSlug: brand.slug,
+      customerName: input.customerName,
+      customerPhone: input.customerPhone,
+      items: input.items,
+      delivery: input.delivery,
+      scheduledDate: input.scheduledDate,
+      notes: input.notes,
+      exchangeRate,
+      customerUid: viewer.authenticated ? viewer.uid : null,
+    });
+
+    if (!result.ok) {
+      return { ok: false, message: ERROR_MESSAGES[result.error.code] ?? GENERIC_ERROR };
+    }
+
+    // A coupon takes precedence over wallet credit (BR-07). Once the order is
+    // safely persisted these integrations are best-effort: an ancillary outage
+    // must not hide a successfully created order from the customer.
+    try {
+      if (input.couponCode) {
+        await applyCouponDiscount(
+          input.couponCode,
+          viewer.authenticated ? viewer.uid : null,
+          result.value.id,
+          result.value.subtotalCents
+        );
+      } else if (input.redeemCredit && viewer.authenticated && viewer.uid) {
+        await applyWalletCredit(viewer.uid, result.value.id, result.value.subtotalCents);
+      }
+    } catch (error) {
+      console.error("Post-order discount integration failed", error);
+    }
+
+    return { ok: true, orderId: result.value.id };
+  } catch (error) {
+    console.error("Order placement failed", error);
+    return {
+      ok: false,
+      message:
+        process.env.NODE_ENV === "production" && !hasFirebaseAdminConfig()
+          ? PERSISTENCE_ERROR
+          : GENERIC_ERROR,
+    };
+  }
 }
 
 /** Resolves a customer's RFM segment for coupon targeting (null for guests). */

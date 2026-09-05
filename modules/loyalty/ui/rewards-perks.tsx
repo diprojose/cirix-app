@@ -42,7 +42,7 @@ export async function RewardsPerks({
         </div>
         <div className="h-2.5 w-full overflow-hidden rounded-pill bg-stone-100">
           <div
-            className="h-full rounded-pill bg-gradient-to-r from-action-fill to-action-strong"
+            className="h-full rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong"
             style={{ width: `${pct}%` }}
           />
         </div>

@@ -184,7 +184,7 @@ export function CrmWorkspace({
               <div className="mt-5 flex flex-col gap-3 sm:flex-row xl:flex-col">
                 <Link
                   href="/api/zoho/crm"
-                  className="inline-flex min-h-11 items-center justify-center rounded-pill bg-action-fill px-5 text-sm font-semibold text-on-action shadow-action transition-colors hover:bg-action-strong"
+                  className="inline-flex min-h-11 items-center justify-center rounded-pill bg-action-fill px-5 text-sm font-semibold text-on-action shadow-action transition-colors hover:bg-action-fill-strong"
                 >
                   {pick(locale, { es: "Ver payload", en: "View payload" })}
                 </Link>

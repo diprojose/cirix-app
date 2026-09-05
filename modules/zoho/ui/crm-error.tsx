@@ -23,7 +23,7 @@ export function CrmError({
       <button
         type="button"
         onClick={() => unstable_retry()}
-        className="rounded-pill bg-accent-fill px-5 py-2 text-label font-semibold text-on-accent shadow-accent transition hover:bg-accent-strong"
+        className="rounded-pill bg-accent-fill px-5 py-2 text-label font-semibold text-on-accent shadow-accent transition hover:bg-accent-fill-strong"
       >
         Reintentar
       </button>

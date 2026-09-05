@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/format/money";
 import { useCart } from "@/components/cart/cart-provider";
 import { placeOrderAction, validateCouponAction } from "@/app/checkout/actions";
 import type { DeliveryZone } from "@/modules/loyalty/ordering/domain/value-objects/delivery-method";
+import { LocalizedLink } from "@/components/localized-link";
+import { brandHref, useBrand } from "@/modules/loyalty/branding/ui/brand-provider";
+import { useLocale } from "@/components/locale-provider";
+import { localizeHref } from "@/lib/locale";
 
 /** Shared input styling for the checkout fields. */
 const FIELD_CLASS =
@@ -29,6 +32,8 @@ export function CheckoutForm({
   maxRedeemPctOfOrder: number;
 }) {
   const { cart, ready, clear } = useCart();
+  const { profile, basePath } = useBrand();
+  const locale = useLocale();
   const router = useRouter();
 
   const [customerName, setCustomerName] = useState("");
@@ -61,12 +66,12 @@ export function CheckoutForm({
         <p className="text-sm text-text-muted">
           Agrega productos antes de finalizar un pedido.
         </p>
-        <Link
+        <LocalizedLink
           href="/loyalty"
-          className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-6 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
+          className="flex h-12 items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong px-6 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
         >
           Explorar productos
-        </Link>
+        </LocalizedLink>
       </div>
     );
   }
@@ -123,6 +128,7 @@ export function CheckoutForm({
     setError(null);
 
     const result = await placeOrderAction({
+      brandSlug: profile.slug,
       customerName,
       customerPhone,
       items: cart.lines.map((line) => ({
@@ -144,7 +150,7 @@ export function CheckoutForm({
     }
 
     await clear();
-    router.push(`/orders/${result.orderId}`);
+    router.push(localizeHref(locale, brandHref(`/orders/${result.orderId}`, basePath)));
   }
 
   return (
@@ -342,7 +348,7 @@ export function CheckoutForm({
       <button
         type="submit"
         disabled={submitting}
-        className="flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong text-base font-semibold text-on-action shadow-action transition-transform active:scale-[0.98] disabled:opacity-60"
+        className="flex h-14 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong text-base font-semibold text-on-action shadow-action transition-transform active:scale-[0.98] disabled:opacity-60"
       >
         {submitting ? "Enviando pedido…" : "Confirmar pedido"}
       </button>

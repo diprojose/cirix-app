@@ -57,7 +57,7 @@ export function PwaInstaller() {
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {
-      // Storage unavailable (private mode) â€” dismissal lasts this session only.
+      // Storage unavailable (private mode) — dismissal lasts this session only.
     }
   };
 
@@ -85,7 +85,7 @@ export function PwaInstaller() {
   // "Agregar al carrito" bar, so suppress the floating install CTA there to
   // avoid stacking two controls. The service worker is still registered above.
   if (
-    pathname?.startsWith("/product/") ||
+    pathname?.includes("/product/") ||
     pathname?.includes("/n8n") ||
     pathname?.includes("/ai-support")
   ) return null;
@@ -100,7 +100,7 @@ export function PwaInstaller() {
             await installEvent.userChoice;
             setInstallEvent(null);
           }}
-          className="inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Instalar app
         </button>
@@ -112,8 +112,8 @@ export function PwaInstaller() {
   if (isIOS) {
     return (
       <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex w-[min(92vw,24rem)] -translate-x-1/2 items-center gap-2 md:bottom-6">
-        <p className="flex-1 rounded-lg bg-ink/90 px-4 py-2.5 text-center text-caption text-on-accent shadow-float">
-          Para instalar: toca Compartir y luego Â«Agregar a la pantalla de inicioÂ».
+        <p className="flex-1 rounded-lg bg-accent-fill px-4 py-2.5 text-center text-caption text-on-accent shadow-float">
+          Para instalar: toca Compartir y luego «Agregar a la pantalla de inicio».
         </p>
         <DismissButton onClick={dismiss} />
       </div>
@@ -130,7 +130,7 @@ function DismissButton({ onClick }: { onClick: () => void }) {
       type="button"
       aria-label="Cerrar"
       onClick={onClick}
-      className="grid h-11 w-11 shrink-0 place-items-center rounded-pill bg-ink/90 text-on-accent shadow-float transition-colors hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-pill bg-accent-fill text-on-accent shadow-float transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
       <CloseIcon className="h-4 w-4" />
     </button>

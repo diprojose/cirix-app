@@ -15,7 +15,7 @@ import { ShareButton } from "@/components/store/share-button";
 import { ProductPurchaseProvider } from "@/components/cart/product-purchase-provider";
 import { PurchaseQuantityStepper } from "@/components/cart/purchase-quantity-stepper";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
-import { CONTAINER_READ } from "@/components/store/layout";
+import { CONTAINER, CONTAINER_READ } from "@/components/store/layout";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -40,7 +40,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: product.name,
       description: product.description,
-      ...(product.imageUrl ? { images: [product.imageUrl] } : {}),
+      images: product.imageUrl ? [product.imageUrl] : [],
+    },
+    twitter: {
+      card: product.imageUrl ? "summary_large_image" : "summary",
+      title: product.name,
+      description: product.description,
+      images: product.imageUrl ? [product.imageUrl] : [],
     },
   };
 }
@@ -82,41 +88,51 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <SubHeader title="Detalle" action={<ShareButton title={product.name} />} />
 
         <main className="flex-1 pb-28 md:pb-12">
-          <div className={`${CONTAINER_READ} mt-4`}>
-            <ProductThumb
-              id={product.id}
-              name={product.name}
-              imageUrl={product.imageUrl}
-              priority
-              className="aspect-square w-full rounded-xl bg-accent-subtle"
-              sizes="(max-width: 768px) 100vw, 640px"
-            />
+          <div className={`${CONTAINER} mt-4 md:mt-10`}>
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] md:gap-12">
+              <ProductThumb
+                id={product.id}
+                name={product.name}
+                imageUrl={product.imageUrl}
+                priority
+                className="aspect-square w-full rounded-3xl border border-border bg-accent-subtle"
+                imageClassName="object-contain p-8 md:p-14"
+                sizes="(max-width: 768px) 100vw, 620px"
+              />
 
-            <div className="mt-5 flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="text-display font-bold text-text">{product.name}</h2>
-                <p className="mt-1 text-price-lg font-bold tabular-nums text-text">{price}</p>
+              <div className="md:sticky md:top-28 md:self-start">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-action">Producto fresco</p>
+                <div className="mt-3 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h1 className="font-heading text-3xl font-extrabold leading-tight tracking-tight text-text md:text-5xl">{product.name}</h1>
+                    <p className="mt-2 text-2xl font-extrabold tabular-nums text-text md:text-3xl">{price}</p>
+                  </div>
+                  <PurchaseQuantityStepper className="mt-1 shrink-0" />
+                </div>
+
+                <p className="mt-5 max-w-[55ch] text-body leading-relaxed text-text-muted">{product.description}</p>
+
+                <div className="mt-6 grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-xl bg-surface p-3 text-text"><strong className="block">Selección fresca</strong><span className="text-text-muted">Cuidado en cada pedido</span></div>
+                  <div className="rounded-xl bg-surface p-3 text-text"><strong className="block">Compra con beneficios</strong><span className="text-text-muted">Acumula al confirmar</span></div>
+                </div>
+
+                {!product.available && (
+                  <p className="mt-4 text-body font-medium text-danger">No disponible por ahora.</p>
+                )}
+
+                <div className="mt-8 hidden md:block">
+                  <AddToCartButton />
+                </div>
               </div>
-              <PurchaseQuantityStepper className="mt-1 shrink-0" />
-            </div>
-
-            <p className="mt-4 max-w-[65ch] text-body text-text-muted">{product.description}</p>
-
-            {!product.available && (
-              <p className="mt-4 text-body font-medium text-danger">No disponible por ahora.</p>
-            )}
-
-            {/* Desktop inline CTA; mobile uses the fixed bottom bar below. */}
-            <div className="mt-8 hidden md:block">
-              <AddToCartButton />
             </div>
 
             {related.length > 0 && (
-              <section className="mt-12" aria-label="También te puede servir">
-                <h2 className="mb-4 text-h-section font-semibold text-text">
+              <section className="mt-14 md:mt-20" aria-label="También te puede servir">
+                <h2 className="mb-5 font-heading text-2xl font-bold text-text md:text-3xl">
                   También te puede servir
                 </h2>
-                <ul className="grid grid-cols-3 gap-2 md:grid-cols-4 md:gap-4">
+                <ul className="grid grid-cols-2 gap-3 min-[390px]:grid-cols-3 md:grid-cols-4 md:gap-5 xl:grid-cols-6">
                   {related.map((p) => (
                     <li key={p.id}>
                       <ProductCard product={p} />

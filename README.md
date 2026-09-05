@@ -1,39 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mixmag Loyalty Commerce
 
-## Getting Started
+Demo interactivo de e-commerce con loyalty y marca blanca. Cada cliente puede tener su propio logo, paleta, mensajes y URL, manteniendo el mismo catálogo y flujo de compra.
 
-First, run the development server:
+## Desarrollo local
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre las tiendas incluidas:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `http://localhost:3000/es/demo/mercado-fresco`
+- `http://localhost:3000/es/demo/cirix-market`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Sin variables de Firebase, la tienda usa el catálogo y las marcas incluidas en el repositorio. El carrito queda aislado por marca y, únicamente durante `npm run dev`, el checkout puede crear pedidos temporales en la memoria del proceso para recorrer el demo completo. Todo despliegue requiere Firebase Admin para autenticación y persistencia durable de marcas, logos y pedidos; en producción el checkout se detiene con un mensaje claro si esa persistencia no está configurada.
 
-## Learn More
+## Configurar una marca
 
-To learn more about Next.js, take a look at the following resources:
+1. Configura Firebase y un correo operador usando [`.env.example`](./.env.example).
+2. Inicia sesión y abre `/admin/settings`.
+3. Crea o duplica un perfil, carga el logo y define los cinco colores de marca.
+4. Usa la vista previa instantánea y abre la URL generada `/es/demo/{slug}`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Los perfiles persistentes viven en la colección `brandProfiles`; los logos se guardan en Firebase Storage. Los colores se convierten en tokens semánticos con contraste de texto calculado automáticamente y el editor bloquea combinaciones de fondo incompatibles con WCAG AA.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Verificación
+
+```bash
+npm run lint
+npx tsc --noEmit
+node scripts/check-contrast.mjs
+npm test
+npm run build
+```
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The easiest way to deploy the application is to use the [Vercel Platform](https://vercel.com/new).
+Configure the environment variables documented in [`.env.example`](./.env.example) before deploying.
 
 ## AI support demo
 

@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 import { DEFAULT_LOCALE, pick } from "@/lib/i18n";
 
 /**
- * Web App Manifest for the Cirix Tech Platform PWA.
+ * Web App Manifest for the Cirix platform shell. Branded storefronts expose
+ * their own manifest from the dynamic demo route.
  *
  * Enables install prompts on Android (via `beforeinstallprompt`) and standalone
  * launch on iOS/Android once the app is added to the home screen. Next.js serves

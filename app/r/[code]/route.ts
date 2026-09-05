@@ -1,6 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  detectPreferredLocale,
+  localizeHref,
+  stripLocaleFromPathname,
+} from "@/lib/locale";
 import { REFERRAL_COOKIE_NAME } from "@/lib/referrals/referral-cookie";
+import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -29,5 +35,19 @@ export async function GET(
     maxAge: REFERRAL_TTL_SECONDS,
   });
 
-  return NextResponse.redirect(new URL("/", request.url));
+  const { locale } = stripLocaleFromPathname(request.nextUrl.pathname);
+  const resolvedLocale =
+    locale ?? detectPreferredLocale(request.headers.get("accept-language"));
+  const requestedBrand = request.nextUrl.searchParams.get("brand") ?? "";
+  const brand = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(requestedBrand)
+    ? await getBrandProfile(requestedBrand)
+    : null;
+  const destination = brand?.active
+    ? `/demo/${brand.slug}/home`
+    : "/loyalty";
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = localizeHref(resolvedLocale, destination);
+  redirectUrl.search = "";
+
+  return NextResponse.redirect(redirectUrl);
 }

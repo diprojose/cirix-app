@@ -1,5 +1,9 @@
-import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getApp, getApps, initializeApp, type FirebaseOptions } from "firebase/app";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  type Auth,
+} from "firebase/auth";
 
 /*
  * Client-side Firebase bootstrap. Uses the public web-app config (safe to ship
@@ -14,12 +18,34 @@ const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-};
+} satisfies FirebaseOptions;
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+export const hasFirebaseClientConfig = Boolean(
+  firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.appId
+);
 
-/** The browser Auth instance. */
-export const auth = getAuth(app);
+let cachedAuth: Auth | null = null;
+let cachedGoogleProvider: GoogleAuthProvider | null = null;
 
-/** Google provider used for the "Continue with Google" sign-in flow. */
-export const googleProvider = new GoogleAuthProvider();
+/**
+ * Lazily bootstraps the browser SDK so public storefront routes still render
+ * when Firebase is intentionally absent in local/demo environments.
+ */
+export function getFirebaseAuth() {
+  if (!hasFirebaseClientConfig) {
+    throw new Error(
+      "Firebase no está configurado para el inicio de sesión en este entorno."
+    );
+  }
+
+  if (!cachedAuth || !cachedGoogleProvider) {
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    cachedAuth = getAuth(app);
+    cachedGoogleProvider = new GoogleAuthProvider();
+  }
+
+  return { auth: cachedAuth, googleProvider: cachedGoogleProvider };
+}

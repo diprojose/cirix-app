@@ -4,7 +4,7 @@ import { TopNav } from "@/components/store/top-nav";
 import { SiteFooter } from "@/components/store/site-footer";
 import { BottomNav } from "@/components/store/bottom-nav";
 import { SubHeader } from "@/components/store/sub-header";
-import { CONTAINER_READ } from "@/components/store/layout";
+import { CONTAINER } from "@/components/store/layout";
 import { CartView } from "@/components/cart/cart-view";
 
 export const metadata: Metadata = {
@@ -27,8 +27,8 @@ export default async function CartPage() {
       <SubHeader title="Carrito" />
 
       <main className="flex-1 pb-28 md:pb-12">
-        <div className={`${CONTAINER_READ} pt-4 md:pt-8`}>
-          <h2 className="mb-4 hidden text-display font-bold text-text md:block">Tu carrito</h2>
+        <div className={`${CONTAINER} pt-4 md:pt-10`}>
+          <h2 className="mb-6 hidden font-heading text-4xl font-bold tracking-tight text-text md:block">Tu carrito</h2>
           <CartView />
         </div>
       </main>

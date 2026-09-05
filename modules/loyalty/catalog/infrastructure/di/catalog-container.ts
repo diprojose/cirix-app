@@ -1,4 +1,7 @@
-import { adminFirestore } from "@/shared/infrastructure/firebase-admin";
+import {
+  adminFirestore,
+  hasFirebaseAdminConfig,
+} from "@/shared/infrastructure/firebase-admin";
 import type { ProductRepository } from "../../domain/repositories/product-repository";
 import { FirestoreProductRepository } from "../persistence/firestore-product-repository";
 import { buildProductSeed } from "../persistence/product-seed";
@@ -9,6 +12,7 @@ import { ListAllProducts } from "../../application/use-cases/list-all-products";
 import { CreateProduct } from "../../application/use-cases/create-product";
 import { UpdateProduct } from "../../application/use-cases/update-product";
 import { DeleteProduct } from "../../application/use-cases/delete-product";
+import { InMemoryProductRepository } from "../persistence/in-memory-product-repository";
 
 /*
  * Composition root for the catalog module. This is the single place that knows
@@ -24,10 +28,9 @@ let productRepository: ProductRepository | null = null;
  * not require Firebase credentials at build time. Seeds the initial catalog on
  * an empty collection. */
 function repository(): ProductRepository {
-  productRepository ??= new FirestoreProductRepository(
-    adminFirestore(),
-    buildProductSeed()
-  );
+  productRepository ??= hasFirebaseAdminConfig()
+    ? new FirestoreProductRepository(adminFirestore(), buildProductSeed())
+    : new InMemoryProductRepository(buildProductSeed());
   return productRepository;
 }
 

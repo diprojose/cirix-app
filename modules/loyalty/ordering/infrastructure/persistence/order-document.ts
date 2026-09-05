@@ -2,9 +2,11 @@ import type { Order, RestoreOrderInput } from "../../domain/entities/order";
 
 /** Bumped whenever the persisted shape changes, so old documents can be migrated.
  * v2 added `unitCostCents` per line (frozen product cost for the rewards margin);
- * v3 adds `discountCents` (wallet credit applied at checkout). Older documents
- * restore with 0 for the missing fields via the domain's optional defaults. */
-export const ORDER_DOCUMENT_VERSION = 3;
+ * v3 added `discountCents` (wallet credit applied at checkout); v4 binds every
+ * order to its white-label `brandSlug`. Older documents restore to the original
+ * Mercado Fresco storefront. */
+export const ORDER_DOCUMENT_VERSION = 4;
+const LEGACY_DEFAULT_BRAND_SLUG = "mercado-fresco";
 
 /**
  * OrderDocument is the versioned Firestore shape of an order — distinct from
@@ -13,13 +15,16 @@ export const ORDER_DOCUMENT_VERSION = 3;
  * version tag. Every optional domain value is stored as an explicit `null`
  * (Firestore rejects `undefined`).
  */
-export type OrderDocument = Omit<RestoreOrderInput, "id"> & {
+export type OrderDocument = Omit<RestoreOrderInput, "id" | "brandSlug"> & {
   version: number;
+  /** Optional only while reading v1-v3 documents. All new writes include it. */
+  brandSlug?: string;
 };
 
 /** Serializes an Order aggregate into its Firestore document. */
 export const toOrderDocument = (order: Order): OrderDocument => ({
   version: ORDER_DOCUMENT_VERSION,
+  brandSlug: order.brandSlug,
   customerName: order.customer.name,
   customerPhone: order.customer.phone,
   lines: order.lines.map((line) => ({
@@ -60,6 +65,7 @@ export const documentToRestoreInput = (
   document: OrderDocument
 ): RestoreOrderInput => ({
   id,
+  brandSlug: document.brandSlug ?? LEGACY_DEFAULT_BRAND_SLUG,
   customerName: document.customerName,
   customerPhone: document.customerPhone,
   lines: document.lines,

@@ -9,7 +9,7 @@
 export const COLUMN = "mx-auto w-full max-w-[26rem] px-4";
 
 /** Catalog and grids: mobile app width, widening to the desktop grid. */
-export const CONTAINER = "mx-auto w-full max-w-[26rem] px-4 md:max-w-6xl md:px-8";
+export const CONTAINER = "mx-auto w-full max-w-[26rem] px-4 md:max-w-7xl md:px-8";
 
 /** Forms and reading surfaces: stays narrow on desktop so lines stay scannable. */
 export const CONTAINER_READ = "mx-auto w-full max-w-[26rem] px-4 md:max-w-2xl md:px-8";

@@ -12,6 +12,7 @@ import {
   CorruptOrderSnapshotError,
   EmptyOrderError,
   InvalidDiscountError,
+  InvalidOrderBrandError,
   InvalidOrderTransitionError,
   MixedCurrencyError,
   PaymentReportNotFoundError,
@@ -30,9 +31,15 @@ export type FrozenExchangeRate = {
 };
 
 const MAX_NOTES_LENGTH = 500;
+const BRAND_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function isValidBrandSlug(value: string): boolean {
+  return value.length <= 48 && BRAND_SLUG.test(value);
+}
 
 /** Props backing an {@link Order} aggregate. */
 type OrderProps = {
+  brandSlug: string;
   customer: CustomerInfo;
   lines: OrderLine[];
   delivery: DeliveryMethod;
@@ -48,6 +55,7 @@ type OrderProps = {
 
 /** Input accepted by {@link Order.create}. Value objects arrive pre-validated. */
 export type CreateOrderInput = {
+  brandSlug: string;
   customer: CustomerInfo;
   lines: OrderLine[];
   delivery: DeliveryMethod;
@@ -60,6 +68,7 @@ export type CreateOrderInput = {
 /** Input accepted by {@link Order.restore} when rehydrating persistence. */
 export type RestoreOrderInput = {
   id: string;
+  brandSlug: string;
   customerName: string;
   customerPhone: string;
   lines: CreateOrderLineInput[];
@@ -89,6 +98,10 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
 
   /** Places a new order in `received` status, enforcing aggregate invariants. */
   static create(input: CreateOrderInput): Result<Order, DomainError> {
+    if (!isValidBrandSlug(input.brandSlug)) {
+      return err(new InvalidOrderBrandError(input.brandSlug));
+    }
+
     if (input.lines.length === 0) {
       return err(new EmptyOrderError());
     }
@@ -102,6 +115,7 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
 
     return ok(
       new Order(OrderId.generate(), {
+        brandSlug: input.brandSlug,
         customer: input.customer,
         lines: [...input.lines],
         delivery: input.delivery,
@@ -123,6 +137,10 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
    * report instead of crashing the app.
    */
   static restore(input: RestoreOrderInput): Result<Order, DomainError> {
+    if (!isValidBrandSlug(input.brandSlug)) {
+      return err(new InvalidOrderBrandError(input.brandSlug));
+    }
+
     const customer = CustomerInfo.create({
       name: input.customerName,
       phone: input.customerPhone,
@@ -168,6 +186,7 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
 
     return ok(
       new Order(OrderId.from(input.id), {
+        brandSlug: input.brandSlug,
         customer: customer.value,
         lines,
         delivery: delivery.value,
@@ -281,6 +300,11 @@ export class Order extends AggregateRoot<OrderProps, OrderId> {
 
   get customer(): CustomerInfo {
     return this.props.customer;
+  }
+
+  /** White-label storefront that owns this order. */
+  get brandSlug(): string {
+    return this.props.brandSlug;
   }
 
   /** The order lines (a defensive copy — the aggregate stays immutable). */

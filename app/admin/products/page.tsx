@@ -34,7 +34,7 @@ export default async function AdminProductsPage({
         <h1 className="text-xl font-bold text-text">Productos ({products.length})</h1>
         <Link
           href="/admin/products/new"
-          className="rounded-pill bg-gradient-to-r from-action-fill to-action-strong px-4 py-2 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
+          className="rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong px-4 py-2 text-sm font-semibold text-on-action shadow-action transition-transform active:scale-95"
         >
           + Nuevo
         </Link>

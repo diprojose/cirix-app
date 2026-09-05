@@ -17,7 +17,7 @@ export function BackButton({ className }: { className?: string }) {
       type="button"
       onClick={() => router.back()}
       aria-label="Volver"
-      className={`grid h-11 w-11 place-items-center rounded-pill bg-surface text-ink shadow-xs transition-transform active:scale-95 ${className ?? ""}`}
+      className={`grid h-11 w-11 place-items-center rounded-pill bg-surface text-accent shadow-xs transition-transform active:scale-95 ${className ?? ""}`}
     >
       <ArrowLeftIcon className="h-5 w-5" />
     </button>

@@ -4,8 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { useLocale } from "@/components/locale-provider";
-import { auth } from "@/lib/firebase/client";
+import {
+  getFirebaseAuth,
+  hasFirebaseClientConfig,
+} from "@/lib/firebase/client";
 import { localizeHref, pick } from "@/lib/locale";
+import {
+  brandHref,
+  useBrand,
+} from "@/modules/loyalty/branding/ui/brand-provider";
 
 export function SignOutButton({
   className,
@@ -14,14 +21,20 @@ export function SignOutButton({
 }) {
   const router = useRouter();
   const locale = useLocale();
+  const { basePath } = useBrand();
   const [loading, setLoading] = useState(false);
 
   async function handleSignOut() {
     setLoading(true);
     try {
       await fetch("/api/auth/session", { method: "DELETE" });
-      await signOut(auth).catch(() => {});
-      router.push(localizeHref(locale, "/"));
+      if (hasFirebaseClientConfig) {
+        const { auth } = getFirebaseAuth();
+        await signOut(auth).catch(() => {});
+      }
+      router.replace(
+        localizeHref(locale, basePath ? brandHref("/loyalty", basePath) : "/")
+      );
       router.refresh();
     } finally {
       setLoading(false);
@@ -40,7 +53,7 @@ export function SignOutButton({
     >
       {loading
         ? pick(locale, { es: "Saliendo...", en: "Signing out..." })
-        : pick(locale, { es: "Cerrar sesiÃ³n", en: "Sign out" })}
+        : pick(locale, { es: "Cerrar sesión", en: "Sign out" })}
     </button>
   );
 }

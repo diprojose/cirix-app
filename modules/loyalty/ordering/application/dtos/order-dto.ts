@@ -32,6 +32,7 @@ export type PaymentReportDto = {
  */
 export type OrderDto = {
   id: string;
+  brandSlug: string;
   customerName: string;
   customerPhone: string;
   lines: OrderLineDto[];
@@ -61,6 +62,7 @@ export type OrderDto = {
 /** Maps an Order aggregate to its serializable DTO. */
 export const toOrderDto = (order: Order): OrderDto => ({
   id: order.id.value,
+  brandSlug: order.brandSlug,
   customerName: order.customer.name,
   customerPhone: order.customer.phone,
   lines: order.lines.map((line) => ({

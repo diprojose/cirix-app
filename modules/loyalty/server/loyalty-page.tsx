@@ -11,14 +11,33 @@ import { SearchBar } from "@/modules/loyalty/ui/search-bar";
 import { SearchProvider } from "@/modules/loyalty/ui/search-provider";
 import { SiteFooter } from "@/modules/loyalty/ui/site-footer";
 import { TopNav } from "@/modules/loyalty/ui/top-nav";
+import { StorefrontHero } from "@/modules/loyalty/ui/storefront-hero";
+import { CategoryShowcase } from "@/modules/loyalty/ui/category-showcase";
+import { PromoGrid } from "@/modules/loyalty/ui/promo-grid";
+import { LoyaltyValueStrip } from "@/modules/loyalty/ui/loyalty-value-strip";
+import { BrandTheme } from "@/modules/loyalty/branding/ui/brand-theme";
+import type { BrandProfile } from "@/modules/loyalty/branding/application/brand-profile";
+import { getDefaultBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
 
 export const metadata: Metadata = {
-  title: "Loyalty Commerce",
+  title: { absolute: "Mercado Fresco" },
   description:
-    "The grocery storefront demo for rewards, referrals, wallet credit, and repeat-purchase flows.",
+    "Compra productos frescos y gana beneficios con cada pedido.",
+  openGraph: {
+    type: "website",
+    title: "Mercado Fresco",
+    description: "Fresco, fácil y con recompensas.",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Mercado Fresco" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mercado Fresco",
+    description: "Fresco, fácil y con recompensas.",
+    images: ["/og.png"],
+  },
 };
 
-export default async function LoyaltyPage() {
+export async function LoyaltyStorefront({ brand }: { brand: BrandProfile }) {
   const viewer = await getViewer();
   const uid = viewer.uid;
 
@@ -58,12 +77,25 @@ export default async function LoyaltyPage() {
         </div>
 
         <main className="flex-1 pb-28 md:pb-12">
+          <StorefrontHero brand={brand} products={products} />
+          <CategoryShowcase products={products} />
+          <PromoGrid products={products} />
           <CatalogBrowser products={products} />
+          <LoyaltyValueStrip />
         </main>
 
         <SiteFooter />
         <BottomNav canOperateStore={viewer.permissions.canOperateStore} />
       </div>
     </SearchProvider>
+  );
+}
+
+export default async function LoyaltyPage() {
+  const brand = getDefaultBrandProfile();
+  return (
+    <BrandTheme profile={brand}>
+      <LoyaltyStorefront brand={brand} />
+    </BrandTheme>
   );
 }

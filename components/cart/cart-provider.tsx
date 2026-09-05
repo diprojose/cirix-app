@@ -18,6 +18,7 @@ import {
   makeGetCart,
   makeRemoveItemFromCart,
 } from "@/modules/loyalty/cart/infrastructure/di/cart-container";
+import { usePathname } from "next/navigation";
 
 /** What the cart context exposes to any client component under the provider. */
 type CartContextValue = {
@@ -48,6 +49,13 @@ const CartContext = createContext<CartContextValue | null>(null);
  * avoiding hydration mismatches. It is the app's single global provider.
  */
 export function CartProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const cartScope = pathname.match(/\/demo\/([^/]+)/)?.[1] ?? "default";
+
+  return <ScopedCartProvider key={cartScope}>{children}</ScopedCartProvider>;
+}
+
+function ScopedCartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartDto | null>(null);
   const [ready, setReady] = useState(false);
 

@@ -1,19 +1,17 @@
-# DESIGN.md - Sistema de diseño de Cirix
+# DESIGN.md - Sistema de diseño white-label
 
-> Fuente de verdad visual para toda la aplicación. La identidad combina el navy oceánico de Cirix con rojo de acción, azul corporativo, naranja energético, blanco y gris neutro.
+> Fuente de verdad visual para toda la aplicación. El panel conserva la identidad corporativa; el storefront consume una identidad semántica que puede cambiar por cliente sin duplicar componentes.
 
-## Paleta
+## Paleta base del storefront
 
-- Navy principal: #051934
-- Navy profundo: #030E1D
-- Azul corporativo: #1C5AAE
-- Rojo de marca y acción: #E5002B
-- Naranja secundario: #E54700
-- Cyan complementario: #08B9E4
-- Gris: #A0A1A8
-- Blanco: #FFFFFF
+- Verde principal: #164E3D
+- Lima secundario: #D8F35F
+- Coral de acción: #FF6636
+- Fondo cálido: #F6F7F2
+- Superficie: #FFFFFF
+- Texto: #10231C
 
-Los componentes consumen únicamente tokens semánticos de `app/globals.css`: `bg`, `surface`, `border`, `text`, `text-muted`, `accent`, `action`, `danger` y sus variantes. Los colores directos se reservan para la paleta base o marcas de terceros.
+Los componentes consumen únicamente tokens semánticos: `bg`, `surface`, `border`, `text`, `text-muted`, `accent`, `action`, `danger` y sus variantes. `app/globals.css` mantiene el shell Cirix; `RouteTheme` aplica el preset comercial a las rutas de loyalty y `BrandTheme` lo sobrescribe por cliente en `/demo/[brandSlug]`. Los tonos `*-strong` usados como texto están separados de `*-fill-strong`, usados como fondos interactivos, para mantener contraste con cualquier paleta admitida.
 
 ## Tipografía
 
@@ -33,13 +31,13 @@ Los componentes consumen únicamente tokens semánticos de `app/globals.css`: `b
 
 - Todo control interactivo debe tener un área táctil mínima de 44 px.
 - Todo control debe mostrar `focus-visible`.
-- El rojo Cirix es el focus ring global.
+- El rojo Cirix es el focus ring del shell; cada storefront usa su color accesible de marca.
 - Se respeta `prefers-reduced-motion` globalmente.
 - Validar contraste WCAG AA para texto, botones, links y estados.
 
 ## Mantenimiento
 
-Para cambiar el tema visual, modificar primero la capa semántica en `app/globals.css`. No crear variables de color locales locales ni introducir clases de paleta de terceros en componentes Cirix.
+Para cambiar Cirix, modificar la capa semántica raíz de `app/globals.css`. Para una tienda, editar su `BrandProfile`: el motor deriva automáticamente texto, superficies, estados y tonos de interacción. No introducir colores de cliente directamente en componentes compartidos.
 
 Validaciones mínimas:
 

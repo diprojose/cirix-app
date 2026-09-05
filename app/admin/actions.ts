@@ -44,6 +44,9 @@ import {
 } from "@/modules/loyalty/fraud/infrastructure/di/fraud-container";
 import { makeSendNotification } from "@/modules/loyalty/notifications/infrastructure/di/notifications-container";
 import { formatPrice } from "@/lib/format/money";
+import { validateBrandProfile } from "@/modules/loyalty/branding/application/brand-profile";
+import { saveBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { uploadBrandLogo } from "@/modules/loyalty/branding/infrastructure/firebase-brand-logo-storage";
 
 /*
  * Admin server actions (primary adapters for operator use cases). Every action
@@ -198,6 +201,78 @@ export async function setManualRateAction(formData: FormData): Promise<void> {
   }
   revalidatePath("/admin/settings");
   redirect("/admin/settings?saved=1");
+}
+
+/** Creates or updates one client-facing storefront identity. */
+export async function saveBrandProfileAction(formData: FormData): Promise<void> {
+  await requireOperator();
+
+  const previousId = String(formData.get("id") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim().toLowerCase();
+  const logoFile = formData.get("logoFile");
+  let logoUrl = String(formData.get("logoUrl") ?? "").trim();
+  const hasLogoUpload = logoFile instanceof File && logoFile.size > 0;
+
+  const validation = validateBrandProfile({
+    id: previousId || undefined,
+    slug,
+    displayName: String(formData.get("displayName") ?? ""),
+    tagline: String(formData.get("tagline") ?? ""),
+    logoUrl: hasLogoUpload ? "" : logoUrl,
+    primaryColor: String(formData.get("primaryColor") ?? ""),
+    secondaryColor: String(formData.get("secondaryColor") ?? ""),
+    accentColor: String(formData.get("accentColor") ?? ""),
+    backgroundColor: String(formData.get("backgroundColor") ?? ""),
+    surfaceColor: String(formData.get("surfaceColor") ?? ""),
+    heroTitle: String(formData.get("heroTitle") ?? ""),
+    heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+    active: formData.get("active") === "on",
+  });
+  if (!validation.ok) {
+    failTo("/admin/settings", validation.error);
+  }
+
+  if (hasLogoUpload) {
+    try {
+      logoUrl = await uploadBrandLogo(logoFile, validation.value.slug);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const isSafeUploadMessage = [
+        "El logo no puede superar 750 KB.",
+        "El logo debe ser PNG, JPEG o WebP.",
+        "El archivo del logo no coincide con su formato declarado.",
+      ].includes(message);
+      failTo(
+        "/admin/settings",
+        isSafeUploadMessage
+          ? message
+          : "No se pudo cargar el logo. Verifica la configuración de Firebase Storage."
+      );
+    }
+  }
+
+  let savedSlug: string;
+  try {
+    const profile = await saveBrandProfile({ ...validation.value, logoUrl });
+    savedSlug = profile.slug;
+  } catch (error) {
+    failTo(
+      "/admin/settings",
+      error instanceof Error &&
+        (error.message.startsWith("Ya existe una marca") ||
+          error.message.startsWith("El identificador de URL no puede cambiar"))
+        ? error.message
+        : "No se pudo guardar la marca. Verifica la configuración de Firebase."
+    );
+  }
+  revalidatePath("/admin/settings");
+  for (const locale of ["es", "en"]) {
+    revalidatePath(`/${locale}/demo/${savedSlug}`, "layout");
+    if (previousId && previousId !== savedSlug) {
+      revalidatePath(`/${locale}/demo/${previousId}`, "layout");
+    }
+  }
+  redirect(`/admin/settings?brandSaved=${encodeURIComponent(savedSlug)}`);
 }
 
 /** Saves the operator's reward configuration (earn rate, holdback, expiry, cap). */

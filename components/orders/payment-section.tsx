@@ -5,11 +5,8 @@ import { useRouter } from "next/navigation";
 import { reportPaymentAction } from "@/app/checkout/actions";
 import type { PaymentReportDto } from "@/modules/loyalty/ordering/application/dtos/order-dto";
 import type { PaymentMethod } from "@/modules/loyalty/ordering/domain/value-objects/payment-method";
-import type { BUSINESS_PROFILE } from "@/modules/loyalty/ordering/infrastructure/config/business-profile";
+import type { BusinessProfile } from "@/modules/loyalty/ordering/infrastructure/config/business-profile";
 import { PAYMENT_METHOD_LABELS } from "./order-status";
-
-/** The payment/contact data the server page passes down (plain config). */
-type BusinessProfile = typeof BUSINESS_PROFILE;
 
 /** Shared input styling for the report fields. */
 const FIELD_CLASS =

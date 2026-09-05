@@ -5,6 +5,15 @@ export class InvalidCustomerError extends DomainError {
   readonly code = "ordering/invalid-customer";
 }
 
+/** Raised when an order is not tied to a valid white-label brand slug. */
+export class InvalidOrderBrandError extends DomainError {
+  readonly code = "ordering/invalid-brand";
+
+  constructor(brandSlug: string) {
+    super(`Invalid order brand slug "${brandSlug}".`);
+  }
+}
+
 /** Raised when an order line's snapshot data is invalid. */
 export class InvalidOrderLineError extends DomainError {
   readonly code = "ordering/invalid-order-line";

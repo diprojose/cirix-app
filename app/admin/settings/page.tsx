@@ -4,6 +4,8 @@ import { formatVes } from "@/lib/format/money";
 import { makeGetExchangeRate } from "@/modules/loyalty/pricing/infrastructure/di/pricing-container";
 import { FeedbackBanner } from "@/components/admin/feedback-banner";
 import { setManualRateAction } from "@/app/admin/actions";
+import { listBrandProfiles } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { BrandProfileEditor } from "@/components/admin/brand-profile-editor";
 
 export const metadata: Metadata = { title: "Ajustes" };
 
@@ -23,23 +25,41 @@ const SOURCE_LABELS: Record<string, string> = {
 export default async function AdminSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; brandSaved?: string }>;
 }) {
   await requireOperator();
-  const { error, saved } = await searchParams;
+  const { error, saved, brandSaved } = await searchParams;
 
-  const rateResult = await makeGetExchangeRate().execute();
+  const [rateResult, brandProfiles] = await Promise.all([
+    makeGetExchangeRate().execute(),
+    listBrandProfiles(),
+  ]);
   const rate = rateResult.ok ? rateResult.value : null;
 
   return (
-    <div className="max-w-xl space-y-4">
-      <h1 className="text-xl font-bold text-text">Ajustes</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-text">Ajustes</h1>
+        <p className="mt-1 text-sm text-text-muted">Configura la identidad de cada demo y los parámetros comerciales.</p>
+      </div>
       <FeedbackBanner
         error={error}
-        success={saved ? "Tasa manual guardada." : undefined}
+        success={
+          brandSaved
+            ? `Marca “${brandSaved}” guardada.`
+            : saved
+              ? "Tasa manual guardada."
+              : undefined
+        }
       />
 
-      <section className="space-y-2 rounded-2xl bg-surface p-4 shadow-xs">
+      <BrandProfileEditor
+        key={brandSaved ?? "brand-editor"}
+        profiles={brandProfiles}
+        initialProfileId={brandSaved}
+      />
+
+      <section className="max-w-xl space-y-2 rounded-2xl bg-surface p-4 shadow-xs">
         <h2 className="text-sm font-bold text-text">Tasa USD → Bs en uso</h2>
         {rate ? (
           <>
@@ -57,7 +77,7 @@ export default async function AdminSettingsPage({
         )}
       </section>
 
-      <section className="space-y-3 rounded-2xl bg-surface p-4 shadow-xs">
+      <section className="max-w-xl space-y-3 rounded-2xl bg-surface p-4 shadow-xs">
         <h2 className="text-sm font-bold text-text">Tasa manual</h2>
         <p className="text-xs text-text-muted">
           Se usa cuando la API del BCV no responde. La tienda siempre prefiere la

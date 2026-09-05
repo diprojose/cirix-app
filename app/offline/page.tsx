@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { COLUMN } from "@/components/store/layout";
 
 export const metadata: Metadata = {
-  title: "Sin conexión — Cirix Tech Platform",
+  title: "Sin conexión",
 };
 
 /**
@@ -17,18 +16,18 @@ export default function OfflinePage() {
     <main
       className={`${COLUMN} flex min-h-dvh flex-col items-center justify-center gap-3 text-center`}
     >
-      <p className="text-h-section font-bold tracking-tight text-accent">Cirix Tech Platform</p>
+      <p className="text-h-section font-bold tracking-tight text-accent">Tu tienda</p>
       <h1 className="text-display font-bold text-text">Sin conexión</h1>
       <p className="text-balance text-body text-text-muted">
         No tienes conexión a internet en este momento. Vuelve a intentarlo cuando recuperes la
         señal.
       </p>
-      <Link
-        href="/loyalty"
-        className="mt-2 inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      <a
+        href=""
+        className="mt-2 inline-flex min-h-11 items-center rounded-pill bg-accent-fill px-5 text-label font-semibold text-on-accent shadow-accent transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         Reintentar
-      </Link>
+      </a>
     </main>
   );
 }

@@ -61,7 +61,7 @@ export const MVP_MODULES: MvpModule[] = [
   {
     slug: "loyalty",
     title: "Loyalty Commerce",
-    href: "/loyalty",
+    href: "/demo/mercado-fresco",
     status: "live",
     accent: "brand",
     eyebrow: {

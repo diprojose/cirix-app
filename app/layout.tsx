@@ -4,7 +4,12 @@ import "./globals.css";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { PwaInstaller } from "@/components/pwa-installer";
+import { RouteTheme } from "@/components/route-theme";
 import { getCurrentLocale } from "@/lib/i18n";
+
+const SITE_URL = new URL(
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://mixmag.vercel.app"
+);
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,6 +24,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: SITE_URL,
   applicationName: "Cirix",
   title: {
     default: "Cirix",
@@ -59,9 +65,13 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <RouteTheme>
+              {children}
+              <PwaInstaller />
+            </RouteTheme>
+          </CartProvider>
         </LocaleProvider>
-        <PwaInstaller />
       </body>
     </html>
   );

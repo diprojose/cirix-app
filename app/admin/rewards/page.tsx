@@ -147,7 +147,7 @@ export default async function AdminRewardsPage({
           </div>
           <button
             type="submit"
-            className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-strong text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
+            className="flex h-12 w-full items-center justify-center rounded-pill bg-gradient-to-r from-action-fill to-action-fill-strong text-sm font-semibold text-on-action shadow-action transition-transform active:scale-[0.98]"
           >
             Guardar configuración
           </button>
