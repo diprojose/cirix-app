@@ -85,6 +85,7 @@ export function PwaInstaller() {
   // "Agregar al carrito" bar, so suppress the floating install CTA there to
   // avoid stacking two controls. The service worker is still registered above.
   if (
+    pathname?.includes("/demo/") ||
     pathname?.includes("/product/") ||
     pathname?.includes("/n8n") ||
     pathname?.includes("/ai-support")

@@ -32,7 +32,7 @@ function isPrivate(pathname: string): boolean {
   return (
     PRIVATE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-    ) || /^\/demo\/[^/]+\/(?:billetera|referidos|notificaciones)(?:\/|$)/.test(pathname)
+    )
   );
 }
 

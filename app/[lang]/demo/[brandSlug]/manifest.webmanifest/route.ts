@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { getDemoBrand as getBrandProfile } from "@/modules/loyalty/demo/brand";
 
 export async function GET(
   _request: Request,

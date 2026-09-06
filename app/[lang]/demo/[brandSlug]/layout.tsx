@@ -1,14 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
-import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
-import { BrandTheme } from "@/modules/loyalty/branding/ui/brand-theme";
+import { getDemoBrand as getBrandProfile } from "@/modules/loyalty/demo/brand";
+import { DemoProvider } from "@/modules/loyalty/demo/provider";
 
 type LayoutProps = {
   children: React.ReactNode;
   params: Promise<{ lang: string; brandSlug: string }>;
 };
 
-export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: LayoutProps): Promise<Metadata> {
   const { lang, brandSlug } = await params;
   const brand = await getBrandProfile(brandSlug);
   if (!brand || !brand.active) return {};
@@ -56,7 +58,9 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   };
 }
 
-export async function generateViewport({ params }: LayoutProps): Promise<Viewport> {
+export async function generateViewport({
+  params,
+}: LayoutProps): Promise<Viewport> {
   const { brandSlug } = await params;
   const brand = await getBrandProfile(brandSlug);
   return {
@@ -65,14 +69,17 @@ export async function generateViewport({ params }: LayoutProps): Promise<Viewpor
   };
 }
 
-export default async function BrandedDemoLayout({ children, params }: LayoutProps) {
+export default async function BrandedDemoLayout({
+  children,
+  params,
+}: LayoutProps) {
   const { brandSlug } = await params;
   const brand = await getBrandProfile(brandSlug);
   if (!brand || !brand.active) notFound();
 
   return (
-    <BrandTheme profile={brand} basePath={`/demo/${brand.slug}`}>
+    <DemoProvider key={brand.slug} brand={brand}>
       {children}
-    </BrandTheme>
+    </DemoProvider>
   );
 }

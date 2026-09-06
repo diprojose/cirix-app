@@ -14,16 +14,18 @@ Abre las tiendas incluidas:
 - `http://localhost:3000/es/demo/mercado-fresco`
 - `http://localhost:3000/es/demo/cirix-market`
 
-Sin variables de Firebase, la tienda usa el catálogo y las marcas incluidas en el repositorio. El carrito queda aislado por marca y, únicamente durante `npm run dev`, el checkout puede crear pedidos temporales en la memoria del proceso para recorrer el demo completo. Todo despliegue requiere Firebase Admin para autenticación y persistencia durable de marcas, logos y pedidos; en producción el checkout se detiene con un mensaje claro si esa persistencia no está configurada.
+El MVP `/es/loyalty` abre la tienda de supermercado demo. Cada visitante puede comprar, gestionar pedidos y cambiar la marca sin registro, tanto en desarrollo como en un despliegue. El estado se guarda por marca en su navegador y se puede restablecer desde el administrador. Las marcas incluidas no requieren Firebase; pagos y notificaciones son simulados.
+
+Abre `/es/demo/mercado-fresco/admin` para administrar el demo o `/es/demo/mercado-fresco/admin/settings` para cambiar su apariencia. Consulta el [mapa del módulo, contrato de colores y recorrido de prueba](docs/supermarket-demo.md).
 
 ## Configurar una marca
 
-1. Configura Firebase y un correo operador usando [`.env.example`](./.env.example).
-2. Inicia sesión y abre `/admin/settings`.
-3. Crea o duplica un perfil, carga el logo y define los cinco colores de marca.
-4. Usa la vista previa instantánea y abre la URL generada `/es/demo/{slug}`.
+1. Abre `/es/demo/mercado-fresco/admin/settings`, sin iniciar sesión.
+2. Cambia el nombre, carga un logo y elige un preset o ajusta los cinco colores.
+3. Revisa la vista previa y pulsa **Guardar apariencia**.
+4. Vuelve a la tienda; la nueva identidad se aplica también al carrito, checkout, cuenta y panel.
 
-Los perfiles persistentes viven en la colección `brandProfiles`; los logos se guardan en Firebase Storage. Los colores se convierten en tokens semánticos con contraste de texto calculado automáticamente y el editor bloquea combinaciones de fondo incompatibles con WCAG AA.
+Estas ediciones pertenecen al navegador: compartir la URL abre la marca base, sin transferirlas. Para gestionar perfiles persistentes compartidos se conserva el panel operativo `/admin/settings`, protegido por Firebase y permisos de operador; sus perfiles viven en `brandProfiles` y sus logos en Firebase Storage. Los colores se convierten en tokens semánticos con contraste calculado automáticamente.
 
 ## Verificación
 

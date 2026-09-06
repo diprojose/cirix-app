@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import OrderPage from "@/app/orders/[id]/page";
+import { Account } from "@/modules/loyalty/demo/account";
 
 export const metadata: Metadata = {
   robots: {
@@ -14,10 +14,5 @@ export default async function BrandedOrderPage({
   params: Promise<{ brandSlug: string; id: string }>;
 }) {
   const resolved = await params;
-  return (
-    <OrderPage
-      params={Promise.resolve({ id: resolved.id })}
-      expectedBrandSlug={resolved.brandSlug}
-    />
-  );
+  return <Account id={resolved.id} />;
 }

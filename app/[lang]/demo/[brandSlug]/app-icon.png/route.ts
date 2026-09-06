@@ -2,7 +2,7 @@ import { createElement, type ReactElement } from "react";
 import { ImageResponse } from "next/og";
 import { readFile, stat } from "node:fs/promises";
 import { resolve, sep } from "node:path";
-import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { getDemoBrand as getBrandProfile } from "@/modules/loyalty/demo/brand";
 
 export const runtime = "nodejs";
 

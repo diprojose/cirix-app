@@ -14,17 +14,19 @@
   --color-brand-900: #051934;
   --color-brand-950: #030e1d;
 
-  --color-action-50: #fff0eb;
-  --color-action-100: #ffdcd1;
-  --color-action-200: #ffb9a3;
-  --color-action-300: #ff9374;
-  --color-action-400: #f96a40;
-  --color-action-500: #e54700;
-  --color-action-600: #d23d00;
-  --color-action-700: #b33300;
-  --color-action-800: #8f2900;
-  --color-action-900: #6e1f00;
-  --color-action-950: #451400;
+  /* Legacy workspace scale matches its semantic action color. BrandTheme
+     overrides this scale within each store; state colors remain independent. */
+  --color-action-50: var(--color-red-50);
+  --color-action-100: var(--color-red-100);
+  --color-action-200: var(--color-red-200);
+  --color-action-300: var(--color-red-300);
+  --color-action-400: var(--color-red-400);
+  --color-action-500: var(--color-red-500);
+  --color-action-600: var(--color-red-600);
+  --color-action-700: var(--color-red-700);
+  --color-action-800: var(--color-red-800);
+  --color-action-900: var(--color-red-900);
+  --color-action-950: var(--color-red-950);
 
   --color-red-50: #ffe8ed;
   --color-red-100: #ffcbd5;

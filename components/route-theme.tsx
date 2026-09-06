@@ -12,7 +12,8 @@ const COMMERCE_ROUTE =
 export function RouteTheme({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const barePath = pathname.replace(/^\/(?:es|en)(?=\/|$)/, "") || "/";
-  const isStorefront = COMMERCE_ROUTE.test(barePath) || barePath.startsWith("/demo/");
+  // Demo layouts own their live, visitor-specific theme.
+  const isStorefront = COMMERCE_ROUTE.test(barePath);
 
   if (!isStorefront) return children;
 

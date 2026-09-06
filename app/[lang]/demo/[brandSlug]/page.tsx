@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getBrandProfile } from "@/modules/loyalty/branding/infrastructure/branding-container";
+import { getDemoBrand as getBrandProfile } from "@/modules/loyalty/demo/brand";
 
 export default async function BrandedLoyaltyPage({
   params,
