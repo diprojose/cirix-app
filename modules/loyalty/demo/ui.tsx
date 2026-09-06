@@ -255,14 +255,20 @@ export function Shell({
     </div>
   );
 }
-export function Quantity({ product }: { product: DemoProduct }) {
+export function Quantity({
+  product,
+  variant = "default",
+}: {
+  product: DemoProduct;
+  variant?: "default" | "detail";
+}) {
   const { state, dispatch, t } = useDemo();
   const qty = state.cart[product.id] ?? 0;
   const [error, setError] = useState<string | null>(null);
   const change = (quantity: number) =>
     setError(dispatch({ type: "quantity", id: product.id, quantity }));
   return (
-    <div>
+    <div className={variant === "detail" ? s.detailQuantity : undefined}>
       {qty ? (
         <div className={s.stepper}>
           <button
@@ -291,11 +297,20 @@ export function Quantity({ product }: { product: DemoProduct }) {
           className={s.addButton}
           onClick={() => change(1)}
           disabled={!product.available}
-          aria-label={t(`Agregar ${product.name}`, `Add ${product.name}`)}
+          aria-label={
+            variant === "detail"
+              ? t(
+                  `Agregar al carrito: ${product.name}`,
+                  `Add to cart: ${product.name}`,
+                )
+              : t(`Agregar ${product.name}`, `Add ${product.name}`)
+          }
         >
           <PlusIcon />
           {product.available
-            ? t("Agregar", "Add")
+            ? variant === "detail"
+              ? t("Agregar al carrito", "Add to cart")
+              : t("Agregar", "Add")
             : t("Agotado", "Unavailable")}
         </button>
       )}
