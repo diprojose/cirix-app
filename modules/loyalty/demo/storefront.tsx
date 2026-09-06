@@ -86,14 +86,24 @@ export function Storefront() {
               </span>
               <h1>{state.brand.heroTitle}</h1>
               <p>{state.brand.heroSubtitle}</p>
-              <Link className={s.heroButton} href="#catalogo">
-                {t("Hacer mi compra", "Start shopping")} <span>↗</span>
-              </Link>
+              <div className={s.heroActions}>
+                <Link className={s.heroButton} href="#catalogo">
+                  <BagIcon /> {t("Hacer mi compra", "Start shopping")}{" "}
+                  <ChevronRightIcon />
+                </Link>
+                <Link
+                  className={s.heroSecondary}
+                  href={`${basePath}/home?offers=1#catalogo`}
+                >
+                  {t("Ver ofertas", "View offers")} <ChevronRightIcon />
+                </Link>
+              </div>
               <div className={s.heroFoot}>
-                <span>✦ {t("Productos frescos", "Fresh picks")}</span>
-                <span>
-                  ✦ {t("Beneficios en cada compra", "Rewards every time")}
-                </span>
+                <span className={s.heroDemoDot} />
+                {t(
+                  "Explora la demo. Compra sin cobros reales.",
+                  "Explore the demo. Shop without real charges.",
+                )}
               </div>
             </div>
             <div className={s.heroArt} aria-hidden="true">
@@ -116,8 +126,13 @@ export function Storefront() {
                 />
               </div>
               <span className={s.heroSticker}>
-                {t("Fresco", "Fresh")}
-                <small>{t("por naturaleza", "by nature")}</small>
+                <LeafIcon />
+                <span>
+                  {t("Frescura que se nota", "Freshness you can taste")}
+                  <small>
+                    {t("Tu mercado, cada día", "Your everyday market")}
+                  </small>
+                </span>
               </span>
             </div>
           </section>
@@ -341,7 +356,7 @@ export function ProductDetail({ id }: { id: string }) {
               <div className={s.detailImageTop}>
                 <span className={s.detailImageLabel}>
                   <LeafIcon />
-                  {t("Selección del mercado", "Market selection")}
+                  {department}
                 </span>
                 {saving > 0 && (
                   <span className={s.detailDiscount}>
@@ -356,21 +371,11 @@ export function ProductDetail({ id }: { id: string }) {
                   priority
                 />
               </div>
-              <div className={s.detailImageBottom}>
-                <span>{department}</span>
-                <span className={s.detailUnit}>
-                  <BagIcon />
-                  {product.unit}
-                </span>
-              </div>
             </div>
             <div className={s.detailInfo}>
               <div className={s.detailHeading}>
-                <span className={s.eyebrow}>
-                  {t(
-                    "DE TU MERCADO A TU MESA",
-                    "FROM YOUR MARKET TO YOUR TABLE",
-                  )}
+                <span className={s.detailEyebrow}>
+                  {t("FRESCO, CADA DÍA", "EVERYDAY FRESH PICKS")}
                 </span>
                 <h1 id="product-title">{product.name}</h1>
                 <div className={s.detailMeta}>
@@ -386,20 +391,43 @@ export function ProductDetail({ id }: { id: string }) {
                 </div>
               </div>
               <p className={s.detailDescription}>{product.description}</p>
-              <div className={s.detailPriceBlock}>
-                <span className={s.detailPrice}>
-                  {money(product.priceCents)}
-                </span>
-                {saving > 0 && <del>{money(product.previousPriceCents!)}</del>}
-                <span className={s.detailPriceUnit}>/ {product.unit}</span>
-                {saving > 0 && (
-                  <span className={s.detailSaving}>
-                    {t("Ahorras", "Save")} {money(saving)}
-                  </span>
-                )}
-              </div>
               <div className={s.detailPurchase}>
-                <div className={s.detailPurchaseActions}>
+                <div className={s.detailPriceCaption}>
+                  <span>
+                    {t(
+                      `Precio por ${product.unit}`,
+                      `Price per ${product.unit}`,
+                    )}
+                  </span>
+                  <span>USD</span>
+                </div>
+                <div className={s.detailPriceBlock}>
+                  <span
+                    className={s.detailPrice}
+                    aria-label={money(product.priceCents)}
+                  >
+                    {money(product.priceCents, true)}
+                  </span>
+                  {saving > 0 && (
+                    <del
+                      aria-label={t(
+                        `Antes ${money(product.previousPriceCents!)}`,
+                        `Previously ${money(product.previousPriceCents!)}`,
+                      )}
+                    >
+                      {money(product.previousPriceCents!, true)}
+                    </del>
+                  )}
+                  {saving > 0 && (
+                    <span className={s.detailSaving}>
+                      {t("Ahorras", "Save")} {money(saving, true)}
+                    </span>
+                  )}
+                </div>
+                <div
+                  className={s.detailPurchaseActions}
+                  data-in-cart={Boolean(state.cart[product.id])}
+                >
                   <Quantity product={product} variant="detail" />
                   <Link className={s.detailCartLink} href={`${basePath}/cart`}>
                     {t("Ver carrito", "View cart")}
@@ -413,8 +441,8 @@ export function ProductDetail({ id }: { id: string }) {
                         `${state.cart[product.id]} in your cart · ${money(product.priceCents * state.cart[product.id])}`,
                       )
                     : t(
-                        "Elige tus favoritos y completa tu compra cuando quieras.",
-                        "Pick your favorites and check out when you're ready.",
+                        "Compra demo · sin cobros reales",
+                        "Demo checkout · no real charges",
                       )}
                 </p>
               </div>
@@ -425,8 +453,8 @@ export function ProductDetail({ id }: { id: string }) {
                 <span>
                   <strong>
                     {t(
-                      "Lo fresco también te recompensa",
-                      "Fresh picks come with rewards",
+                      "Más beneficios en cada compra",
+                      "More benefits with every shop",
                     )}
                   </strong>
                   <small>
@@ -438,29 +466,13 @@ export function ProductDetail({ id }: { id: string }) {
                 </span>
                 <ChevronRightIcon />
               </Link>
-              <div className={s.detailServices}>
-                <div>
-                  <LocationIcon />
-                  <span>
-                    <strong>
-                      {t("Como tú prefieras", "Your way to shop")}
-                    </strong>
-                    <small>
-                      {t(
-                        "Delivery o retiro en tienda",
-                        "Delivery or store pickup",
-                      )}
-                    </small>
-                  </span>
-                </div>
-                <div>
-                  <BagIcon />
-                  <span>
-                    <strong>{t("Compra demo", "Demo checkout")}</strong>
-                    <small>{t("Sin cobros reales", "No real charges")}</small>
-                  </span>
-                </div>
-              </div>
+              <p className={s.detailDelivery}>
+                <LocationIcon />
+                {t(
+                  "Delivery o retiro en tienda. Tú eliges al pagar.",
+                  "Delivery or store pickup. Choose at checkout.",
+                )}
+              </p>
             </div>
           </section>
           <section className={s.section}>

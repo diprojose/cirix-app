@@ -20,7 +20,7 @@ type DemoContextValue = ReturnType<
   reset: () => void;
   basePath: string;
   t: (es: string, en: string) => string;
-  money: (cents: number) => string;
+  money: (cents: number, compact?: boolean) => string;
 };
 const DemoContext = createContext<DemoContextValue | null>(null);
 
@@ -55,10 +55,11 @@ export function DemoProvider({
         reset: store.reset,
         basePath: `/${locale}/demo/${brand.slug}`,
         t: (es, en) => (locale === "es" ? es : en),
-        money: (cents) =>
+        money: (cents, compact = false) =>
           new Intl.NumberFormat(locale === "es" ? "es-VE" : "en-US", {
             style: "currency",
             currency: "USD",
+            ...(compact ? { currencyDisplay: "narrowSymbol" as const } : {}),
           }).format(cents / 100),
       }}
     >

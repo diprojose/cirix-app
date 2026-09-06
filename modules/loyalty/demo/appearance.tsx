@@ -6,11 +6,14 @@ import {
   validateBrandProfile,
   type BrandProfile,
 } from "../branding/application/brand-profile";
-import {
-  DEFAULT_BRAND_PROFILE,
-  CIRIX_MARKET_PROFILE,
-} from "../branding/infrastructure/brand-profile-seed";
 import { themeVariables } from "../branding/ui/brand-theme";
+import {
+  STORE_PALETTES,
+  PALETTE_KEYS,
+  applyPalette,
+  matchingPalette,
+  type PaletteFamily,
+} from "./palettes";
 import { useDemo } from "./provider";
 import { ProductCard, s } from "./ui";
 
@@ -51,26 +54,20 @@ const paletteFields = [
     "Cards, forms and panels",
   ],
 ] as const;
-const presets = [
-  { name: "Mercado", profile: DEFAULT_BRAND_PROFILE },
-  { name: "Cirix", profile: CIRIX_MARKET_PROFILE },
-  {
-    name: "Oliva",
-    profile: {
-      ...DEFAULT_BRAND_PROFILE,
-      primaryColor: "#4b5131",
-      secondaryColor: "#e8dcb8",
-      accentColor: "#b95336",
-      backgroundColor: "#f8f5ed",
-      surfaceColor: "#ffffff",
-    },
-  },
-];
+const paletteFamilies = [
+  ["all", "Todas", "All"],
+  ["natural", "Naturales", "Natural"],
+  ["warm", "Cálidas", "Warm"],
+  ["vivid", "Coloridas", "Colorful"],
+  ["dark", "Oscuras", "Dark"],
+] as const;
 export function Appearance() {
   const { state, dispatch, t } = useDemo();
   const [draft, setDraft] = useState<BrandProfile>(state.brand);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [family, setFamily] = useState<PaletteFamily | "all">("all");
+  const selectedPalette = matchingPalette(draft);
   const validation = validateBrandProfile({ ...draft, logoUrl: "" });
   const preview = validation.ok ? draft : state.brand;
   function update(key: keyof BrandProfile, value: string) {
@@ -135,7 +132,11 @@ export function Appearance() {
   }
   return (
     <div className={s.editorGrid}>
-      <form className={`${s.panel} ${s.form}`} onSubmit={save}>
+      <form
+        id="demo-appearance-form"
+        className={`${s.panel} ${s.form}`}
+        onSubmit={save}
+      >
         <h2>{t("Tu marca, tu mercado", "Your brand, your market")}</h2>
         <p className={s.muted}>
           {t(
@@ -187,38 +188,72 @@ export function Appearance() {
           <legend>
             {t("Paletas listas para usar", "Ready-to-use palettes")}
           </legend>
-          <div className={s.actions}>
-            {presets.map((p) => (
+          <p className={s.muted}>
+            {t(
+              "15 combinaciones de color. Prueba una y personaliza cada tono a tu gusto.",
+              "15 color combinations. Try one and customize every shade.",
+            )}
+          </p>
+          <div
+            className={s.paletteFilters}
+            role="group"
+            aria-label={t("Filtrar paletas", "Filter palettes")}
+          >
+            {paletteFamilies.map(([id, es, en]) => (
+              <button
+                type="button"
+                key={id}
+                aria-pressed={family === id}
+                onClick={() => setFamily(id)}
+              >
+                {t(es, en)}
+              </button>
+            ))}
+          </div>
+          <div className={s.paletteGrid}>
+            {STORE_PALETTES.filter(
+              (p) => family === "all" || p.family === family,
+            ).map((p) => (
               <button
                 type="button"
                 className={s.preset}
-                key={p.name}
+                key={p.id}
+                aria-pressed={selectedPalette?.id === p.id}
                 onClick={() => {
-                  setDraft((d) => ({
-                    ...d,
-                    ...Object.fromEntries(
-                      paletteFields.map(([key]) => [key, p.profile[key]]),
-                    ),
-                  }));
+                  setDraft((d) => applyPalette(d, p));
                   setMessage("");
                   setError("");
                 }}
               >
-                {[
-                  p.profile.primaryColor,
-                  p.profile.secondaryColor,
-                  p.profile.accentColor,
-                ].map((c) => (
-                  <span
-                    key={c}
-                    className={s.swatch}
-                    style={{ background: c }}
-                  />
-                ))}
-                {p.name}
+                <span className={s.paletteSwatches} aria-hidden="true">
+                  {PALETTE_KEYS.map((key) => (
+                    <span key={key} style={{ background: p.colors[key] }} />
+                  ))}
+                </span>
+                <span className={s.paletteName}>
+                  {t(p.name.es, p.name.en)}{" "}
+                  <span aria-hidden="true">
+                    {selectedPalette?.id === p.id ? "✓" : ""}
+                  </span>
+                </span>
+                <span className={s.paletteDescription}>
+                  {t(p.description.es, p.description.en)}
+                </span>
               </button>
             ))}
           </div>
+          <p className={s.paletteSelection} role="status">
+            {t("Selección:", "Selection:")}{" "}
+            {selectedPalette
+              ? t(selectedPalette.name.es, selectedPalette.name.en)
+              : t("Personalizada", "Custom")}
+            <span>
+              {t(
+                "Guarda para aplicar a la tienda.",
+                "Save to apply to your store.",
+              )}
+            </span>
+          </p>
         </fieldset>
         {paletteFields.map(([key, es, en, helpEs, helpEn]) => (
           <div key={key}>
@@ -318,11 +353,13 @@ export function Appearance() {
           ) : (
             <b className={s.logo}>{preview.displayName}</b>
           )}
-          <h3>{preview.heroTitle}</h3>
-          <p className={s.muted}>{preview.heroSubtitle}</p>
-          <span className={s.primary}>
-            {t("Comprar ahora", "Shop now")} →
-          </span>{" "}
+          <div className={s.previewHero}>
+            <h3>{preview.heroTitle}</h3>
+            <p>{preview.heroSubtitle}</p>
+            <span className={s.heroButton}>
+              {t("Hacer mi compra", "Start shopping")} →
+            </span>
+          </div>
           <span className={s.offerTag} style={{ position: "static" }}>
             {t("Oferta", "Offer")}
           </span>
@@ -335,10 +372,24 @@ export function Appearance() {
         </div>
         <p className={s.finePrint}>
           {t(
-            "La vista previa muestra la última combinación válida. Los cambios se guardan solo en este navegador.",
-            "The preview shows the latest valid combination. Changes are saved only in this browser.",
+            "La vista previa muestra tu borrador; si no es válido, muestra la apariencia guardada. Los cambios se guardan solo en este navegador.",
+            "The preview shows your draft, or your saved appearance when the draft is invalid. Changes are saved only in this browser.",
           )}
         </p>
+        <button
+          type="submit"
+          form="demo-appearance-form"
+          className={s.previewSave}
+          disabled={!validation.ok}
+        >
+          {t("Aplicar a mi tienda", "Apply to my store")}
+        </button>
+        {message && (
+          <p className={s.success} role="status">
+            {message}
+          </p>
+        )}
+        {error && <p className={s.error}>{error}</p>}
       </aside>
     </div>
   );

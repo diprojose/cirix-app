@@ -14,6 +14,10 @@
 
 Edit the logo, name, tagline, five palette fields and hero copy in the public appearance editor. Preview changes, then select **Guardar apariencia / Save appearance**. Presets change colors only and preserve the current logo and text. Logos accept PNG, JPG and WebP up to 1 MB and remain local.
 
+`modules/loyalty/demo/palettes.ts` is the typed palette catalog. It contains 15 presets: Mercado, Cirix, Oliva, Salvia, Terracota, Azafrán, Cacao, Coral, Océano, Mediterráneo, Frambuesa, Lavanda, Carbón, Bosque nocturno and Azul noche. The editor filters natural, warm, colorful and dark families, shows all five swatches and marks a custom combination when any color differs. Presets remain drafts until saved. The live preview includes the hero, offer, rewards and product card; its apply button saves the complete form.
+
+The shared storefront shell uses `--market-max-width` (1920px) and `--market-gutter` (fluid desktop gutters, 20px tablet, 16px mobile). Header, navigation, content, announcement and footer share this alignment. The catalog automatically fits columns to available width, with explicit three-/two-column tablet/mobile layouts. Hero artwork has a bounded stage, and mobile copy and imagery remain in normal document flow so longer brand copy cannot overlap the images.
+
 | Brand field | Role | Principal semantic variables |
 | --- | --- | --- |
 | `primaryColor` | Primary controls, links and selection | `--color-accent-fill`, `--color-on-accent`, `--color-accent` |

@@ -260,7 +260,7 @@ export function Quantity({
   variant = "default",
 }: {
   product: DemoProduct;
-  variant?: "default" | "detail";
+  variant?: "default" | "detail" | "card";
 }) {
   const { state, dispatch, t } = useDemo();
   const qty = state.cart[product.id] ?? 0;
@@ -268,7 +268,15 @@ export function Quantity({
   const change = (quantity: number) =>
     setError(dispatch({ type: "quantity", id: product.id, quantity }));
   return (
-    <div className={variant === "detail" ? s.detailQuantity : undefined}>
+    <div
+      className={
+        variant === "detail"
+          ? s.detailQuantity
+          : variant === "card"
+            ? s.cardQuantity
+            : undefined
+      }
+    >
       {qty ? (
         <div className={s.stepper}>
           <button
@@ -306,7 +314,7 @@ export function Quantity({
               : t(`Agregar ${product.name}`, `Add ${product.name}`)
           }
         >
-          <PlusIcon />
+          {variant === "detail" ? <BagIcon /> : <PlusIcon />}
           {product.available
             ? variant === "detail"
               ? t("Agregar al carrito", "Add to cart")
@@ -329,14 +337,20 @@ export function ProductCard({
   product: DemoProduct;
   preview?: boolean;
 }) {
-  const { basePath, money, t } = useDemo();
+  const { state, basePath, money, t } = useDemo();
   const offer =
     product.previousPriceCents &&
     product.previousPriceCents > product.priceCents;
   return (
-    <article className={s.productCard}>
+    <article
+      className={s.productCard}
+      data-in-cart={!preview && Boolean(state.cart[product.id])}
+      data-available={product.available}
+    >
       <div className={s.productVisual}>
-        {offer ? (
+        {!product.available ? (
+          <span className={s.freshTag}>{t("Agotado", "Unavailable")}</span>
+        ) : offer ? (
           <span className={s.offerTag}>
             −
             {Math.round(
@@ -345,7 +359,24 @@ export function ProductCard({
             %
           </span>
         ) : (
-          <span className={s.freshTag}>{t("Fresco", "Fresh")}</span>
+          <span className={s.freshTag}>
+            <LeafIcon />
+            {product.category === "bundles"
+              ? t("Pack familiar", "Family pack")
+              : t("Fresco", "Fresh")}
+          </span>
+        )}
+        {!preview && Boolean(state.cart[product.id]) && (
+          <span
+            className={s.cardCartBadge}
+            aria-label={t(
+              `${state.cart[product.id]} en tu carrito`,
+              `${state.cart[product.id]} in your cart`,
+            )}
+          >
+            <BagIcon />
+            {state.cart[product.id]}
+          </span>
         )}
         {preview ? (
           <ProductImage key={product.imageUrl} product={product} />
@@ -356,29 +387,49 @@ export function ProductCard({
         )}
       </div>
       <div className={s.productInfo}>
-        <span className={s.unit}>{product.unit}</span>
-        <h3>
-          {preview ? (
-            product.name
-          ) : (
-            <Link href={`${basePath}/product/${product.id}`}>
-              {product.name}
-            </Link>
-          )}
-        </h3>
-        <div className={s.price}>
-          {money(product.priceCents)}
-          {offer && <del>{money(product.previousPriceCents!)}</del>}
+        <div className={s.productHeading}>
+          <h3>
+            {preview ? (
+              product.name
+            ) : (
+              <Link href={`${basePath}/product/${product.id}`}>
+                {product.name}
+              </Link>
+            )}
+          </h3>
+          <span className={s.unit}>
+            {product.unit} <span aria-hidden="true">·</span> USD
+          </span>
         </div>
-        <p className={s.rewardHint}>
+        <div className={s.cardPurchase}>
+          <div className={s.price}>
+            <strong aria-label={money(product.priceCents)}>
+              {money(product.priceCents, true)}
+            </strong>
+            {offer && (
+              <del
+                aria-label={t(
+                  `Antes ${money(product.previousPriceCents!)}`,
+                  `Previously ${money(product.previousPriceCents!)}`,
+                )}
+              >
+                {money(product.previousPriceCents!, true)}
+              </del>
+            )}
+          </div>
+          {preview ? (
+            <span className={s.cardPreviewButton}>
+              <PlusIcon />
+              {t("Agregar", "Add")}
+            </span>
+          ) : (
+            <Quantity product={product} variant="card" />
+          )}
+        </div>
+        <p className={s.cardReward}>
           <LeafIcon />
-          {t("Suma recompensas", "Earn rewards")}
+          {t("Tu compra suma beneficios", "Earn rewards as you shop")}
         </p>
-        {preview ? (
-          <span className={s.primary}>{t("Agregar", "Add")}</span>
-        ) : (
-          <Quantity product={product} />
-        )}
       </div>
     </article>
   );
