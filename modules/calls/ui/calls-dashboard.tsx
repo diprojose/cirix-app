@@ -1,21 +1,15 @@
 import Link from "next/link";
+import type { CSSProperties, ReactNode } from "react";
 import { localizeHref, pick, type Locale } from "@/lib/locale";
 import type { CallStatus, TrackedCall } from "../domain/call";
 import type { CallListFilters } from "../application/call-tracking-service";
 import { maskPhoneNumber } from "./phone-format";
+import s from "./calls.module.css";
 
 type Stats = Awaited<ReturnType<import("../application/call-tracking-service").CallTrackingService["stats"]>>;
+type IconName = "phone" | "people" | "answered" | "missed" | "filter" | "clock" | "repeat";
 
-export function CallsDashboard({
-  locale,
-  timeZone,
-  trialMode,
-  configured,
-  filters,
-  calls,
-  total,
-  stats,
-}: {
+export function CallsDashboard({ locale, timeZone, trialMode, configured, filters, calls, total, stats }: {
   locale: Locale;
   timeZone: string;
   trialMode: boolean;
@@ -25,79 +19,78 @@ export function CallsDashboard({
   total: number;
   stats: Stats;
 }) {
+  const t = (es: string, en: string) => pick(locale, { es, en });
+  const number = (value: number) => new Intl.NumberFormat(locale).format(value);
   return (
-    <div className="space-y-6">
-      {(trialMode || !configured) && (
-        <div className="rounded-2xl border border-action-fill/30 bg-action-subtle px-4 py-3 text-sm text-action-strong">
-          {trialMode
-            ? pick(locale, { es: "Modo Trial activo. Los webhooks continúan validando su firma.", en: "Trial mode is active. Webhook signatures remain enforced." })
-            : pick(locale, { es: "La integración Twilio aún no tiene toda su configuración.", en: "The Twilio integration is not fully configured yet." })}
+    <div className={s.dashboard}>
+      <section className={s.hero} aria-labelledby="calls-title">
+        <div className={s.heroCopy}>
+          <p className={s.eyebrow}><span className={s.brandDot} /> CALL TRACKING / {t("VISTA GENERAL", "OVERVIEW")}</p>
+          <h1 id="calls-title">{t("Cada llamada,", "Every call,")}<br /><span>{t("una oportunidad.", "an opportunity.")}</span></h1>
+          <p className={s.description}>{t("Conoce quién llama, cómo responde tu equipo y quién vuelve a conectar con tu negocio.", "See who calls, how your team responds, and who reconnects with your business.")}</p>
+          <a href="#call-history" className={s.textLink}>{t("Explorar llamadas", "Explore calls")}<span aria-hidden="true">↓</span></a>
         </div>
-      )}
-
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Call Tracking</p>
-        <h1 className="mt-2 font-heading text-3xl font-bold tracking-[-0.03em] text-text">
-          {pick(locale, { es: "Llamadas", en: "Calls" })}
-        </h1>
-        <p className="mt-2 text-sm text-text-muted">
-          {pick(locale, { es: "Llamadas entrantes, atención y recurrencia por número.", en: "Inbound calls, answer performance, and repeat callers." })}
-        </p>
-      </div>
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label={pick(locale, { es: "Total", en: "Total" })} value={stats.totalCalls} />
-        <Kpi label={pick(locale, { es: "Únicos", en: "Unique" })} value={stats.uniqueCallers} />
-        <Kpi label={pick(locale, { es: "Atendidas", en: "Answered" })} value={stats.answeredCalls} />
-        <Kpi label={pick(locale, { es: "Perdidas", en: "Missed" })} value={stats.missedCalls} />
+        <div className={s.performance}>
+          <p className={s.eyebrow}>{t("ATENCIÓN EN EL PERÍODO", "ANSWER PERFORMANCE")}</p>
+          <div className={s.performanceMain}>
+            <div className={s.rateRing} style={{ "--rate": `${stats.answerRate}%` } as CSSProperties}>
+              <strong>{stats.totalCalls ? `${number(stats.answerRate)}%` : "—"}</strong>
+              <span>{t("atendidas", "answered")}</span>
+            </div>
+            <div className={s.performanceCopy}><h2>{t("Cada conexión cuenta.", "Every connection counts.")}</h2><p>{stats.totalCalls ? t(`${number(stats.answeredCalls)} de ${number(stats.totalCalls)} llamadas atendidas.`, `${number(stats.answeredCalls)} of ${number(stats.totalCalls)} calls answered.`) : t("Tu actividad aparecerá aquí con las primeras llamadas.", "Your activity will appear here with your first calls.")}</p></div>
+          </div>
+          <div className={s.performanceMetrics}>
+            <div><span><Icon name="clock" />{t("Duración promedio", "Average duration")}</span><strong>{stats.answeredCalls ? formatDuration(stats.averageDurationSeconds) : "—"}</strong></div>
+            <div><span><Icon name="repeat" />{t("Llamadas repetidas", "Repeat calls")}</span><strong>{number(stats.repeatCalls)}</strong></div>
+          </div>
+        </div>
       </section>
 
-      <div className="flex flex-wrap gap-2 text-sm text-text-muted">
-        <span className="rounded-pill bg-surface px-4 py-2 shadow-xs">{stats.answerRate}% {pick(locale, { es: "atendidas", en: "answer rate" })}</span>
-        <span className="rounded-pill bg-surface px-4 py-2 shadow-xs">{formatDuration(stats.averageDurationSeconds)} {pick(locale, { es: "promedio", en: "average" })}</span>
-        <span className="rounded-pill bg-surface px-4 py-2 shadow-xs">{stats.repeatCalls} {pick(locale, { es: "repetidas", en: "repeat calls" })}</span>
-      </div>
+      {(trialMode || !configured) && <aside className={s.notice}>
+        <span className={s.noticeLabel}>{!configured ? t("Configuración pendiente", "Setup pending") : t("Modo Trial", "Trial mode")}</span>
+        <p>{!configured ? t("La integración con Twilio aún necesita configuración para recibir llamadas.", "The Twilio integration still needs configuration to receive calls.") : t("Estás utilizando la integración de llamadas en modo de prueba.", "You are using the call integration in trial mode.")}</p>
+      </aside>}
 
-      <form method="get" className="grid gap-3 rounded-2xl bg-surface p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-5">
-        <Filter label={pick(locale, { es: "Desde", en: "From" })}><input name="from" type="date" defaultValue={filters.from ?? ""} className="field" /></Filter>
-        <Filter label={pick(locale, { es: "Hasta", en: "To" })}><input name="to" type="date" defaultValue={filters.to ?? ""} className="field" /></Filter>
-        <Filter label={pick(locale, { es: "Estado", en: "Status" })}>
-          <select name="status" defaultValue={filters.status ?? ""} className="field">
-            <option value="">{pick(locale, { es: "Todos", en: "All" })}</option>
-            {(["initiated", "ringing", "answered", "completed", "no_answer", "busy", "failed", "canceled"] as CallStatus[]).map((status) => <option key={status} value={status}>{statusLabel(locale, status)}</option>)}
-          </select>
-        </Filter>
-        <Filter label={pick(locale, { es: "Teléfono E.164", en: "E.164 phone" })}><input name="phone" defaultValue={filters.phone ?? ""} placeholder="+58412…" className="field" /></Filter>
-        <button className="min-h-11 self-end rounded-xl bg-action-fill px-4 text-sm font-semibold text-white hover:bg-action-strong">
-          {pick(locale, { es: "Filtrar", en: "Filter" })}
-        </button>
-      </form>
-
-      <section className="overflow-hidden rounded-2xl bg-surface shadow-xs">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="font-heading text-lg font-bold text-text">{pick(locale, { es: "Historial", en: "History" })}</h2>
-          <span className="text-xs text-text-muted">{total} {pick(locale, { es: "registros", en: "records" })}</span>
+      <section aria-labelledby="summary-title">
+        <div className={s.sectionHeading}><h2 id="summary-title">{t("El pulso de tus llamadas", "Your calls at a glance")}</h2><span>{t("Resumen del período seleccionado", "Selected date range summary")}</span></div>
+        <div className={s.kpiGrid}>
+          <Kpi label={t("Llamadas totales", "Total calls")} value={number(stats.totalCalls)} note={t("Todas las llamadas entrantes", "All inbound calls")} icon="phone" tone="accent" />
+          <Kpi label={t("Números únicos", "Unique callers")} value={number(stats.uniqueCallers)} note={t("Personas que se conectan", "People connecting with you")} icon="people" tone="blue" />
+          <Kpi label={t("Atendidas", "Answered")} value={number(stats.answeredCalls)} note={t("Conversaciones iniciadas", "Conversations started")} icon="answered" tone="green" />
+          <Kpi label={t("Perdidas", "Missed")} value={number(stats.missedCalls)} note={t("Oportunidades de reconectar", "Opportunities to reconnect")} icon="missed" tone="amber" />
         </div>
-        {calls.length === 0 ? (
-          <p className="px-4 py-12 text-center text-sm text-text-muted">{pick(locale, { es: "No hay llamadas para estos filtros.", en: "No calls match these filters." })}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-left text-sm">
-              <thead className="bg-bg text-xs uppercase tracking-wide text-text-muted"><tr><th className="px-4 py-3">{pick(locale, { es: "Teléfono", en: "Phone" })}</th><th className="px-4 py-3">{pick(locale, { es: "Fecha", en: "Date" })}</th><th className="px-4 py-3">{pick(locale, { es: "Hora", en: "Time" })}</th><th className="px-4 py-3">{pick(locale, { es: "Duración", en: "Duration" })}</th><th className="px-4 py-3">{pick(locale, { es: "Estado", en: "Status" })}</th></tr></thead>
-              <tbody className="divide-y divide-border">
-                {calls.map((call) => (
-                  <tr key={call.id} className="hover:bg-bg/60">
-                    <td className="px-4 py-4 font-medium text-text"><Link className="hover:text-accent" href={localizeHref(locale, `/calls/${encodeURIComponent(call.id)}`)}>{maskPhoneNumber(call.callerPhone)}</Link></td>
-                    <td className="px-4 py-4 text-text-muted">{formatDate(call.startedAt, locale, timeZone)}</td>
-                    <td className="px-4 py-4 text-text-muted">{formatTime(call.startedAt, locale, timeZone)}</td>
-                    <td className="px-4 py-4 tabular-nums text-text-muted">{call.durationSeconds === null ? "—" : formatDuration(call.durationSeconds)}</td>
-                    <td className="px-4 py-4"><StatusBadge locale={locale} status={call.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      </section>
+
+      <section id="call-history" className={s.history} aria-labelledby="history-title">
+        <div className={s.historyHeading}>
+          <div><p className={s.eyebrow}>{t("EXPLORA LA ACTIVIDAD", "EXPLORE ACTIVITY")}</p><h2 id="history-title">{t("Historial de llamadas", "Call history")}<span className={s.count}>{number(total)}</span></h2></div>
+          <span className={s.timeZone}><Icon name="clock" />{timeZone.replaceAll("_", " ")}</span>
+        </div>
+        <form method="get" className={s.filters}>
+          <input type="hidden" name="limit" value={filters.limit} />
+          <Filter label={t("Desde", "From")}><input name="from" type="date" defaultValue={filters.from ?? ""} className={s.field} /></Filter>
+          <Filter label={t("Hasta", "To")}><input name="to" type="date" defaultValue={filters.to ?? ""} className={s.field} /></Filter>
+          <Filter label={t("Estado", "Status")}><select name="status" defaultValue={filters.status ?? ""} className={s.field}>
+            <option value="">{t("Todos los estados", "All statuses")}</option>
+            {(["initiated", "ringing", "answered", "completed", "no_answer", "busy", "failed", "canceled"] as CallStatus[]).map((status) => <option key={status} value={status}>{statusLabel(locale, status)}</option>)}
+          </select></Filter>
+          <Filter label={t("Teléfono", "Phone")}><input name="phone" type="tel" defaultValue={filters.phone ?? ""} placeholder="+584121234567" pattern="\+[1-9][0-9]{6,14}" title={t("Incluye + y el código de país, sin espacios.", "Include + and the country code, without spaces.")} className={s.field} /></Filter>
+          <button type="submit" className={s.primaryButton}><Icon name="filter" />{t("Filtrar", "Filter")}</button>
+          <div className={s.filterFooter}><p>{t("Las métricas resumen las fechas seleccionadas; estado y teléfono filtran el historial.", "Metrics summarize the selected dates; status and phone filter the history.")}</p><Link href={localizeHref(locale, "/calls")} className={s.resetLink}>{t("Restablecer filtros", "Reset filters")}</Link></div>
+        </form>
+        {calls.length === 0 ? <div className={s.emptyState}>
+          <span className={s.emptyIcon}><Icon name="phone" /></span><h3>{t("Sin llamadas en esta vista", "No calls in this view")}</h3><p>{t("Prueba con otras fechas o restablece los filtros para explorar tu actividad.", "Try another date range or reset the filters to explore your activity.")}</p>
+          <Link href={localizeHref(locale, "/calls")} className={s.secondaryButton}>{t("Restablecer filtros", "Reset filters")}<span aria-hidden="true">↗</span></Link>
+        </div> : <div className={s.tableScroll} role="region" aria-label={t("Historial de llamadas", "Call history")} tabIndex={0}>
+          <table className={s.table}>
+            <thead><tr><th scope="col">{t("Teléfono", "Phone")}</th><th scope="col">{t("Fecha", "Date")}</th><th scope="col">{t("Hora", "Time")}</th><th scope="col">{t("Duración", "Duration")}</th><th scope="col">{t("Estado", "Status")}</th><th scope="col"><span className={s.srOnly}>{t("Detalle", "Details")}</span></th></tr></thead>
+            <tbody>{calls.map((call) => <tr key={call.id}>
+              <td><Link className={s.phoneLink} href={localizeHref(locale, `/calls/${encodeURIComponent(call.id)}`)}><span className={s.phoneIcon}><Icon name="phone" /></span><span>{maskPhoneNumber(call.callerPhone)}<small>{t("Llamada entrante", "Inbound call")}</small></span></Link></td>
+              <td>{formatDate(call.startedAt, locale, timeZone)}</td><td>{formatTime(call.startedAt, locale, timeZone)}</td><td className={s.duration}>{call.durationSeconds === null ? "—" : formatDuration(call.durationSeconds)}</td><td><StatusBadge locale={locale} status={call.status} /></td>
+              <td><Link className={s.detailLink} href={localizeHref(locale, `/calls/${encodeURIComponent(call.id)}`)} aria-label={t(`Ver llamada de ${maskPhoneNumber(call.callerPhone)}`, `View call from ${maskPhoneNumber(call.callerPhone)}`)}><span aria-hidden="true">↗</span></Link></td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
         <Pagination locale={locale} filters={filters} total={total} />
       </section>
     </div>
@@ -105,30 +98,48 @@ export function CallsDashboard({
 }
 
 export function CallDetail({ locale, timeZone, call, history }: { locale: Locale; timeZone: string; call: TrackedCall; history: { totalCalls: number; firstCallAt: string | null; lastCallAt: string | null } }) {
-  return (
-    <div className="mx-auto max-w-2xl space-y-5">
-      <Link href={localizeHref(locale, "/calls")} className="text-sm font-semibold text-accent hover:underline">← {pick(locale, { es: "Volver a llamadas", en: "Back to calls" })}</Link>
-      <section className="rounded-2xl bg-surface p-5 shadow-xs">
-        <h1 className="font-heading text-2xl font-bold text-text">{pick(locale, { es: "Llamada", en: "Call" })}</h1>
-        <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Detail label={pick(locale, { es: "Teléfono", en: "Phone" })} value={call.callerPhone} />
-          <Detail label={pick(locale, { es: "Estado", en: "Status" })} value={statusLabel(locale, call.status)} />
-          <Detail label={pick(locale, { es: "Fecha", en: "Date" })} value={formatDate(call.startedAt, locale, timeZone)} />
-          <Detail label={pick(locale, { es: "Hora", en: "Time" })} value={formatTime(call.startedAt, locale, timeZone)} />
-          <Detail label={pick(locale, { es: "Duración", en: "Duration" })} value={call.durationSeconds === null ? "—" : formatDuration(call.durationSeconds)} />
-          <Detail label={pick(locale, { es: "Primera llamada", en: "First call" })} value={history.firstCallAt ? formatDate(history.firstCallAt, locale, timeZone) : "—"} />
-          <Detail label={pick(locale, { es: "Última llamada", en: "Last call" })} value={history.lastCallAt ? formatDate(history.lastCallAt, locale, timeZone) : "—"} />
-          <Detail label={pick(locale, { es: "Total de llamadas", en: "Total calls" })} value={String(history.totalCalls)} />
-        </dl>
-      </section>
-    </div>
-  );
+  const t = (es: string, en: string) => pick(locale, { es, en });
+  return <div className={s.detail}>
+    <Link href={localizeHref(locale, "/calls")} className={s.textLink}>← {t("Volver a llamadas", "Back to calls")}</Link>
+    <div className={s.detailHeading}><p className={s.eyebrow}><span className={s.brandDot} />CALL TRACKING / {t("DETALLE", "DETAILS")}</p><h1>{t("Una conversación.", "One conversation.")}<br /><span>{t("Todo el contexto.", "All the context.")}</span></h1></div>
+    <section className={s.detailCard}>
+      <div className={s.callerHeading}><span className={s.emptyIcon}><Icon name="phone" /></span><div><p className={s.eyebrow}>{t("LLAMADA ENTRANTE", "INBOUND CALL")}</p><h2>{call.callerPhone}</h2></div><StatusBadge locale={locale} status={call.status} /></div>
+      <dl className={s.detailGrid}>
+        <Detail label={t("Fecha", "Date")} value={formatDate(call.startedAt, locale, timeZone)} />
+        <Detail label={t("Hora", "Time")} value={formatTime(call.startedAt, locale, timeZone)} />
+        <Detail label={t("Duración", "Duration")} value={call.durationSeconds === null ? "—" : formatDuration(call.durationSeconds)} />
+        <Detail label={t("Zona horaria", "Time zone")} value={timeZone.replaceAll("_", " ")} />
+      </dl>
+    </section>
+    <section className={s.detailCard} aria-labelledby="caller-history-title">
+      <div className={s.sectionHeading}><h2 id="caller-history-title">{t("Su historia con tu negocio", "Their history with your business")}</h2><Icon name="repeat" /></div>
+      <dl className={`${s.detailGrid} ${s.callerHistory}`}>
+        <Detail label={t("Total de llamadas", "Total calls")} value={new Intl.NumberFormat(locale).format(history.totalCalls)} />
+        <Detail label={t("Primera llamada", "First call")} value={history.firstCallAt ? formatDate(history.firstCallAt, locale, timeZone) : "—"} />
+        <Detail label={t("Última llamada", "Last call")} value={history.lastCallAt ? formatDate(history.lastCallAt, locale, timeZone) : "—"} />
+      </dl>
+    </section>
+  </div>;
 }
 
-function Kpi({ label, value }: { label: string; value: number }) { return <div className="rounded-2xl bg-surface p-5 shadow-xs"><p className="font-heading text-3xl font-extrabold tabular-nums text-text">{value}</p><p className="mt-1 text-sm text-text-muted">{label}</p></div>; }
-function Filter({ label, children }: { label: string; children: React.ReactNode }) { return <label className="grid gap-1 text-xs font-semibold text-text-muted">{label}{children}</label>; }
-function Detail({ label, value }: { label: string; value: string }) { return <div><dt className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</dt><dd className="mt-1 break-words text-base font-semibold text-text">{value}</dd></div>; }
-function StatusBadge({ locale, status }: { locale: Locale; status: CallStatus }) { return <span className="inline-flex rounded-pill bg-bg px-3 py-1 text-xs font-semibold text-text">{statusLabel(locale, status)}</span>; }
+function Kpi({ label, value, note, icon, tone }: { label: string; value: string; note: string; icon: IconName; tone: string }) {
+  return <div className={s.kpi} data-tone={tone}><div className={s.kpiHeading}><p>{label}</p><span className={s.kpiIcon}><Icon name={icon} /></span></div><strong>{value}</strong><p className={s.kpiNote}>{note}</p></div>;
+}
+function Filter({ label, children }: { label: string; children: ReactNode }) { return <label className={s.filterLabel}>{label}{children}</label>; }
+function Detail({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
+function StatusBadge({ locale, status }: { locale: Locale; status: CallStatus }) { return <span className={s.status} data-status={status}><span aria-hidden="true" />{statusLabel(locale, status)}</span>; }
+function Icon({ name }: { name: IconName }) {
+  const paths: Record<IconName, ReactNode> = {
+    phone: <path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L9 10.9a16 16 0 0 0 4.1 4.1l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 2.7 2Z" />,
+    people: <><circle cx="9" cy="8" r="3" /><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 4v2" /></>,
+    answered: <><path d="m7 11 4 4L21 5M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9" /></>,
+    missed: <><path d="m4 5 7 7 9-9M14 3h6v6M3 20c4-5 14-5 18 0M3 20v-4M21 20v-4" /></>,
+    filter: <><path d="M4 7h16M4 17h16" /><circle cx="9" cy="7" r="2" /><circle cx="15" cy="17" r="2" /></>,
+    clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+    repeat: <><path d="m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3" /></>,
+  };
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+}
 
 function Pagination({ locale, filters, total }: { locale: Locale; filters: CallListFilters; total: number }) {
   const pages = Math.max(1, Math.ceil(total / filters.limit));
@@ -139,9 +150,10 @@ function Pagination({ locale, filters, total }: { locale: Locale; filters: CallL
     if (filters.status) params.set("status", filters.status);
     if (filters.phone) params.set("phone", filters.phone);
     params.set("page", String(page));
+    params.set("limit", String(filters.limit));
     return `${localizeHref(locale, "/calls")}?${params}`;
   };
-  return <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm"><span className="text-text-muted">{filters.page} / {pages}</span><div className="flex gap-2">{filters.page > 1 && <Link className="rounded-xl border border-border px-3 py-2" href={href(filters.page - 1)}>{pick(locale, { es: "Anterior", en: "Previous" })}</Link>}{filters.page < pages && <Link className="rounded-xl border border-border px-3 py-2" href={href(filters.page + 1)}>{pick(locale, { es: "Siguiente", en: "Next" })}</Link>}</div></div>;
+  return <div className={s.pagination}><span className={s.muted}>{pick(locale, { es: "Página", en: "Page" })} {filters.page} / {pages}</span><div className={s.paginationActions}>{filters.page > 1 && <Link className={s.secondaryButton} href={href(filters.page - 1)}>{pick(locale, { es: "Anterior", en: "Previous" })}</Link>}{filters.page < pages && <Link className={s.secondaryButton} href={href(filters.page + 1)}>{pick(locale, { es: "Siguiente", en: "Next" })}</Link>}</div></div>;
 }
 
 function statusLabel(locale: Locale, status: CallStatus): string {
