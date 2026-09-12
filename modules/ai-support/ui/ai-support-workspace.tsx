@@ -21,6 +21,9 @@ const COPY = {
     home: "CIRIX — inicio",
     eyebrow: "ECOSISTEMA CIRIX / ASISTENCIA",
     intro: "Cada pregunta, un paso más cerca de tu próxima compra.",
+    experience: "04 / INTELIGENCIA QUE ACOMPAÑA",
+    language: "Atención en español e inglés",
+    welcomeAccent: "Conversemos.",
     guide: "A TU LADO, EN CADA PASO",
     guideTitle: "Tus preguntas.",
     guideAccent: "Más posibilidades.",
@@ -44,7 +47,7 @@ const COPY = {
     ai: "Modo IA · consumo activo",
     simulatedNote: "Las respuestas siguen reglas locales y datos del demo. No se realiza ninguna llamada a OpenAI.",
     aiNote: "La IA está habilitada manualmente. No compartas información personal o bancaria.",
-    welcome: "Hola, ¿en qué puedo ayudarte hoy?",
+    welcome: "Tu próxima pregunta.",
     welcomeDetail: "Puedo orientarte sobre productos, precios, delivery, pagos, rewards y referidos.",
     placeholder: "Escribe una pregunta sobre la tienda...",
     send: "Enviar",
@@ -68,6 +71,9 @@ const COPY = {
     home: "CIRIX — home",
     eyebrow: "CIRIX ECOSYSTEM / SUPPORT",
     intro: "Every question, a step closer to your next purchase.",
+    experience: "04 / INTELLIGENCE BY YOUR SIDE",
+    language: "Support in English and Spanish",
+    welcomeAccent: "Let's talk.",
     guide: "BY YOUR SIDE, AT EVERY STEP",
     guideTitle: "Your questions.",
     guideAccent: "More possibilities.",
@@ -91,7 +97,7 @@ const COPY = {
     ai: "AI mode · usage active",
     simulatedNote: "Replies use local rules and demo data. No request is made to OpenAI.",
     aiNote: "AI was manually enabled. Do not share personal or banking information.",
-    welcome: "Hi, how can I help today?",
+    welcome: "Your next question.",
     welcomeDetail: "I can help with products, prices, delivery, payments, rewards, and referrals.",
     placeholder: "Ask a question about the store...",
     send: "Send",
@@ -176,9 +182,13 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
             <h1>AI Customer <span>Support.</span></h1>
             <p className={styles.introDescription}>{copy.intro}</p>
           </div>
-          <div className={styles.mode}>
-            <span className={styles.modeDot} aria-hidden="true" />
-            {mode === "ai" ? copy.ai : copy.simulated}
+          <div className={styles.introAside}>
+            <span className={styles.experienceLabel}>{copy.experience}</span>
+            <div className={styles.mode}>
+              <span className={styles.modeDot} aria-hidden="true" />
+              {mode === "ai" ? copy.ai : copy.simulated}
+            </div>
+            <span className={styles.language}><span aria-hidden="true">ES / EN</span>{copy.language}</span>
           </div>
         </div>
 
@@ -186,6 +196,13 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
           <aside className={styles.sidebar}>
             <div className={styles.guide}>
               <p className={landing.eyebrow}>{copy.guide}</p>
+              <div className={styles.supportOrbit} aria-hidden="true">
+                <div className={styles.orbitRing} />
+                <div className={styles.orbitCore}><SupportIcon /></div>
+                <span className={styles.orbitNode}>♡</span>
+                <span className={styles.orbitNode}>↗</span>
+                <span className={styles.orbitCaption}>CIRIX · AI SUPPORT</span>
+              </div>
               <h2>{copy.guideTitle}<br /><span>{copy.guideAccent}</span></h2>
               <p className={styles.description}>{copy.subtitle}</p>
               <ul className={styles.topics}>
@@ -219,13 +236,14 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
             <div ref={conversationRef} className={styles.conversation} role="log" aria-label={copy.session} aria-live="polite" aria-relevant="additions text" tabIndex={0}>
               {messages.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <div className={styles.welcomeSymbol} aria-hidden="true"><SupportIcon /></div>
-                  <h3>{copy.welcome}</h3>
+                  <p className={styles.welcomeEyebrow}><span className={landing.statusDot} aria-hidden="true" />CIRIX ASSISTANT</p>
+                  <h3>{copy.welcome}<br /><span>{copy.welcomeAccent}</span></h3>
                   <p className={styles.welcomeDetail}>{copy.welcomeDetail}</p>
                   <p className={styles.suggestionsLabel}>{copy.suggestions}</p>
                   <div className={styles.prompts}>
                     {copy.prompts.map((prompt, index) => (
                       <button key={prompt} type="button" disabled={busy || atLimit} onClick={() => void submit(undefined, prompt)} className={styles.prompt}>
+                        <span className={styles.promptIcon} aria-hidden="true"><TopicIcon index={index} /></span>
                         <span className={styles.promptHeading}><span>{copy.promptLabels[index]}</span><span aria-hidden="true">↗</span></span>
                         <span>{prompt}</span>
                       </button>
@@ -283,6 +301,18 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
       </main>
     </div>
   );
+}
+
+function TopicIcon({ index }: { index: number }) {
+  const paths = [
+    "M20 11a8 8 0 0 1-8 8H5l-3 3V11a9 9 0 0 1 18 0ZM7 10h8M7 14h5",
+    "M9 21H4V4h12v17h-5M8 8h4M8 12h4M16 10h4v11h-4",
+    "m3 7 9-5 9 5v10l-9 5-9-5V7Zm0 0 9 5 9-5M12 12v10M7 5l10 5",
+    "M14 17H8M3 17H2V5h12v12h2M14 9h4l4 5v3h-2M8 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm12 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z",
+    "M3 4h18v16H3V4Zm0 5h18M7 15h4",
+    "M12 8v13M3 8h18v5H3V8Zm2 5v8h14v-8M12 8H8a3 3 0 1 1 3-3l1 3Zm0 0h4a3 3 0 1 0-3-3l-1 3Z",
+  ];
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={paths[index]} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function SupportIcon() {
