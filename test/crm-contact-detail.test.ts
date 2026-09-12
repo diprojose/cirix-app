@@ -51,6 +51,18 @@ describe("CRM contact detail navigation", () => {
     expect(result.props.activities.map((item: { id: string }) => item.id)).toEqual(["a1"]);
     expect(result.props.opportunities.map((item: { id: string }) => item.id)).toEqual(["d1"]);
   });
+  it.each(["es", "en"])("resolves an encoded lead ID from a real %s URL", async (locale) => {
+    state.locale.mockResolvedValue(locale);
+    const id = "lead:7371235000000804002";
+    state.get.mockResolvedValue({ dashboard: { ...dashboard, contacts: [{ ...contact, id }] }, warning: null });
+    const result = await page("leads", encodeURIComponent(id));
+    expect(result.props.contact.id).toBe(id);
+    expect(result.props.locale).toBe(locale);
+  });
+  it("rejects malformed URL encoding without requesting CRM data", async () => {
+    await expect(page("leads", "lead%ZZ123")).rejects.toThrow("NOT_FOUND");
+    expect(state.get).not.toHaveBeenCalled();
+  });
   it.each([["leads", "missing"], ["customers", contact.id], ["invalid", contact.id]])("returns not found for %s/%s", async (stage, id) => {
     await expect(page(stage, id)).rejects.toThrow("NOT_FOUND");
   });

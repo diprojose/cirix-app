@@ -14,11 +14,18 @@ export default async function ZohoContactDetailPage({ params }: {
   const { stage: segment, id } = await params;
   const stage = stageFromSegment(segment);
   if (!stage) notFound();
+  let contactId: string;
+  try {
+    // Next.js can preserve URL encoding in dynamic route parameters.
+    contactId = decodeURIComponent(id);
+  } catch {
+    notFound();
+  }
 
   const [locale, { dashboard, warning }] = await Promise.all([getCurrentLocale(), getZohoDashboardState()]);
   // An unavailable CRM must not turn an existing contact into a false 404.
   if (warning) throw new CrmUnavailableError(warning);
-  const contact = dashboard.contacts.find((item) => item.id === id && item.lifecycleStage === stage);
+  const contact = dashboard.contacts.find((item) => item.id === contactId && item.lifecycleStage === stage);
   if (!contact) notFound();
 
   return <CrmContactDetail locale={locale} contact={contact}
