@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
@@ -20,6 +21,7 @@ export function SignOutButton({
   className?: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const locale = useLocale();
   const { basePath } = useBrand();
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,8 @@ export function SignOutButton({
   async function handleSignOut() {
     setLoading(true);
     try {
-      await fetch("/api/auth/session", { method: "DELETE" });
+      const response = await fetch("/api/auth/session", { method: "DELETE" });
+      if (!response.ok) throw new Error("Sign-out failed");
       if (hasFirebaseClientConfig) {
         const { auth } = getFirebaseAuth();
         await signOut(auth).catch(() => {});
@@ -36,6 +39,8 @@ export function SignOutButton({
         localizeHref(locale, basePath ? brandHref("/loyalty", basePath) : "/")
       );
       router.refresh();
+    } catch {
+      toast.error(pick(locale, { es: "No se pudo cerrar la sesión. Intenta de nuevo.", en: "Could not sign out. Please try again." }));
     } finally {
       setLoading(false);
     }

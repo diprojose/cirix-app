@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/cart/cart-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { PwaInstaller } from "@/components/pwa-installer";
 import { RouteTheme } from "@/components/route-theme";
+import { ToastProvider } from "@/components/toast-provider";
 import { getCurrentLocale } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { requirePlatformUser } from "@/lib/auth/dal";
@@ -72,12 +73,14 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>
-          <CartProvider>
-            <RouteTheme>
-              {children}
-              <PwaInstaller />
-            </RouteTheme>
-          </CartProvider>
+          <ToastProvider>
+            <CartProvider>
+              <RouteTheme>
+                {children}
+                <PwaInstaller />
+              </RouteTheme>
+            </CartProvider>
+          </ToastProvider>
         </LocaleProvider>
       </body>
     </html>

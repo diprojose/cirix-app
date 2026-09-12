@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
 import { useState } from "react";
 import s from "./crm.module.css";
 
@@ -24,19 +25,13 @@ type LeadCaptureSuccess = {
   };
 };
 
-type LeadCaptureFailure = {
-  ok: false;
-  message: string;
-};
-
-type FormState = LeadCaptureSuccess | LeadCaptureFailure | null;
-
 export function LeadCaptureForm({
   locale,
 }: {
   locale: "es" | "en";
 }) {
-  const [state, setState] = useState<FormState>(null);
+  const toast = useToast();
+  const [state, setState] = useState<LeadCaptureSuccess | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -79,14 +74,9 @@ export function LeadCaptureForm({
       };
 
       if (!response.ok || !result.ok) {
-        setState({
-          ok: false,
-          message:
-            result.message ??
-            (locale === "es"
-              ? "No pudimos enviar tu consulta. Intenta de nuevo."
-              : "We could not send your inquiry. Please try again."),
-        });
+        toast.error(result.message ?? (locale === "es"
+          ? "No pudimos enviar tu consulta. Intenta de nuevo."
+          : "We could not send your inquiry. Please try again."));
         return;
       }
 
@@ -114,12 +104,9 @@ export function LeadCaptureForm({
         },
       });
     } catch {
-      setState({
-        ok: false,
-        message: locale === "es"
-          ? "No pudimos enviar tu consulta. Intenta de nuevo."
-          : "We could not send your inquiry. Please try again.",
-      });
+      toast.error(locale === "es"
+        ? "No pudimos enviar tu consulta. Intenta de nuevo."
+        : "We could not send your inquiry. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -212,45 +199,36 @@ export function LeadCaptureForm({
       </label>
 
       {state ? (
-        state.ok ? (
-          <div className="space-y-3">
-            <p
-              role="status"
-              className={s.success}
-            >
-              {state.message}
-            </p>
-            <div className={s.result}>
-              <p className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
-                {locale === "es" ? "Resultado del envío" : "Submission result"}
-              </p>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <ResultFact label={locale === "es" ? "Referencia" : "Reference"} value={state.lead.id} />
-                <ResultFact label={locale === "es" ? "Sincronización" : "Sync status"} value={{
-                  pending: locale === "es" ? "Pendiente" : "Pending",
-                  synced: locale === "es" ? "Sincronizado" : "Synced",
-                  failed: locale === "es" ? "No se pudo sincronizar" : "Sync failed",
-                }[state.lead.syncStatus]} />
-                <ResultFact
-                  label={locale === "es" ? "Referencia Zoho" : "Zoho reference"}
-                  value={state.lead.zohoLeadId ?? (locale === "es" ? "Pendiente" : "Pending")}
-                />
-                <ResultFact label={locale === "es" ? "Fecha de envío" : "Submitted at"} value={state.lead.submittedAt} />
-              </div>
-              <details className={s.resultSummary}>
-                <summary>{locale === "es" ? "Ver datos enviados" : "View submitted details"}</summary>
-                <pre>{JSON.stringify(state.submitted, null, 2)}</pre>
-              </details>
-            </div>
-          </div>
-        ) : (
+        <div className="space-y-3">
           <p
-            role="alert"
-            className={s.failure}
+            role="status"
+            className={s.success}
           >
             {state.message}
           </p>
-        )
+          <div className={s.result}>
+            <p className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
+              {locale === "es" ? "Resultado del envío" : "Submission result"}
+            </p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <ResultFact label={locale === "es" ? "Referencia" : "Reference"} value={state.lead.id} />
+              <ResultFact label={locale === "es" ? "Sincronización" : "Sync status"} value={{
+                pending: locale === "es" ? "Pendiente" : "Pending",
+                synced: locale === "es" ? "Sincronizado" : "Synced",
+                failed: locale === "es" ? "No se pudo sincronizar" : "Sync failed",
+              }[state.lead.syncStatus]} />
+              <ResultFact
+                label={locale === "es" ? "Referencia Zoho" : "Zoho reference"}
+                value={state.lead.zohoLeadId ?? (locale === "es" ? "Pendiente" : "Pending")}
+              />
+              <ResultFact label={locale === "es" ? "Fecha de envío" : "Submitted at"} value={state.lead.submittedAt} />
+            </div>
+            <details className={s.resultSummary}>
+              <summary>{locale === "es" ? "Ver datos enviados" : "View submitted details"}</summary>
+              <pre>{JSON.stringify(state.submitted, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
       ) : null}
 
       <button

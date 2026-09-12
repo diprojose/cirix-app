@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/format/money";
@@ -9,7 +11,7 @@ import type { DeliveryZone } from "@/modules/loyalty/ordering/domain/value-objec
 import { LocalizedLink } from "@/components/localized-link";
 import { brandHref, useBrand } from "@/modules/loyalty/branding/ui/brand-provider";
 import { useLocale } from "@/components/locale-provider";
-import { localizeHref } from "@/lib/locale";
+import { localizeHref, pick } from "@/lib/locale";
 
 /** Shared input styling for the checkout fields. */
 const FIELD_CLASS =
@@ -47,10 +49,9 @@ export function CheckoutForm({
   const [appliedCoupon, setAppliedCoupon] = useState<
     { code: string; discountCents: number } | null
   >(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   // Earliest selectable fulfillment day: today, in the customer's timezone.
   const minDate = useMemo(() => new Date().toLocaleDateString("en-CA"), []);
@@ -102,21 +103,24 @@ export function CheckoutForm({
     if (code === "") return;
 
     setCouponBusy(true);
-    setCouponError(null);
-    const result = await validateCouponAction({ code, subtotalCents: cart.subtotalCents });
-    if (result.ok) {
-      setAppliedCoupon({ code: result.code, discountCents: result.discountCents });
-      setUseCredit(false);
-    } else {
-      setAppliedCoupon(null);
-      setCouponError(result.message);
+    try {
+      const result = await validateCouponAction({ code, subtotalCents: cart.subtotalCents });
+      if (result.ok) {
+        setAppliedCoupon({ code: result.code, discountCents: result.discountCents });
+        setUseCredit(false);
+      } else {
+        setAppliedCoupon(null);
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error(pick(locale, { es: "No se pudo validar el cupón. Intenta de nuevo.", en: "Could not validate the coupon. Please try again." }));
+    } finally {
+      setCouponBusy(false);
     }
-    setCouponBusy(false);
   }
 
   function handleRemoveCoupon() {
     setAppliedCoupon(null);
-    setCouponError(null);
     setCouponInput("");
   }
 
@@ -125,32 +129,36 @@ export function CheckoutForm({
     if (submitting || cart === null) return;
 
     setSubmitting(true);
-    setError(null);
 
-    const result = await placeOrderAction({
-      brandSlug: profile.slug,
-      customerName,
-      customerPhone,
-      items: cart.lines.map((line) => ({
-        productId: line.productId,
-        quantity: line.quantity,
-      })),
-      delivery:
-        deliveryKind === "pickup" ? { kind: "pickup" } : { kind: "delivery", zoneId },
-      scheduledDate,
-      notes,
-      redeemCredit: appliedCoupon ? false : useCredit && hasCredit,
-      couponCode: appliedCoupon?.code,
-    });
+    try {
+      const result = await placeOrderAction({
+        brandSlug: profile.slug,
+        customerName,
+        customerPhone,
+        items: cart.lines.map((line) => ({
+          productId: line.productId,
+          quantity: line.quantity,
+        })),
+        delivery:
+          deliveryKind === "pickup" ? { kind: "pickup" } : { kind: "delivery", zoneId },
+        scheduledDate,
+        notes,
+        redeemCredit: appliedCoupon ? false : useCredit && hasCredit,
+        couponCode: appliedCoupon?.code,
+      });
 
-    if (!result.ok) {
-      setError(result.message);
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+
+      await clear();
+      router.push(localizeHref(locale, brandHref(`/orders/${result.orderId}`, basePath)));
+    } catch {
+      toast.error(pick(locale, { es: "No se pudo confirmar el pedido. Revisa tus pedidos antes de volver a enviarlo.", en: "Could not confirm the order. Check your orders before submitting again." }));
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    await clear();
-    router.push(localizeHref(locale, brandHref(`/orders/${result.orderId}`, basePath)));
   }
 
   return (
@@ -288,11 +296,6 @@ export function CheckoutForm({
                 {couponBusy ? "…" : "Aplicar"}
               </button>
             </div>
-            {couponError && (
-              <p role="alert" className="text-xs font-medium text-danger">
-                {couponError}
-              </p>
-            )}
           </>
         )}
       </section>
@@ -338,12 +341,6 @@ export function CheckoutForm({
           </SummaryRow>
         </div>
       </section>
-
-      {error && (
-        <p role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
-          {error}
-        </p>
-      )}
 
       <button
         type="submit"

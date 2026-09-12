@@ -1,3 +1,4 @@
+import { ErrorToast } from "@/components/toast-provider";
 import type { Metadata } from "next";
 import { requireOperator } from "@/lib/auth/dal";
 import { formatVes } from "@/lib/format/money";
@@ -71,9 +72,7 @@ export default async function AdminSettingsPage({
             </p>
           </>
         ) : (
-          <p className="text-sm font-medium text-danger">
-            Ninguna fuente de tasa disponible — los precios en Bs están ocultos.
-          </p>
+          <ErrorToast message="Ninguna fuente de tasa disponible — los precios en Bs están ocultos." />
         )}
       </section>
 

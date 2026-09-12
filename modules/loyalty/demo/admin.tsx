@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -253,7 +255,7 @@ function ProductEditor({ id }: { id: string }) {
   const { state, basePath, dispatch, t } = useDemo();
   const router = useRouter();
   const existing = state.products.find((p) => p.id === id);
-  const [error, setError] = useState("");
+  const toast = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
   if (id !== "new" && !existing)
     return (
@@ -284,7 +286,7 @@ function ProductEditor({ id }: { id: string }) {
       featured: form.get("featured") === "on",
     });
     if (!product.success) {
-      setError(
+      toast.error(
         t(
           "Revisa los campos. La imagen debe ser una ruta local o URL HTTPS.",
           "Check the fields. Images must use a local path or HTTPS URL.",
@@ -293,7 +295,7 @@ function ProductEditor({ id }: { id: string }) {
       return;
     }
     const failure = dispatch({ type: "product", product: product.data });
-    if (failure) setError(failure);
+    if (failure) toast.error(failure);
     else router.push(`${basePath}/admin/products`);
   }
   return (
@@ -405,11 +407,6 @@ function ProductEditor({ id }: { id: string }) {
         />
         {t("Producto destacado", "Featured product")}
       </label>
-      {error && (
-        <p role="alert" className={s.error}>
-          {error}
-        </p>
-      )}
       <div className={s.actions}>
         <button className={s.primary}>
           {t("Guardar producto", "Save product")}
@@ -440,7 +437,7 @@ function ProductEditor({ id }: { id: string }) {
             className={s.dangerButton}
             onClick={() => {
               const failure = dispatch({ type: "deleteProduct", id });
-              if (failure) setError(failure);
+              if (failure) toast.error(failure);
               else router.push(`${basePath}/admin/products`);
             }}
           >
@@ -463,7 +460,7 @@ function Coupons() {
   const { state, dispatch, t, money } = useDemo();
   const [editing, setEditing] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const toast = useToast();
   const coupon = state.coupons.find((c) => c.code === editing);
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -475,7 +472,7 @@ function Coupons() {
       active: form.get("active") === "on",
     });
     if (!parsed.success) {
-      setError(
+      toast.error(
         t(
           "Revisa el código, porcentaje y compra mínima.",
           "Check the code, percentage and minimum spend.",
@@ -484,9 +481,8 @@ function Coupons() {
       return;
     }
     const failure = dispatch({ type: "coupon", coupon: parsed.data });
-    if (failure) setError(failure);
+    if (failure) toast.error(failure);
     else {
-      setError("");
       setMessage(t("Cupón guardado.", "Coupon saved."));
     }
   }
@@ -508,7 +504,6 @@ function Coupons() {
               onClick={() => {
                 setEditing(c.code);
                 setMessage("");
-                setError("");
               }}
             >
               {t("Editar", "Edit")}
@@ -588,11 +583,6 @@ function Coupons() {
             {message}
           </p>
         )}
-        {error && (
-          <p className={s.error} role="alert">
-            {error}
-          </p>
-        )}
       </form>
     </>
   );
@@ -600,7 +590,7 @@ function Coupons() {
 
 function Rewards() {
   const { state, dispatch, t, money } = useDemo();
-  const [error, setError] = useState("");
+  const toast = useToast();
   const [message, setMessage] = useState("");
   const balance = wallet(state);
   function save(event: FormEvent<HTMLFormElement>) {
@@ -613,9 +603,8 @@ function Rewards() {
       maxRedeemPctOfOrder: Number(data.get("max")),
     };
     const failure = dispatch({ type: "rules", rules });
-    if (failure) setError(failure);
+    if (failure) toast.error(failure);
     else {
-      setError("");
       setMessage(
         t(
           "Reglas guardadas para futuras compras.",
@@ -657,7 +646,7 @@ function Rewards() {
               className={s.secondary}
               onClick={() => {
                 const failure = dispatch({ type: "advanceClock", days });
-                if (failure) setError(failure);
+                if (failure) toast.error(failure);
               }}
             >
               +{days} {t("días", "days")}
@@ -736,11 +725,6 @@ function Rewards() {
         {message && (
           <p role="status" className={s.success}>
             {message}
-          </p>
-        )}
-        {error && (
-          <p role="alert" className={s.error}>
-            {error}
           </p>
         )}
       </form>

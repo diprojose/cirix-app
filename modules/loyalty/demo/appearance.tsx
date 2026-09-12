@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast, ErrorToast } from "@/components/toast-provider";
+
 import Image from "next/image";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
@@ -65,7 +67,7 @@ export function Appearance() {
   const { state, dispatch, t } = useDemo();
   const [draft, setDraft] = useState<BrandProfile>(state.brand);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const toast = useToast();
   const [family, setFamily] = useState<PaletteFamily | "all">("all");
   const selectedPalette = matchingPalette(draft);
   const validation = validateBrandProfile({ ...draft, logoUrl: "" });
@@ -73,7 +75,6 @@ export function Appearance() {
   function update(key: keyof BrandProfile, value: string) {
     setDraft((d) => ({ ...d, [key]: value }));
     setMessage("");
-    setError("");
   }
   async function logoUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -82,7 +83,7 @@ export function Appearance() {
       !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
       file.size > 1024 * 1024
     ) {
-      setError(
+      toast.error(
         t(
           "Usa PNG, JPG o WebP de hasta 1 MB.",
           "Use PNG, JPG or WebP up to 1 MB.",
@@ -97,7 +98,7 @@ export function Appearance() {
         bitmap.close();
         update("logoUrl", String(reader.result));
       } catch {
-        setError(
+        toast.error(
           t(
             "El archivo no contiene una imagen válida.",
             "The file does not contain a valid image.",
@@ -106,22 +107,21 @@ export function Appearance() {
       }
     };
     reader.onerror = () =>
-      setError(t("No se pudo leer el archivo.", "Could not read the file."));
+      toast.error(t("No se pudo leer el archivo.", "Could not read the file."));
     reader.readAsDataURL(file);
   }
   function save(event: FormEvent) {
     event.preventDefault();
     if (!validation.ok) {
-      setError(validation.error);
+      toast.error(validation.error);
       return;
     }
     const failure = dispatch({
       type: "brand",
       brand: { ...draft, updatedAt: new Date().toISOString() },
     });
-    if (failure) setError(failure);
+    if (failure) toast.error(failure);
     else {
-      setError("");
       setMessage(
         t(
           "Apariencia aplicada a toda tu tienda demo.",
@@ -222,7 +222,6 @@ export function Appearance() {
                 onClick={() => {
                   setDraft((d) => applyPalette(d, p));
                   setMessage("");
-                  setError("");
                 }}
               >
                 <span className={s.paletteSwatches} aria-hidden="true">
@@ -289,11 +288,7 @@ export function Appearance() {
             "Text, focus and interaction states adjust automatically for contrast. Error, success and warning keep their meaning.",
           )}
         </p>
-        {!validation.ok && (
-          <p role="status" className={s.error}>
-            {validation.error}
-          </p>
-        )}
+        <ErrorToast message={!validation.ok ? validation.error : null} />
         <label>
           {t("Título principal", "Hero title")}
           <input
@@ -321,7 +316,6 @@ export function Appearance() {
             onClick={() => {
               setDraft(state.brand);
               setMessage("");
-              setError("");
             }}
           >
             {t("Descartar cambios", "Discard changes")}
@@ -330,11 +324,6 @@ export function Appearance() {
         {message && (
           <p className={s.success} role="status">
             {message}
-          </p>
-        )}
-        {error && (
-          <p role="alert" className={s.error}>
-            {error}
           </p>
         )}
       </form>
@@ -389,7 +378,6 @@ export function Appearance() {
             {message}
           </p>
         )}
-        {error && <p className={s.error}>{error}</p>}
       </aside>
     </div>
   );

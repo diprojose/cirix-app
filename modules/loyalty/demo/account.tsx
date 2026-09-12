@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
+
 import Link from "next/link";
 import { useState } from "react";
 import { useDemo } from "./provider";
@@ -77,7 +79,7 @@ export function OrderDetail({
 }) {
   const { state, dispatch, basePath, t, money } = useDemo();
   const label = useStatusLabel();
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const order = state.orders.find((o) => o.id === id);
   if (!order)
     return (
@@ -98,7 +100,7 @@ export function OrderDetail({
   ];
   const next = steps[steps.indexOf(order.status) + 1];
   const change = (status: DemoOrder["status"]) =>
-    setError(dispatch({ type: "status", id, status }));
+    toast.error(dispatch({ type: "status", id, status }));
   return (
     <>
       <Heading
@@ -197,11 +199,6 @@ export function OrderDetail({
               </button>
             </div>
           )}
-          {error && (
-            <p role="alert" className={s.error}>
-              {error}
-            </p>
-          )}
         </aside>
       </div>
     </>
@@ -217,7 +214,7 @@ export function Account({
 }) {
   const { state, basePath, t, money } = useDemo();
   const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState(false);
+  const toast = useToast();
   const balance = wallet(state);
   return (
     <Shell>
@@ -340,9 +337,11 @@ export function Account({
                     `${window.location.origin}${basePath}/home`,
                   );
                   setCopied(true);
-                  setCopyError(false);
                 } catch {
-                  setCopyError(true);
+                  toast.error(t(
+                    "No se pudo copiar. Copia la dirección de la tienda desde el navegador.",
+                    "Could not copy. Copy the store address from the browser.",
+                  ));
                 }
               }}
             >
@@ -350,14 +349,7 @@ export function Account({
                 ? t("Enlace copiado", "Link copied")
                 : t("Copiar enlace del mercado", "Copy market link")}
             </button>
-            {copyError && (
-              <p role="alert" className={s.error}>
-                {t(
-                  "No se pudo copiar. Copia la dirección de la tienda desde el navegador.",
-                  "Could not copy. Copy the store address from the browser.",
-                )}
-              </p>
-            )}
+
           </section>
         </>
       ) : (

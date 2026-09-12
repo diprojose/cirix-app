@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { inMemoryPersistence, setPersistence, signInWithPopup, signOut, type Auth } from "firebase/auth";
@@ -18,11 +20,10 @@ export function GoogleSignInButton({
   const router = useRouter();
   const locale = useLocale();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   async function handleSignIn() {
     setLoading(true);
-    setError(null);
 
     let firebaseAuth: Auth | null = null;
     try {
@@ -62,7 +63,7 @@ export function GoogleSignInButton({
       router.refresh();
       router.push(redirectTo ?? localizeHref(locale, landing));
     } catch (caught) {
-      setError(
+      toast.error(
         caught instanceof Error
             ? caught.message
             : pick(locale, {
@@ -100,11 +101,6 @@ export function GoogleSignInButton({
             es: "El acceso no está disponible en este momento. Contacta al administrador.",
             en: "Sign-in is currently unavailable. Contact your administrator.",
           })}
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="text-label text-danger">
-          {error}
         </p>
       )}
     </div>

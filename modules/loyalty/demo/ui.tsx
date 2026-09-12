@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast, ErrorToast } from "@/components/toast-provider";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -180,14 +182,10 @@ export function Shell({
           </Link>
         </nav>
       </header>
-      {storageError && (
-        <p className={s.notice} role="status">
-          {t(
-            "No se pudo guardar en este navegador. Puedes seguir probando; los cambios durarán mientras esta página permanezca abierta.",
-            "Browser storage is unavailable. You can keep exploring; changes last while this page stays open.",
-          )}
-        </p>
-      )}
+      <ErrorToast message={storageError ? t(
+        "No se pudo guardar en este navegador. Puedes seguir probando; los cambios durarán mientras esta página permanezca abierta.",
+        "Browser storage is unavailable. You can keep exploring; changes last while this page stays open.",
+      ) : null} />
       {!ready ? (
         <main id="main-content" className={s.container} aria-busy="true">
           <div className={s.skeleton}>
@@ -264,9 +262,9 @@ export function Quantity({
 }) {
   const { state, dispatch, t } = useDemo();
   const qty = state.cart[product.id] ?? 0;
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const change = (quantity: number) =>
-    setError(dispatch({ type: "quantity", id: product.id, quantity }));
+    toast.error(dispatch({ type: "quantity", id: product.id, quantity }));
   return (
     <div
       className={
@@ -321,11 +319,6 @@ export function Quantity({
               : t("Agregar", "Add")
             : t("Agotado", "Unavailable")}
         </button>
-      )}
-      {error && (
-        <span role="alert" className={s.error}>
-          {error}
-        </span>
       )}
     </div>
   );

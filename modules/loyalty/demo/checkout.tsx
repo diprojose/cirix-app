@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast, ErrorToast } from "@/components/toast-provider";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -21,7 +23,7 @@ export function Cart({
   const [coupon, setCoupon] = useState(initialCoupon);
   const [redeem, setRedeem] = useState(initialRedeem);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const [submitting, setSubmitting] = useState(false);
   const suggestedCoupon = state.coupons.find(
     (c) => c.code === "FRESCO10" && c.active,
@@ -56,7 +58,7 @@ export function Cart({
       redeem,
     });
     if (failure) {
-      setError(failure);
+      toast.error(failure);
       setSubmitting(false);
     } else router.push(`${basePath}/orders/${id}`);
   }
@@ -107,7 +109,7 @@ export function Cart({
                             {product.unit} · {money(product.priceCents)}
                           </span>
                           {!product.available && (
-                            <p className={s.error}>
+                            <p className={s.muted}>
                               {t(
                                 "Agotado: retíralo para continuar",
                                 "Unavailable: remove to continue",
@@ -268,11 +270,7 @@ export function Cart({
                   </p>
                 </>
               )}
-              {(quoteError || error) && (
-                <p role="alert" className={s.error}>
-                  {quoteError || error}
-                </p>
-              )}
+              <ErrorToast message={quoteError} />
               {checkout ? (
                 <button
                   form="checkout-form"

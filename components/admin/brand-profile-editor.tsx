@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorToast } from "@/components/toast-provider";
+
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { BrandProfile } from "@/modules/loyalty/branding/application/brand-profile";
@@ -226,16 +228,10 @@ export function BrandProfileEditor({
               <ColorField label="Fondo" name="backgroundColor" value={draft.backgroundColor} onChange={(value) => update("backgroundColor", value)} />
               <ColorField label="Superficie" name="surfaceColor" value={draft.surfaceColor} onChange={(value) => update("surfaceColor", value)} />
             </div>
-            <p
-              role="status"
-              className={`mt-2 text-xs ${
-                surfacesAreCompatible ? "text-text-muted" : "font-semibold text-danger"
-              }`}
-            >
-              {surfacesAreCompatible
-                ? "El texto se ajustará automáticamente para mantener contraste AA."
-                : "Fondo y superficie deben ser ambos claros o ambos oscuros."}
+            <p className="mt-2 text-xs text-text-muted">
+              El texto se ajustará automáticamente para mantener contraste AA.
             </p>
+            <ErrorToast message={surfacesAreCompatible ? null : "Fondo y superficie deben ser ambos claros o ambos oscuros."} />
           </fieldset>
 
           <TextField

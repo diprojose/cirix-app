@@ -1,8 +1,6 @@
-/**
- * FeedbackBanner renders the outcome the admin actions passed back via query
- * params: a red banner for `error`, a green-ish one for success messages.
- * Server component — the params come from the page's `searchParams`.
- */
+import { ErrorToast } from "@/components/toast-provider";
+
+/** Admin action errors use the global notification host. */
 export function FeedbackBanner({
   error,
   success,
@@ -11,11 +9,8 @@ export function FeedbackBanner({
   success?: string;
 }) {
   if (error) {
-    return (
-      <p role="alert" className="mb-4 rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
-        {error}
-      </p>
-    );
+    // A new server response may repeat the same error after another attempt.
+    return <ErrorToast key={crypto.randomUUID()} message={error} />;
   }
   if (success) {
     return (

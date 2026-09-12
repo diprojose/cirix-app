@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/components/toast-provider";
+
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
@@ -70,6 +72,7 @@ const COPY = {
 } as const;
 
 export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: SupportMode }) {
+  const toast = useToast();
   const copy = COPY[locale];
   const transport = useMemo(
     () => new DefaultChatTransport<SupportMessage>({
@@ -79,7 +82,7 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
     [locale]
   );
   const { messages, sendMessage, regenerate, stop, status, error, setMessages, clearError } =
-    useChat<SupportMessage>({ transport });
+    useChat<SupportMessage>({ transport, onError: (error) => toast.error(error.message) });
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
@@ -171,10 +174,7 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
 
               {status === "submitted" ? <p className="text-sm text-text-muted">{copy.consulting}</p> : null}
               {error ? (
-                <div className="rounded-2xl border border-danger/50 bg-action-subtle p-4 text-sm text-text">
-                  <p>{error.message}</p>
-                  <button type="button" onClick={() => void regenerate()} className="mt-3 min-h-10 rounded-xl bg-action-fill px-4 font-semibold text-on-action">{copy.retry}</button>
-                </div>
+                <button type="button" onClick={() => void regenerate()} className="mt-3 min-h-10 rounded-xl bg-action-fill px-4 font-semibold text-on-action">{copy.retry}</button>
               ) : null}
               <div ref={bottomRef} />
             </div>

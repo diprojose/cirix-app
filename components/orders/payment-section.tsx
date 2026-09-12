@@ -1,5 +1,9 @@
 "use client";
 
+import { useLocale } from "@/components/locale-provider";
+import { pick } from "@/lib/locale";
+import { useToast } from "@/components/toast-provider";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { reportPaymentAction } from "@/app/checkout/actions";
@@ -33,30 +37,34 @@ export function PaymentSection({
   payments: PaymentReportDto[];
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const [method, setMethod] = useState<PaymentMethod>("pago_movil");
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
 
     setSubmitting(true);
-    setError(null);
 
-    const result = await reportPaymentAction({ orderId, method, reference, note });
-    if (!result.ok) {
-      setError(result.message);
+    try {
+      const result = await reportPaymentAction({ orderId, method, reference, note });
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+
+      setReference("");
+      setNote("");
+      router.refresh();
+    } catch {
+      toast.error(pick(locale, { es: "No se pudo confirmar el reporte. Actualiza el pedido antes de volver a enviarlo.", en: "Could not confirm the report. Refresh the order before submitting again." }));
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    setReference("");
-    setNote("");
-    setSubmitting(false);
-    router.refresh();
   }
 
   return (
@@ -139,12 +147,6 @@ export function PaymentSection({
                 className={FIELD_CLASS}
               />
             </label>
-
-            {error && (
-              <p role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
-                {error}
-              </p>
-            )}
 
             <button
               type="submit"
