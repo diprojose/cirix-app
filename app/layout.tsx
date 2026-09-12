@@ -37,8 +37,11 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   icons: {
-    icon: "/brand/cirix-logo.png",
-    apple: "/brand/cirix-logo.png",
+    icon: [
+      { url: "/brand/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: { url: "/brand/apple-touch-icon.png", sizes: "180x180" },
   },
 };
 
