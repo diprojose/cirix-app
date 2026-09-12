@@ -50,7 +50,7 @@ export function CrmNav({ locale, counts = {}, mobile = false }: {
         <div key={group.en} className={s.navGroup}>
           {!mobile && <p className={s.navLabel}>{pick(locale, group)}</p>}
           {group.items.map((item) => {
-            const active = normalizedPath === item.href;
+            const active = normalizedPath === item.href || (item.stage !== "" && normalizedPath.startsWith(`${item.href}/`));
             return (
               <Link key={item.href} href={localizeHref(locale, item.href)} aria-current={active ? "page" : undefined} className={`${s.navLink} ${active ? s.navActive : ""}`}>
                 <span className={s.navSymbol} aria-hidden="true">{item.symbol}</span>

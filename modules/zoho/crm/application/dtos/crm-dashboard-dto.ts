@@ -21,6 +21,7 @@ export type CommercialContactDto = {
   subscriptionStatus: SubscriptionStatus | null;
   interestCategory: string | null;
   nextAction: string | null;
+  description?: string | null;
   lastActivityAt: string | null;
   convertedAt: string | null;
   createdAt: string;

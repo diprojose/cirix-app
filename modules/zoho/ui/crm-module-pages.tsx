@@ -1,5 +1,6 @@
 import Link from "next/link";
 import s from "./crm.module.css";
+import { contactHref, stageHref } from "./crm-contact-links";
 import { LeadCaptureForm } from "@/modules/zoho/ui/lead-capture-form";
 import { localizeHref, pick, type Locale } from "@/lib/locale";
 import type {
@@ -229,7 +230,7 @@ export function CrmStagePage({
         title={STAGE_LABELS[stage]}
         body={{ es: "Contactos, responsables y próximos pasos para dar continuidad a cada relación.", en: "Contacts, owners, and next steps to keep every relationship moving." }}
       />
-      <RecordTable locale={locale} eyebrow="" title={pick(locale, { es: `${contacts.length} registros`, en: `${contacts.length} records` })} contacts={contacts} />
+      <RecordTable locale={locale} eyebrow="" title={pick(locale, { es: `${contacts.length} ${contacts.length === 1 ? "registro" : "registros"}`, en: `${contacts.length} ${contacts.length === 1 ? "record" : "records"}` })} contacts={contacts} />
     </div>
   );
 }
@@ -407,22 +408,24 @@ function RecordTable({
               <th scope="col">{pick(locale, { es: "Etapa", en: "Stage" })}</th>
               <th scope="col">{pick(locale, { es: "Responsable", en: "Owner" })}</th>
               <th scope="col">{pick(locale, { es: "Última actividad", en: "Last activity" })}</th>
+              <th scope="col"><span className={s.srOnly}>{pick(locale, { es: "Detalle", en: "Details" })}</span></th>
             </tr></thead>
             <tbody>{contacts.map((contact) => (
-              <tr key={contact.id}>
+              <tr key={contact.id} className={s.recordRow}>
                 <td>
-                  <div className={s.contact}>
+                  <Link href={localizeHref(locale, contactHref(contact))} className={`${s.contact} ${s.recordLink}`} aria-label={pick(locale, { es: `Ver detalle de ${contact.fullName}`, en: `View details for ${contact.fullName}` })}>
                     <span className={s.avatar} aria-hidden="true">{contact.fullName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
                     <div>
                       <p className={s.contactName}>{contact.fullName}</p>
                       <p className={s.contactMeta}>{[contact.email, contact.phone].filter(Boolean).join(" · ")}</p>
                       {contact.nextAction && <p className={s.contactNext}>{pick(locale, { es: "Próximo paso", en: "Next step" })}: {contact.nextAction}</p>}
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td><span className={`${s.stageChip} ${STAGE_THEME[contact.lifecycleStage]}`}>{pick(locale, STAGE_LABELS[contact.lifecycleStage])}</span></td>
                 <td>{contact.owner}</td>
                 <td><p>{formatShortDate(locale, contact.lastActivityAt ?? contact.createdAt)}</p><p className={s.contactMeta}>{contact.source}</p></td>
+                <td><span className={s.recordArrow} aria-hidden="true">↗</span></td>
               </tr>
             ))}</tbody>
           </table>
@@ -430,19 +433,6 @@ function RecordTable({
       )}
     </section>
   );
-}
-
-function stageHref(stage: LifecycleStage) {
-  switch (stage) {
-    case "subscriber":
-      return "/zoho/subscribers";
-    case "lead":
-      return "/zoho/leads";
-    case "prospect":
-      return "/zoho/prospects";
-    case "customer":
-      return "/zoho/customers";
-  }
 }
 
 function buildLandingLinks(locale: Locale) {
