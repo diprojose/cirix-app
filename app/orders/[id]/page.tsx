@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  return <OrderPage params={params} />;
+}
+
 /**
  * Order status page (primary adapter): the customer's receipt and tracking
  * screen. A guest order is reachable by anyone holding the URL (the random id
@@ -39,7 +43,7 @@ export const metadata: Metadata = {
  * in both currencies, the payment instructions with the report form, and the
  * WhatsApp handoff — the confirmation channel Venezuelan commerce runs on.
  */
-export default async function OrderPage({
+async function OrderPage({
   params,
   expectedBrandSlug,
 }: {

@@ -21,6 +21,14 @@ export const metadata: Metadata = {
   description: "Tus avisos y preferencias de notificación.",
 };
 
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  return <NotificationsPage searchParams={searchParams} />;
+}
+
 /** Short Spanish date for a notification. */
 function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es", { day: "2-digit", month: "short" });
@@ -32,7 +40,7 @@ function shortDate(iso: string): string {
  * to the signed-in viewer's own uid. In-app is the delivered channel today; push
  * and email are opt-in flags stored for when their senders are wired.
  */
-export default async function NotificationsPage({
+async function NotificationsPage({
   searchParams,
   basePath = null,
 }: {

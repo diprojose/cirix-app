@@ -6,6 +6,9 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import Link from "next/link";
+import Image from "next/image";
+import landing from "@/components/landing/landing.module.css";
+import styles from "./ai-support-workspace.module.css";
 import { localizeHref, type Locale } from "@/lib/locale";
 import type { SupportMode } from "../application/public-commerce-knowledge";
 
@@ -14,35 +17,73 @@ type SupportMessage = UIMessage<SupportMetadata>;
 
 const COPY = {
   es: {
-    back: "Volver a modulos",
+    back: "Volver a módulos",
+    home: "CIRIX — inicio",
+    eyebrow: "ECOSISTEMA CIRIX / ASISTENCIA",
+    intro: "Cada pregunta, un paso más cerca de tu próxima compra.",
+    guide: "A TU LADO, EN CADA PASO",
+    guideTitle: "Tus preguntas.",
+    guideAccent: "Más posibilidades.",
+    topics: ["Productos y catálogo", "Delivery y pagos", "Recompensas y referidos"],
+    connected: "EXPLORA LA EXPERIENCIA",
+    storeDetail: "Conoce los productos y descubre tus próximas recompensas.",
+    session: "Conversación actual",
+    ready: "Listo para ayudarte",
+    suggestions: "ELIGE UNA PREGUNTA PARA COMENZAR",
+    promptLabels: ["Hablemos", "Sobre CIRIX", "Catálogo", "Delivery", "Pagos", "Referidos"],
+    you: "Tú",
+    assistant: "Asistente CIRIX",
+    messages: "mensajes",
+    failed: "No pudimos completar la respuesta. Inténtalo de nuevo.",
+    keyboard: "Enter para enviar · Shift + Enter para una nueva línea",
+    footer: "Estrategia que conecta. Tecnología que impulsa.",
     store: "Abrir tienda",
     title: "Asistente de compras",
-    subtitle: "Consulta el catalogo, delivery, pagos y el programa de recompensas.",
+    subtitle: "Consulta el catálogo, delivery, pagos y el programa de recompensas.",
     simulated: "Modo simulado · 0 tokens",
     ai: "Modo IA · consumo activo",
     simulatedNote: "Las respuestas siguen reglas locales y datos del demo. No se realiza ninguna llamada a OpenAI.",
-    aiNote: "La IA esta habilitada manualmente. No compartas informacion personal o bancaria.",
-    welcome: "Hola, ¿en que puedo ayudarte hoy?",
+    aiNote: "La IA está habilitada manualmente. No compartas información personal o bancaria.",
+    welcome: "Hola, ¿en qué puedo ayudarte hoy?",
     welcomeDetail: "Puedo orientarte sobre productos, precios, delivery, pagos, rewards y referidos.",
     placeholder: "Escribe una pregunta sobre la tienda...",
     send: "Enviar",
     stop: "Detener",
-    reset: "Nueva conversacion",
+    reset: "Nueva conversación",
     retry: "Reintentar",
-    consulting: "Consultando datos publicos...",
-    limit: "Llegaste al limite de 10 mensajes de esta sesion.",
-    disclaimer: "Demo de soporte. Verifica la informacion importante antes de comprar.",
+    consulting: "Consultando datos públicos...",
+    limit: "Llegaste al límite de 10 mensajes de esta sesión.",
+    disclaimer: "Demo de soporte. Verifica la información importante antes de comprar.",
     prompts: [
-      "¿Como puedo contactarlos?",
-      "¿Que hacen?",
-      "¿Que venden?",
-      "¿Cuanto cuesta el delivery?",
-      "¿Que metodos de pago aceptan?",
-      "¿Como funcionan los referidos?",
+      "¿Cómo puedo contactarlos?",
+      "¿Qué hacen?",
+      "¿Qué venden?",
+      "¿Cuánto cuesta el delivery?",
+      "¿Qué métodos de pago aceptan?",
+      "¿Cómo funcionan los referidos?",
     ],
   },
   en: {
     back: "Back to modules",
+    home: "CIRIX — home",
+    eyebrow: "CIRIX ECOSYSTEM / SUPPORT",
+    intro: "Every question, a step closer to your next purchase.",
+    guide: "BY YOUR SIDE, AT EVERY STEP",
+    guideTitle: "Your questions.",
+    guideAccent: "More possibilities.",
+    topics: ["Products and catalog", "Delivery and payments", "Rewards and referrals"],
+    connected: "EXPLORE THE EXPERIENCE",
+    storeDetail: "Explore the products and discover your next rewards.",
+    session: "Current conversation",
+    ready: "Ready to help",
+    suggestions: "CHOOSE A QUESTION TO GET STARTED",
+    promptLabels: ["Let's talk", "About CIRIX", "Catalog", "Delivery", "Payments", "Referrals"],
+    you: "You",
+    assistant: "CIRIX assistant",
+    messages: "messages",
+    failed: "We couldn't complete the reply. Please try again.",
+    keyboard: "Enter to send · Shift + Enter for a new line",
+    footer: "Strategy that connects. Technology that drives.",
     store: "Open store",
     title: "Shopping assistant",
     subtitle: "Ask about the catalog, delivery, payments, and rewards program.",
@@ -84,13 +125,17 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
   const { messages, sendMessage, regenerate, stop, status, error, setMessages, clearError } =
     useChat<SupportMessage>({ transport, onError: (error) => toast.error(error.message) });
   const [input, setInput] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const conversationRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
   const userCount = messages.filter((message) => message.role === "user").length;
   const atLimit = userCount >= 10;
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const conversation = conversationRef.current;
+    if (conversation) conversation.scrollTo({
+      top: messages.length > 0 ? conversation.scrollHeight : 0,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
   }, [messages, status]);
 
   const submit = async (event?: FormEvent, suggestion?: string) => {
@@ -110,99 +155,141 @@ export function AiSupportWorkspace({ locale, mode }: { locale: Locale; mode: Sup
   };
 
   return (
-    <main className="min-h-dvh bg-brand-950 text-text">
-      <div className="mx-auto flex min-h-dvh w-full max-w-[1500px] flex-col lg:flex-row">
-        <aside className="border-b border-border bg-brand-900 p-5 lg:w-80 lg:border-r lg:border-b-0 lg:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <Link href={localizeHref(locale, "/")} className="shrink-0 whitespace-nowrap text-sm font-semibold text-accent hover:text-accent-strong">
-              ← {copy.back}
-            </Link>
-            <span className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] ${mode === "ai" ? "bg-action-fill text-on-action" : "border border-accent/40 bg-accent-soft text-accent-strong"}`}>
-              {mode === "ai" ? copy.ai : copy.simulated}
-            </span>
-          </div>
+    <div className={`${landing.landing} ${styles.workspace}`}>
+      <a href="#support-input" className={landing.skipLink}>{copy.placeholder}</a>
+      <header className={landing.header}>
+        <div className={`${landing.container} ${landing.headerInner} ${styles.headerInner}`}>
+          <Link href={localizeHref(locale, "/")} aria-label={copy.home}>
+            <Image src="/brand/logo-white.svg" alt="CIRIX" width={128} height={46} className={landing.logo} />
+          </Link>
+          <span className={styles.headerLabel}>AI CUSTOMER SUPPORT</span>
+          <Link href={localizeHref(locale, "/#soluciones")} className={landing.textButton}>
+            <span aria-hidden="true">←</span> {copy.back}
+          </Link>
+        </div>
+      </header>
 
-          <div className="mt-8">
-            <div className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-accent-fill to-action-fill font-heading text-xl font-bold text-white shadow-accent">AI</div>
-            <h1 className="mt-5 font-heading text-3xl font-semibold tracking-[-0.03em]">{copy.title}</h1>
-            <p className="mt-3 text-sm leading-6 text-text-muted">{copy.subtitle}</p>
+      <main className={`${landing.container} ${styles.main}`}>
+        <div className={styles.intro}>
+          <div>
+            <p className={landing.eyebrow}><span className={landing.statusDot} />{copy.eyebrow}</p>
+            <h1>AI Customer <span>Support.</span></h1>
+            <p className={styles.introDescription}>{copy.intro}</p>
           </div>
-
-          <div className="mt-6 rounded-2xl border border-border bg-surface p-4 text-xs leading-5 text-text-muted">
-            {mode === "ai" ? copy.aiNote : copy.simulatedNote}
+          <div className={styles.mode}>
+            <span className={styles.modeDot} aria-hidden="true" />
+            {mode === "ai" ? copy.ai : copy.simulated}
           </div>
+        </div>
 
-          <div className="mt-6 flex flex-wrap gap-2 lg:flex-col">
-            <Link href={localizeHref(locale, "/loyalty")} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-action-fill px-4 text-sm font-semibold text-on-action hover:bg-action-strong">
-              {copy.store}
-            </Link>
-            <button type="button" onClick={reset} className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold text-text hover:border-accent">
-              {copy.reset}
-            </button>
-          </div>
-        </aside>
+        <div className={styles.workbench}>
+          <aside className={styles.sidebar}>
+            <div className={styles.guide}>
+              <p className={landing.eyebrow}>{copy.guide}</p>
+              <h2>{copy.guideTitle}<br /><span>{copy.guideAccent}</span></h2>
+              <p className={styles.description}>{copy.subtitle}</p>
+              <ul className={styles.topics}>
+                {copy.topics.map((topic, index) => (
+                  <li key={topic}><span className={styles.topicNumber}>0{index + 1}</span>{topic}<span aria-hidden="true">↗</span></li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.storeCard}>
+              <p className={landing.eyebrow}>{copy.connected}</p>
+              <h3>Loyalty Commerce</h3>
+              <p className={styles.description}>{copy.storeDetail}</p>
+              <Link href={localizeHref(locale, "/loyalty")} className={`${landing.primaryButton} ${styles.storeButton}`}>
+                {copy.store}<span aria-hidden="true">↗</span>
+              </Link>
+            </div>
+            <p className={styles.modeNote}><span className={landing.noteLine} aria-hidden="true" />{mode === "ai" ? copy.aiNote : copy.simulatedNote}</p>
+          </aside>
 
-        <section className="flex min-h-0 flex-1 flex-col bg-bg lg:m-4 lg:ml-0 lg:rounded-[1.25rem] lg:border lg:border-border">
-          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 lg:px-12">
-            <div className="mx-auto w-full max-w-3xl space-y-5" aria-live="polite">
+          <section className={styles.chat} aria-labelledby="chat-title">
+            <header className={styles.chatHeader}>
+              <div className={styles.assistantIdentity}>
+                <span className={styles.avatar} aria-hidden="true"><SupportIcon /></span>
+                <div><h2 id="chat-title">{copy.title}</h2><p><span className={styles.modeDot} aria-hidden="true" />{busy ? copy.consulting : copy.ready}</p></div>
+              </div>
+              <button type="button" onClick={reset} className={styles.resetButton}>
+                <span aria-hidden="true">＋</span><span>{copy.reset}</span>
+              </button>
+            </header>
+
+            <div ref={conversationRef} className={styles.conversation} role="log" aria-label={copy.session} aria-live="polite" aria-relevant="additions text" tabIndex={0}>
               {messages.length === 0 ? (
-                <div className="py-8 text-center sm:py-16">
-                  <div className="mx-auto grid size-16 place-items-center rounded-2xl border border-accent/30 bg-accent-soft text-2xl">✦</div>
-                  <h2 className="mt-5 font-heading text-2xl font-semibold">{copy.welcome}</h2>
-                  <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-text-muted">{copy.welcomeDetail}</p>
-                  <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                    {copy.prompts.map((prompt) => (
-                      <button key={prompt} type="button" onClick={() => void submit(undefined, prompt)} className="min-h-20 rounded-2xl border border-border bg-surface p-4 text-left text-sm leading-5 text-text transition hover:-translate-y-0.5 hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-fill">
-                        {prompt}
+                <div className={styles.emptyState}>
+                  <div className={styles.welcomeSymbol} aria-hidden="true"><SupportIcon /></div>
+                  <h3>{copy.welcome}</h3>
+                  <p className={styles.welcomeDetail}>{copy.welcomeDetail}</p>
+                  <p className={styles.suggestionsLabel}>{copy.suggestions}</p>
+                  <div className={styles.prompts}>
+                    {copy.prompts.map((prompt, index) => (
+                      <button key={prompt} type="button" disabled={busy || atLimit} onClick={() => void submit(undefined, prompt)} className={styles.prompt}>
+                        <span className={styles.promptHeading}><span>{copy.promptLabels[index]}</span><span aria-hidden="true">↗</span></span>
+                        <span>{prompt}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-              ) : null}
-
-              {messages.map((message) => (
-                <article key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 sm:max-w-[76%] ${message.role === "user" ? "rounded-br-md bg-action-fill text-on-action" : "rounded-bl-md border border-border bg-surface text-text"}`}>
-                    {message.parts.map((part, index) => {
-                      if (part.type === "text") return <p key={index} className="whitespace-pre-wrap">{part.text}</p>;
-                      if (isToolUIPart(part)) return <p key={index} className="text-xs text-accent-strong">{copy.consulting}</p>;
-                      return null;
-                    })}
-                  </div>
-                </article>
-              ))}
-
-              {status === "submitted" ? <p className="text-sm text-text-muted">{copy.consulting}</p> : null}
+              ) : (
+                <div className={styles.messageList}>
+                  <p className={styles.conversationLabel}>{copy.session}</p>
+                  {messages.map((message) => (
+                    <article key={message.id} className={`${styles.message} ${message.role === "user" ? styles.userMessage : styles.assistantMessage}`}>
+                      <span className={styles.messageAuthor}>{message.role === "user" ? copy.you : copy.assistant}</span>
+                      <div className={styles.bubble}>
+                        {message.parts.map((part, index) => {
+                          if (part.type === "text") return <p key={index}>{part.text}</p>;
+                          if (isToolUIPart(part)) return <p key={index} className={styles.toolStatus}>{copy.consulting}</p>;
+                          return null;
+                        })}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+              {status === "submitted" ? <p className={styles.loading}><span aria-hidden="true">•••</span>{copy.consulting}</p> : null}
               {error ? (
-                <button type="button" onClick={() => void regenerate()} className="mt-3 min-h-10 rounded-xl bg-action-fill px-4 font-semibold text-on-action">{copy.retry}</button>
+                <div className={styles.error} role="alert"><p>{copy.failed}</p><button type="button" onClick={() => void regenerate()} disabled={busy}>{copy.retry}<span aria-hidden="true">↗</span></button></div>
               ) : null}
-              <div ref={bottomRef} />
             </div>
-          </div>
 
-          <div className="border-t border-border bg-brand-900/80 p-4 sm:p-6 lg:rounded-b-[1.25rem]">
-            <form onSubmit={(event) => void submit(event)} className="mx-auto max-w-3xl">
-              <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-2 focus-within:border-accent">
-                <textarea value={input} onChange={(event) => setInput(event.target.value.slice(0, 1000))} onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    void submit();
-                  }
-                }} disabled={busy || atLimit} rows={1} maxLength={1000} placeholder={copy.placeholder} aria-label={copy.placeholder} className="min-h-11 max-h-36 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-text outline-none placeholder:text-text-muted disabled:opacity-50" />
-                {busy ? (
-                  <button type="button" onClick={stop} className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold text-text">{copy.stop}</button>
-                ) : (
-                  <button type="submit" disabled={!input.trim() || atLimit} className="min-h-11 rounded-xl bg-action-fill px-5 text-sm font-semibold text-on-action disabled:cursor-not-allowed disabled:opacity-40">{copy.send}</button>
-                )}
-              </div>
-              <div className="mt-2 flex justify-between gap-3 text-[11px] text-text-muted">
-                <span>{atLimit ? copy.limit : copy.disclaimer}</span>
-                <span className="tabular-nums">{input.length}/1000 · {userCount}/10</span>
-              </div>
-            </form>
-          </div>
-        </section>
-      </div>
-    </main>
+            <div className={styles.composer}>
+              <form onSubmit={(event) => void submit(event)}>
+                <div className={styles.inputRow}>
+                  <textarea id="support-input" value={input} onChange={(event) => setInput(event.target.value.slice(0, 1000))} onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                      event.preventDefault();
+                      void submit();
+                    }
+                  }} disabled={busy || atLimit} rows={2} maxLength={1000} placeholder={copy.placeholder} aria-label={copy.placeholder} aria-describedby="support-disclaimer" />
+                  {busy ? (
+                    <button type="button" onClick={stop} className={styles.sendButton}>{copy.stop}<span aria-hidden="true">■</span></button>
+                  ) : (
+                    <button type="submit" disabled={!input.trim() || atLimit} className={styles.sendButton}>{copy.send}<span aria-hidden="true">↗</span></button>
+                  )}
+                </div>
+                <div className={styles.inputMeta}><span className={styles.keyboardHint}>{copy.keyboard}</span><span>{input.length}/1000</span></div>
+                <div className={styles.disclaimer}>
+                  <p id="support-disclaimer" role={atLimit ? "status" : undefined}>{atLimit ? copy.limit : copy.disclaimer}</p>
+                  <span>{userCount}/10 {copy.messages}</span>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+        <footer className={styles.footer}><span>© {new Date().getFullYear()} CIRIX</span><span>{copy.footer}</span><span>AI CUSTOMER SUPPORT</span></footer>
+      </main>
+    </div>
+  );
+}
+
+function SupportIcon() {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="m16 3 3.5 9.5L29 16l-9.5 3.5L16 29l-3.5-9.5L3 16l9.5-3.5L16 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M25 3v6M22 6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   );
 }
