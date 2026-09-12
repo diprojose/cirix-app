@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
-import { pick, type Locale } from "@/lib/locale";
+import { localizeHref, pick, type Locale } from "@/lib/locale";
 import s from "./landing.module.css";
 
 export function MotionToggle({ locale }: { locale: Locale }) {
@@ -66,7 +66,7 @@ export function LandingMotion() {
   return null;
 }
 
-export function SolutionExplorer({ locale }: { locale: Locale }) {
+export function SolutionExplorer({ locale, authenticated }: { locale: Locale; authenticated: boolean }) {
   const [selected, setSelected] = useState(0);
   const t = (es: string, en: string) => pick(locale, { es, en });
   const journeys = [
@@ -77,6 +77,6 @@ export function SolutionExplorer({ locale }: { locale: Locale }) {
   const journey = journeys[selected];
   return <div className={s.explorer}>
     <div className={s.explorerTabs} role="group" aria-label={t("Elige un objetivo para tu negocio", "Choose a goal for your business")}>{journeys.map((item, index) => <button type="button" key={item.tag} aria-pressed={selected === index} aria-controls="journey-panel" onClick={() => setSelected(index)}>{item.label}<span aria-hidden="true">↗</span></button>)}</div>
-    <div id="journey-panel" className={s.journeyPanel} aria-live="polite" aria-atomic="true"><div key={journey.tag} className={s.journeyContent}><p className={s.eyebrow}>{journey.tag}</p><h3>{journey.title}</h3><p>{journey.description}</p><div className={s.journeyLinks}>{journey.modules.map((module) => <LocalizedLink href={module.href} key={module.href}>{t("Explorar", "Explore")} {module.title} <span aria-hidden="true">↗</span></LocalizedLink>)}</div></div><div className={s.journeyFlow}><p>{t("UN RECORRIDO POSIBLE", "A POSSIBLE JOURNEY")}</p><ol>{journey.steps.map((step, index) => <li key={step}><span>0{index + 1}</span><strong>{step}</strong><span aria-hidden="true">{index === 2 ? "✓" : "↓"}</span></li>)}</ol><small>{t("Las conexiones se definen según el alcance de cada proyecto.", "Connections are defined according to each project's scope.")}</small></div></div>
+    <div id="journey-panel" className={s.journeyPanel} aria-live="polite" aria-atomic="true"><div key={journey.tag} className={s.journeyContent}><p className={s.eyebrow}>{journey.tag}</p><h3>{journey.title}</h3><p>{journey.description}</p><div className={s.journeyLinks}>{journey.modules.map((module) => <LocalizedLink href={authenticated ? module.href : `/login?from=${encodeURIComponent(localizeHref(locale, module.href))}`} key={module.href}>{t("Explorar", "Explore")} {module.title} <span aria-hidden="true">↗</span></LocalizedLink>)}</div></div><div className={s.journeyFlow}><p>{t("UN RECORRIDO POSIBLE", "A POSSIBLE JOURNEY")}</p><ol>{journey.steps.map((step, index) => <li key={step}><span>0{index + 1}</span><strong>{step}</strong><span aria-hidden="true">{index === 2 ? "✓" : "↓"}</span></li>)}</ol><small>{t("Las conexiones se definen según el alcance de cada proyecto.", "Connections are defined according to each project's scope.")}</small></div></div>
   </div>;
 }

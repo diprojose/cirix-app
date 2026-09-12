@@ -1,3 +1,4 @@
+import { checkApiAccess } from "@/lib/auth/api-access";
 import { ZohoCrmClient, requireEnv } from "@/modules/zoho/crm/infrastructure/adapters/zoho-crm-client";
 
 const LEAD_FIELDS = [
@@ -23,6 +24,9 @@ const CONTACT_FIELDS = [
 const DEAL_FIELDS = ["id", "Deal_Name", "Stage", "Amount", "Closing_Date"];
 
 export async function GET() {
+  const accessDenied = await checkApiAccess(true);
+  if (accessDenied) return accessDenied;
+
   const client = new ZohoCrmClient();
   const diagnostics = {
     checkedAt: new Date().toISOString(),

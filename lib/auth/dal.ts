@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { localizeForCurrentRequest } from "@/lib/i18n";
 import { makeGetViewer } from "@/core/iam/infrastructure/di/iam-container";
@@ -25,6 +25,16 @@ export const getViewer = cache(async (): Promise<ViewerDto> => {
   const result = await makeGetViewer().execute({ sessionCookie });
   return result.ok ? result.value : guestViewer;
 });
+
+/** Requires current administrative admission, independently of operator roles. */
+export async function requirePlatformUser(): Promise<ViewerDto> {
+  const viewer = await getViewer();
+  if (!viewer.authenticated) {
+    const pathname = (await headers()).get("x-mixmag-pathname") ?? "/";
+    redirect(await localizeForCurrentRequest(`/login?from=${encodeURIComponent(pathname)}`));
+  }
+  return viewer;
+}
 
 /**
  * Guard for order flows: requires a viewer allowed to place orders. Redirects

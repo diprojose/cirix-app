@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithPopup } from "firebase/auth";
+import { inMemoryPersistence, setPersistence, signInWithPopup, signOut, type Auth } from "firebase/auth";
 import { useLocale } from "@/components/locale-provider";
 import {
   getFirebaseAuth,
@@ -24,8 +24,12 @@ export function GoogleSignInButton({
     setLoading(true);
     setError(null);
 
+    let firebaseAuth: Auth | null = null;
     try {
       const { auth, googleProvider } = getFirebaseAuth();
+      firebaseAuth = auth;
+      await setPersistence(auth, inMemoryPersistence);
+      googleProvider.setCustomParameters({ prompt: "select_account" });
       const credential = await signInWithPopup(auth, googleProvider);
       const idToken = await credential.user.getIdToken();
 
@@ -35,8 +39,12 @@ export function GoogleSignInButton({
         body: JSON.stringify({ idToken }),
       });
       if (!response.ok) {
+        const payload = await response.json().catch(() => null);
         throw new Error(
-          pick(locale, {
+          payload?.error?.code === "iam/access-denied" ? pick(locale, {
+            es: "Esta cuenta no tiene acceso autorizado. Solicita al administrador que la habilite previamente.",
+            en: "This account is not authorized. Ask your administrator to enable access first.",
+          }) : pick(locale, {
             es: "No se pudo iniciar la sesión. Intenta de nuevo.",
             en: "We couldn't sign you in. Try again.",
           })
@@ -63,6 +71,9 @@ export function GoogleSignInButton({
             })
       );
       setLoading(false);
+    } finally {
+      // Only the httpOnly server session is retained, including after rejection.
+      if (firebaseAuth) await signOut(firebaseAuth).catch(() => {});
     }
   }
 
@@ -79,15 +90,15 @@ export function GoogleSignInButton({
         {loading
           ? pick(locale, { es: "Conectando...", en: "Connecting..." })
           : pick(locale, {
-              es: "Continuar con Google",
-              en: "Continue with Google",
+              es: "Ingresar con cuenta autorizada",
+              en: "Sign in with an authorized account",
             })}
       </button>
       {!hasFirebaseClientConfig && (
         <p id="firebase-login-help" className="text-label leading-relaxed text-text-muted">
           {pick(locale, {
-            es: "Conecta Firebase para habilitar el acceso; el demo público sigue disponible sin iniciar sesión.",
-            en: "Connect Firebase to enable sign-in; the public demo remains available without an account.",
+            es: "El acceso no está disponible en este momento. Contacta al administrador.",
+            en: "Sign-in is currently unavailable. Contact your administrator.",
           })}
         </p>
       )}

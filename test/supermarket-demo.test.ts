@@ -19,6 +19,9 @@ import { themeVariables } from "@/modules/loyalty/branding/ui/brand-theme";
 import { contrastRatio } from "@/modules/loyalty/branding/application/color-contrast";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
+vi.mock("@/core/iam/infrastructure/di/iam-container", () => ({
+  makeGetViewer: () => ({ execute: async () => ({ ok: true, value: { authenticated: false } }) }),
+}));
 
 const NOW = Date.parse("2026-09-06T12:00:00Z");
 const seed = () => createDemoState(DEFAULT_BRAND_PROFILE);
@@ -374,18 +377,18 @@ describe("theme and access boundaries", () => {
     });
     expect(restoreDemo(JSON.stringify(updated), state)).toEqual(updated);
   });
-  it("opens demo administration and accounts while keeping operational routes protected", () => {
+  it("requires prior authorization for demo and operational routes", async () => {
     for (const path of [
       "/es/demo/mercado-fresco/admin",
       "/es/demo/mercado-fresco/billetera",
       "/en/demo/cirix-market/referidos",
       "/es/demo/mercado-fresco/checkout",
     ]) {
-      const response = proxy(new NextRequest(`http://localhost${path}`));
-      expect(response.headers.get("location")).toBeNull();
+      const response = await proxy(new NextRequest(`http://localhost${path}`));
+      expect(response.headers.get("location")).toMatch(/\/(?:es|en)\/login\?/);
     }
     for (const path of ["/es/admin", "/es/admin/products", "/es/billetera"]) {
-      const response = proxy(new NextRequest(`http://localhost${path}`));
+      const response = await proxy(new NextRequest(`http://localhost${path}`));
       expect(response.headers.get("location")).toContain("/es/login");
     }
   });

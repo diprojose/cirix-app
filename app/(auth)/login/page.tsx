@@ -20,7 +20,7 @@ function safeInternalPath(value: string | undefined): string | null {
 
   try {
     const parsed = new URL(value, INTERNAL_ORIGIN);
-    if (parsed.origin !== INTERNAL_ORIGIN) return null;
+    if (parsed.origin !== INTERNAL_ORIGIN || /^\/(?:es\/|en\/)?login\/?$/.test(parsed.pathname)) return null;
     return `${parsed.pathname}${parsed.search}${parsed.hash}`;
   } catch {
     return null;
@@ -62,17 +62,12 @@ export default async function LoginPage({
       <GoogleSignInButton redirectTo={redirectTo} />
 
       <p className="text-center text-caption text-text-muted">
-        {pick(locale, { es: "Solo mirando?", en: "Just browsing?" })}{" "}
         <LocalizedLink
-          href="/loyalty"
+          href="/"
           className="rounded-sm font-medium text-accent underline underline-offset-4 transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
-          {pick(locale, { es: "Explora la tienda", en: "Explore the store" })}
-        </LocalizedLink>{" "}
-        {pick(locale, {
-          es: "sin iniciar sesion.",
-          en: "without signing in.",
-        })}
+          {pick(locale, { es: "Volver a la página principal", en: "Back to the home page" })}
+        </LocalizedLink>
       </p>
     </main>
   );

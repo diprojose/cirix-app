@@ -1,8 +1,12 @@
+import { checkApiAccess } from "@/lib/auth/api-access";
 import { CallTrackingError, defaultCallRange, parseCallListFilters } from "@/modules/calls/application/call-tracking-service";
 import { makeCallTrackingService } from "@/modules/calls/infrastructure/di/calls-container";
 import { presentCall } from "@/modules/calls/server/api-presenters";
 
 export async function GET(request: Request) {
+  const accessDenied = await checkApiAccess();
+  if (accessDenied) return accessDenied;
+
   try {
     const url = new URL(request.url);
     const range = defaultCallRange();

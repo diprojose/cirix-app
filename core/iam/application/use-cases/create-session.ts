@@ -5,7 +5,7 @@ import type {
   IdentityProvider,
   MintedSession,
 } from "../../domain/ports/identity-provider";
-import { SessionCreationError } from "../../domain/errors/iam-errors";
+import { PlatformAccessDeniedError, SessionCreationError } from "../../domain/errors/iam-errors";
 
 /** Input for {@link CreateSession}: a fresh Firebase id token from the client. */
 export type CreateSessionInput = {
@@ -37,7 +37,8 @@ export class CreateSession implements UseCase<CreateSessionInput, MintedSession>
         SESSION_DURATION_MS
       );
       return ok(session);
-    } catch {
+    } catch (error) {
+      if (error instanceof PlatformAccessDeniedError) return err(error);
       return err(new SessionCreationError());
     }
   }

@@ -2,6 +2,10 @@
 
 Demo interactivo de e-commerce con loyalty y marca blanca. Cada cliente puede tener su propio logo, paleta, mensajes y URL, manteniendo el mismo catálogo y flujo de compra.
 
+## Acceso a la plataforma
+
+Solo la landing es pública. Los módulos, las demos y las APIs internas requieren una cuenta previamente habilitada. El endpoint de captación `/api/contact` permanece público para la landing de marketing. Consulta [cómo crear, habilitar y revocar usuarios](docs/platform-access.md).
+
 ## Desarrollo local
 
 ```bash
@@ -14,13 +18,13 @@ Abre las tiendas incluidas:
 - `http://localhost:3000/es/demo/mercado-fresco`
 - `http://localhost:3000/es/demo/cirix-market`
 
-El MVP `/es/loyalty` abre la tienda de supermercado demo. Cada visitante puede comprar, gestionar pedidos y cambiar la marca sin registro, tanto en desarrollo como en un despliegue. El estado se guarda por marca en su navegador y se puede restablecer desde el administrador. Las marcas incluidas no requieren Firebase; pagos y notificaciones son simulados.
+El MVP `/es/loyalty` abre la tienda de supermercado demo. Cada usuario autorizado puede comprar, gestionar pedidos y cambiar la marca tras iniciar sesión, tanto en desarrollo como en un despliegue. El estado se guarda por marca en su navegador y se puede restablecer desde el administrador. Los datos de las marcas incluidas son locales; Firebase es necesario para controlar el acceso. Los pagos y las notificaciones son simulados.
 
 Abre `/es/demo/mercado-fresco/admin` para administrar el demo o `/es/demo/mercado-fresco/admin/settings` para cambiar su apariencia. Consulta el [mapa del módulo, contrato de colores y recorrido de prueba](docs/supermarket-demo.md).
 
 ## Configurar una marca
 
-1. Abre `/es/demo/mercado-fresco/admin/settings`, sin iniciar sesión.
+1. Abre `/es/demo/mercado-fresco/admin/settings`, con una cuenta autorizada.
 2. Cambia el nombre, carga un logo y elige un preset o ajusta los cinco colores.
 3. Revisa la vista previa y pulsa **Guardar apariencia**.
 4. Vuelve a la tienda; la nueva identidad se aplica también al carrito, checkout, cuenta y panel.

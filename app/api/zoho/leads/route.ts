@@ -1,3 +1,4 @@
+import { checkApiAccess } from "@/lib/auth/api-access";
 import type { CommercialLeadInput } from "@/modules/zoho/crm/application/dtos/commercial-lead-dto";
 import { makeCaptureCommercialLead } from "@/modules/zoho/crm/infrastructure/di/crm-container";
 
@@ -7,6 +8,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
+  const accessDenied = await checkApiAccess();
+  if (accessDenied) return accessDenied;
+
   let payload: CommercialLeadInput;
 
   try {

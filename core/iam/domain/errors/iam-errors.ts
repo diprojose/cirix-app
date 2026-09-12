@@ -36,3 +36,12 @@ export class SessionCreationError extends DomainError {
     super(message);
   }
 }
+
+/** A valid identity that has not been admitted by an administrator. */
+export class PlatformAccessDeniedError extends DomainError {
+  readonly code = "iam/access-denied";
+
+  constructor() {
+    super("Access is limited to accounts previously authorized by an administrator.");
+  }
+}

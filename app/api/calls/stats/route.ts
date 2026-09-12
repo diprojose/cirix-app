@@ -1,7 +1,11 @@
+import { checkApiAccess } from "@/lib/auth/api-access";
 import { defaultCallRange } from "@/modules/calls/application/call-tracking-service";
 import { makeCallTrackingService } from "@/modules/calls/infrastructure/di/calls-container";
 
 export async function GET(request: Request) {
+  const accessDenied = await checkApiAccess();
+  if (accessDenied) return accessDenied;
+
   const url = new URL(request.url);
   const range = defaultCallRange();
   try {

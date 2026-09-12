@@ -1,3 +1,4 @@
+import { checkApiAccess } from "@/lib/auth/api-access";
 import { NextRequest } from "next/server";
 import {
   createUIMessageStream,
@@ -76,6 +77,9 @@ function simulatedStream(text: string) {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  const accessDenied = await checkApiAccess();
+  if (accessDenied) return accessDenied;
+
   const declaredLength = Number(request.headers.get("content-length") ?? 0);
   if (declaredLength > MAX_BODY_BYTES) return jsonError("Request is too large.", 413);
 

@@ -2,29 +2,22 @@
 
 import { useLocale } from "@/components/locale-provider";
 import { pick } from "@/lib/locale";
-import { BrandLogo } from "@/modules/loyalty/branding/ui/brand-logo";
-import { useBrand } from "@/modules/loyalty/branding/ui/brand-provider";
+import Image from "next/image";
 
-/** Brand-aware introduction shared by the default and white-label login routes. */
+/** The single controlled entry point for every platform module. */
 export function LoginBrandHeader() {
   const locale = useLocale();
-  const { profile } = useBrand();
 
   return (
     <header className="flex flex-col items-center gap-3 text-center">
-      <BrandLogo />
-      {profile.tagline && (
-        <p className="max-w-sm text-label font-medium text-accent">
-          {profile.tagline}
-        </p>
-      )}
+      <Image src="/brand/logo-white.svg" alt="CIRIX" width={160} height={57} className="mb-5 h-auto w-40" />
       <h1 className="text-display font-bold tracking-tight text-text">
-        {pick(locale, { es: "Bienvenido", en: "Welcome" })}
+        {pick(locale, { es: "Acceso autorizado", en: "Authorized access" })}
       </h1>
       <p className="max-w-sm text-body text-text-muted">
         {pick(locale, {
-          es: `Inicia sesión en ${profile.displayName} para hacer pedidos y acumular saldo con cada compra.`,
-          en: `Sign in to ${profile.displayName} to place orders and earn wallet credit with every purchase.`,
+          es: "Los módulos y demos de CIRIX están disponibles únicamente para cuentas creadas y habilitadas previamente por un administrador. Usa la cuenta de Google autorizada; no hay registro público.",
+          en: "CIRIX modules and demos are available only to accounts previously created and enabled by an administrator. Use your authorized Google account; public registration is not available.",
         })}
       </p>
     </header>

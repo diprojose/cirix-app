@@ -7,6 +7,8 @@ import type {
 } from "../../domain/ports/identity-provider";
 import { adminAuth } from "@/shared/infrastructure/firebase-admin";
 import { toUserAccount } from "./user-account-mapper";
+import { hasPlatformAccess } from "./platform-access";
+import { PlatformAccessDeniedError } from "../../domain/errors/iam-errors";
 
 /**
  * Firebase-backed adapter implementing {@link IdentityProvider}. It is the only
@@ -19,7 +21,14 @@ export class FirebaseIdentityProvider implements IdentityProvider {
     try {
       // `true` checks the token has not been revoked (logout, disabled user).
       const decoded = await adminAuth().verifySessionCookie(sessionCookie, true);
-      return toUserAccount(decoded);
+      const user = await adminAuth().getUser(decoded.uid);
+      if (!hasPlatformAccess(user)) return null;
+      // Read current admission and role, never stale claims in a 14-day cookie.
+      return toUserAccount({
+        ...decoded,
+        email: user.email,
+        operator: user.customClaims?.operator === true,
+      });
     } catch {
       // Absent, malformed, expired or revoked cookie → treat as guest.
       return null;
@@ -30,6 +39,15 @@ export class FirebaseIdentityProvider implements IdentityProvider {
     idToken: string,
     expiresInMs: number
   ): Promise<MintedSession> {
+    const decoded = await adminAuth().verifyIdToken(idToken, true);
+    const user = await adminAuth().getUser(decoded.uid);
+    if (!decoded.email_verified || !hasPlatformAccess(user)) {
+      throw new PlatformAccessDeniedError();
+    }
+    const secondsSinceSignIn = Date.now() / 1000 - decoded.auth_time;
+    if (!Number.isFinite(secondsSinceSignIn) || secondsSinceSignIn < -60 || secondsSinceSignIn > 300) {
+      throw new Error("A recent sign-in is required.");
+    }
     const cookie = await adminAuth().createSessionCookie(idToken, {
       expiresIn: expiresInMs,
     });

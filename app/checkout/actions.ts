@@ -1,6 +1,6 @@
 "use server";
 
-import { getViewer } from "@/lib/auth/dal";
+import { requirePlatformUser } from "@/lib/auth/dal";
 import { makeGetExchangeRate } from "@/modules/loyalty/pricing/infrastructure/di/pricing-container";
 import { canAccessOrder } from "@/lib/auth/order-access";
 import {
@@ -65,20 +65,20 @@ const PERSISTENCE_ERROR =
   "Este demo no tiene habilitado el guardado de pedidos. Configura Firebase para completar la compra.";
 
 /**
- * Places the order: resolves the signed-in viewer (guests may order too),
+ * Places the order for a previously authorized, signed-in viewer,
  * freezes the current BCV rate into the order and delegates to the ordering
  * use case. Returns a plain result the client form can act on.
  */
 export async function placeOrderAction(
   input: PlaceOrderActionInput
 ): Promise<OrderActionResult> {
+  const viewer = await requirePlatformUser();
   const brand = await getBrandProfile(input.brandSlug ?? "");
   if (!brand || !brand.active) {
     return { ok: false, message: ERROR_MESSAGES["ordering/invalid-brand"] };
   }
 
   try {
-    const viewer = await getViewer();
     const rateResult = await makeGetExchangeRate().execute();
     const exchangeRate = rateResult.ok ? rateResult.value : null;
 
@@ -206,6 +206,7 @@ export type ReportPaymentActionInput = {
 export async function reportPaymentAction(
   input: ReportPaymentActionInput
 ): Promise<OrderActionResult> {
+  await requirePlatformUser();
   const order = await makeGetOrderById().execute({ orderId: input.orderId });
   if (!order.ok || !(await canAccessOrder(order.value.customerUid))) {
     return { ok: false, message: ERROR_MESSAGES["ordering/order-not-found"] };
@@ -255,7 +256,7 @@ export type CouponActionResult =
 export async function validateCouponAction(
   input: ValidateCouponActionInput
 ): Promise<CouponActionResult> {
-  const viewer = await getViewer();
+  const viewer = await requirePlatformUser();
   const customerUid = viewer.authenticated ? viewer.uid : null;
 
   const result = await makeValidateCoupon().execute({

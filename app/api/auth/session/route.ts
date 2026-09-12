@@ -25,9 +25,12 @@ export const runtime = "nodejs";
  *
  * The response carries a `landing` path: the role is only known once the
  * session exists, so the login screen cannot compute it before signing in. An
- * operator is sent to the admin panel; everyone else to the storefront.
+ * operator is sent to the admin panel; other admitted users to the landing.
  */
 export async function POST(request: Request) {
+  if (request.headers.get("origin") !== new URL(request.url).origin) {
+    return NextResponse.json({ error: { code: "iam/invalid-origin" } }, { status: 403 });
+  }
   const body = (await request.json().catch(() => null)) as {
     idToken?: unknown;
   } | null;
@@ -35,10 +38,17 @@ export async function POST(request: Request) {
 
   const result = await makeCreateSession().execute({ idToken });
   if (!result.ok) {
+    (await cookies()).delete(SESSION_COOKIE_NAME);
     return NextResponse.json(
       { error: { code: result.error.code, message: result.error.message } },
-      { status: 401 }
+      { status: result.error.code === "iam/access-denied" ? 403 : 401 }
     );
+  }
+
+  const viewer = await makeGetViewer().execute({ sessionCookie: result.value.cookie });
+  if (!viewer.ok || !viewer.value.authenticated) {
+    (await cookies()).delete(SESSION_COOKIE_NAME);
+    return NextResponse.json({ error: { code: "iam/access-denied" } }, { status: 403 });
   }
 
   const cookieStore = await cookies();
@@ -55,11 +65,8 @@ export async function POST(request: Request) {
   // Resolve the viewer from the freshly minted cookie rather than from the
   // request's cookie jar: the DAL's `getViewer` is memoised per render pass and
   // would not see a cookie set in this very handler.
-  const viewer = await makeGetViewer().execute({
-    sessionCookie: result.value.cookie,
-  });
   const landing =
-    viewer.ok && viewer.value.permissions.canOperateStore ? "/admin" : "/";
+    viewer.value.permissions.canOperateStore ? "/admin" : "/";
 
   return NextResponse.json({ ok: true, landing });
 }
@@ -100,7 +107,10 @@ async function bindPendingReferral(
  * DELETE /api/auth/session — logs out: best-effort revokes the session at the
  * provider and clears the cookie.
  */
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (request.headers.get("origin") !== new URL(request.url).origin) {
+    return NextResponse.json({ error: { code: "iam/invalid-origin" } }, { status: 403 });
+  }
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
 

@@ -6,6 +6,8 @@ import { LocaleProvider } from "@/components/locale-provider";
 import { PwaInstaller } from "@/components/pwa-installer";
 import { RouteTheme } from "@/components/route-theme";
 import { getCurrentLocale } from "@/lib/i18n";
+import { headers } from "next/headers";
+import { requirePlatformUser } from "@/lib/auth/dal";
 
 const SITE_URL = new URL(
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://mixmag.vercel.app"
@@ -56,6 +58,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getCurrentLocale();
+  const pathname = (await headers()).get("x-mixmag-pathname") ?? "/";
+  if (pathname !== "/" && pathname !== "/login") await requirePlatformUser();
 
   return (
     <html
