@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import s from "./crm.module.css";
 
-const FIELD_CLASS =
-  "w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-action-fill";
 
 type LeadCaptureSuccess = {
   ok: true;
@@ -60,65 +59,75 @@ export function LeadCaptureForm({
     setSubmitting(true);
     setState(null);
 
-    const response = await fetch("/api/zoho/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/zoho/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const result = (await response.json()) as {
-      ok?: boolean;
-      message?: string;
-      lead?: {
-        id: string;
-        syncStatus: "pending" | "synced" | "failed";
-        zohoLeadId: string | null;
-        submittedAt: string;
-        syncedAt: string | null;
+      const result = (await response.json()) as {
+        ok?: boolean;
+        message?: string;
+        lead?: {
+          id: string;
+          syncStatus: "pending" | "synced" | "failed";
+          zohoLeadId: string | null;
+          submittedAt: string;
+          syncedAt: string | null;
+        };
       };
-    };
 
-    if (!response.ok || !result.ok) {
+      if (!response.ok || !result.ok) {
+        setState({
+          ok: false,
+          message:
+            result.message ??
+            (locale === "es"
+              ? "No pudimos enviar tu consulta. Intenta de nuevo."
+              : "We could not send your inquiry. Please try again."),
+        });
+        return;
+      }
+
+      form.reset();
+      setState({
+        ok: true,
+        message:
+          locale === "es"
+            ? "Consulta enviada. Ya quedó registrada en el CRM."
+            : "Inquiry sent. It has been recorded in the CRM.",
+        lead: result.lead ?? {
+          id: "unknown",
+          syncStatus: "pending",
+          zohoLeadId: null,
+          submittedAt: new Date().toISOString(),
+          syncedAt: null,
+        },
+        submitted: {
+          fullName: payload.fullName,
+          phone: payload.phone,
+          email: payload.email,
+          interestCategory: payload.interestCategory,
+          campaign: payload.campaign,
+          message: payload.message,
+        },
+      });
+    } catch {
       setState({
         ok: false,
-        message:
-          result.message ??
-          (locale === "es"
-            ? "No pudimos enviar tu consulta. Intenta de nuevo."
-            : "We could not send your inquiry. Please try again."),
+        message: locale === "es"
+          ? "No pudimos enviar tu consulta. Intenta de nuevo."
+          : "We could not send your inquiry. Please try again.",
       });
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    form.reset();
-    setState({
-      ok: true,
-      message:
-        locale === "es"
-          ? "Consulta enviada. Ya quedó registrada en el CRM."
-          : "Inquiry sent. It has been recorded in the CRM.",
-      lead: result.lead ?? {
-        id: "unknown",
-        syncStatus: "pending",
-        zohoLeadId: null,
-        submittedAt: new Date().toISOString(),
-        syncedAt: null,
-      },
-      submitted: {
-        fullName: payload.fullName,
-        phone: payload.phone,
-        email: payload.email,
-        interestCategory: payload.interestCategory,
-        campaign: payload.campaign,
-        message: payload.message,
-      },
-    });
-    setSubmitting(false);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+    <form onSubmit={handleSubmit} className={s.form} aria-busy={submitting}>
+      <p className={s.formNote}>{locale === "es" ? "Nombre y teléfono son obligatorios." : "Name and phone are required."}</p>
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-text">
@@ -126,10 +135,11 @@ export function LeadCaptureForm({
           </span>
           <input
             name="fullName"
+            autoComplete="name"
             required
             minLength={2}
             maxLength={80}
-            className={FIELD_CLASS}
+            className={s.field}
             placeholder={locale === "es" ? "Nombre y apellido" : "Full name"}
           />
         </label>
@@ -139,10 +149,12 @@ export function LeadCaptureForm({
           </span>
           <input
             name="phone"
+            type="tel"
+            autoComplete="tel"
             required
             minLength={7}
             maxLength={30}
-            className={FIELD_CLASS}
+            className={s.field}
             placeholder={locale === "es" ? "0412-1234567" : "+1 305 555 0199"}
           />
         </label>
@@ -153,8 +165,9 @@ export function LeadCaptureForm({
           <span className="text-sm font-medium text-text">Email</span>
           <input
             name="email"
+            autoComplete="email"
             type="email"
-            className={FIELD_CLASS}
+            className={s.field}
             placeholder={locale === "es" ? "correo@empresa.com" : "email@company.com"}
           />
         </label>
@@ -164,7 +177,7 @@ export function LeadCaptureForm({
           </span>
           <input
             name="interestCategory"
-            className={FIELD_CLASS}
+            className={s.field}
             placeholder={locale === "es" ? "Retail, distribución..." : "Retail, distribution..."}
           />
         </label>
@@ -176,7 +189,7 @@ export function LeadCaptureForm({
         </span>
         <input
           name="campaign"
-          className={FIELD_CLASS}
+          className={s.field}
           placeholder={locale === "es" ? "Meta lead ad julio" : "Meta lead ad July"}
         />
       </label>
@@ -189,7 +202,7 @@ export function LeadCaptureForm({
           name="message"
           rows={4}
           maxLength={800}
-          className={FIELD_CLASS}
+          className={s.field}
           placeholder={
             locale === "es"
               ? "Cuéntanos qué necesitas y qué tipo de negocio quieres cerrar."
@@ -203,35 +216,37 @@ export function LeadCaptureForm({
           <div className="space-y-3">
             <p
               role="status"
-              className="rounded-xl bg-cirix-cyan/15 px-4 py-3 text-sm font-medium text-brand-700"
+              className={s.success}
             >
               {state.message}
             </p>
-            <div className="rounded-xl border border-border bg-bg p-4">
+            <div className={s.result}>
               <p className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
                 {locale === "es" ? "Resultado del envío" : "Submission result"}
               </p>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <ResultFact label="Lead ID" value={state.lead.id} />
-                <ResultFact label="Sync status" value={state.lead.syncStatus} />
+                <ResultFact label={locale === "es" ? "Referencia" : "Reference"} value={state.lead.id} />
+                <ResultFact label={locale === "es" ? "Sincronización" : "Sync status"} value={{
+                  pending: locale === "es" ? "Pendiente" : "Pending",
+                  synced: locale === "es" ? "Sincronizado" : "Synced",
+                  failed: locale === "es" ? "No se pudo sincronizar" : "Sync failed",
+                }[state.lead.syncStatus]} />
                 <ResultFact
-                  label="Zoho lead ID"
+                  label={locale === "es" ? "Referencia Zoho" : "Zoho reference"}
                   value={state.lead.zohoLeadId ?? (locale === "es" ? "Pendiente" : "Pending")}
                 />
-                <ResultFact label="Submitted at" value={state.lead.submittedAt} />
+                <ResultFact label={locale === "es" ? "Fecha de envío" : "Submitted at"} value={state.lead.submittedAt} />
               </div>
-              <p className="mt-4 text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
-                {locale === "es" ? "Payload enviado" : "Submitted payload"}
-              </p>
-              <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface px-3 py-3 text-xs text-text-muted">
-                {JSON.stringify(state.submitted, null, 2)}
-              </pre>
+              <details className={s.resultSummary}>
+                <summary>{locale === "es" ? "Ver datos enviados" : "View submitted details"}</summary>
+                <pre>{JSON.stringify(state.submitted, null, 2)}</pre>
+              </details>
             </div>
           </div>
         ) : (
           <p
-            role="status"
-            className="rounded-xl bg-danger/10 px-4 py-3 text-sm font-medium text-danger"
+            role="alert"
+            className={s.failure}
           >
             {state.message}
           </p>
@@ -241,7 +256,7 @@ export function LeadCaptureForm({
       <button
         type="submit"
         disabled={submitting}
-        className="inline-flex min-h-12 items-center justify-center rounded-pill bg-action-fill px-6 text-title font-semibold text-on-action shadow-action transition-colors hover:bg-action-fill-strong disabled:opacity-60"
+        className={s.primaryButton}
       >
         {submitting
           ? locale === "es"
@@ -250,6 +265,7 @@ export function LeadCaptureForm({
           : locale === "es"
             ? "Enviar al CRM"
             : "Send to CRM"}
+        <span aria-hidden="true">{submitting ? "…" : "↗"}</span>
       </button>
     </form>
   );
@@ -257,7 +273,7 @@ export function LeadCaptureForm({
 
 function ResultFact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-surface px-3 py-3">
+    <div className={s.resultFact}>
       <p className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
         {label}
       </p>

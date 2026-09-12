@@ -1,32 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
-import { CONTAINER_READ } from "@/modules/loyalty/ui/layout";
+import { useLocale } from "@/components/locale-provider";
+import { pick } from "@/lib/locale";
+import s from "./crm.module.css";
 
-export function CrmError({
-  error,
-  unstable_retry,
-}: {
+export function CrmError({ error, unstable_retry }: {
   error: Error & { digest?: string };
   unstable_retry: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  const locale = useLocale();
+  useEffect(() => { console.error(error); }, [error]);
 
   return (
-    <main className={`${CONTAINER_READ} flex min-h-[24rem] flex-col items-center justify-center gap-4 text-center`}>
-      <div className="space-y-2">
-        <p className="text-title font-semibold text-text">No se pudo cargar el modulo CRM.</p>
-        <p className="text-body text-text-muted">Intenta de nuevo. Si persiste, revisa la configuracion de Zoho.</p>
-      </div>
-      <button
-        type="button"
-        onClick={() => unstable_retry()}
-        className="rounded-pill bg-accent-fill px-5 py-2 text-label font-semibold text-on-accent shadow-accent transition hover:bg-accent-fill-strong"
-      >
-        Reintentar
+    <div className={`${s.theme} ${s.errorPage}`} role="alert">
+      <p className={s.eyebrow}>CIRIX · CRM</p>
+      <h1 className={s.pageTitle}>{pick(locale, { es: "No se pudo cargar el CRM.", en: "The CRM could not be loaded." })}</h1>
+      <p className={s.description}>{pick(locale, { es: "Intenta de nuevo para retomar tu actividad.", en: "Try again to get back to your work." })}</p>
+      <button type="button" onClick={() => unstable_retry()} className={s.primaryButton}>
+        {pick(locale, { es: "Reintentar", en: "Try again" })}<span aria-hidden="true">↗</span>
       </button>
-    </main>
+    </div>
   );
 }

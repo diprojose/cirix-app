@@ -1,4 +1,5 @@
 import Link from "next/link";
+import s from "./crm.module.css";
 import { LeadCaptureForm } from "@/modules/zoho/ui/lead-capture-form";
 import { localizeHref, pick, type Locale } from "@/lib/locale";
 import type {
@@ -9,17 +10,31 @@ import type {
 } from "@/modules/zoho/crm/application/dtos/crm-dashboard-dto";
 
 const STAGE_LABELS: Record<LifecycleStage, Record<Locale, string>> = {
-  subscriber: { es: "Subscribers", en: "Subscribers" },
+  subscriber: { es: "Suscriptores", en: "Subscribers" },
   lead: { es: "Leads", en: "Leads" },
-  prospect: { es: "Prospects", en: "Prospects" },
-  customer: { es: "Customers", en: "Customers" },
+  prospect: { es: "Prospectos", en: "Prospects" },
+  customer: { es: "Clientes", en: "Customers" },
 };
 
-const STAGE_THEME: Record<LifecycleStage, { chip: string; panel: string }> = {
-  subscriber: { chip: "bg-sky-100 text-sky-700", panel: "bg-sky-50" },
-  lead: { chip: "bg-action-soft text-action-strong", panel: "bg-action-subtle" },
-  prospect: { chip: "bg-brand-100 text-accent-strong", panel: "bg-brand-50" },
-  customer: { chip: "bg-cirix-cyan/15 text-brand-700", panel: "bg-cirix-cyan/15" },
+const STAGE_NOTES: Record<LifecycleStage, Record<Locale, string>> = {
+  subscriber: { es: "Tu audiencia, lista para iniciar una relación.", en: "Your audience, ready to start a relationship." },
+  lead: { es: "Interés comercial que espera el próximo paso.", en: "Commercial interest waiting for the next step." },
+  prospect: { es: "Oportunidades calificadas para avanzar.", en: "Qualified opportunities ready to move forward." },
+  customer: { es: "Negocios ganados. Relaciones que continúan.", en: "Business won. Relationships that continue." },
+};
+
+const CONVERSION_COPY: Record<string, { label: string; note: string }> = {
+  "Subscriber to lead": { label: "De suscriptor a lead", note: "De audiencia a interés comercial." },
+  "Lead to prospect": { label: "De lead a prospecto", note: "Contactos calificados por el equipo comercial." },
+  "Prospect to customer": { label: "De prospecto a cliente", note: "Negocios cerrados sobre el pipeline activo." },
+  "Won deals": { label: "Negocios ganados", note: "Oportunidades marcadas como ganadas en el CRM." },
+};
+
+const STAGE_THEME: Record<LifecycleStage, string> = {
+  subscriber: s.subscriber,
+  lead: s.lead,
+  prospect: s.prospect,
+  customer: s.customer,
 };
 
 type DashboardPageProps = {
@@ -38,60 +53,70 @@ export function CrmLandingPage({ locale, dashboard }: DashboardPageProps) {
     .slice(0, 10);
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className={s.page}>
+      <PageIntro locale={locale}
+        eyebrow={{ es: "01 / VISIÓN COMERCIAL", en: "01 / COMMERCIAL OVERVIEW" }}
+        title={{ es: "Cada oportunidad, en su lugar.", en: "Every opportunity, in the right place." }}
+        body={{ es: "Una visión compartida de tus contactos, tu pipeline y lo que viene después.", en: "A shared view of your contacts, your pipeline, and what comes next." }}
+      />
+      <div className={s.metricGrid}>
         <MetricCard
           label={pick(locale, { es: "Contactos", en: "Contacts" })}
           value={String(dashboard.contacts.length)}
           note={pick(locale, { es: "base activa en CRM", en: "active base in CRM" })}
         />
         <MetricCard
-          label={pick(locale, { es: "Deals abiertos", en: "Open deals" })}
+          label={pick(locale, { es: "Negocios abiertos", en: "Open deals" })}
           value={String(openDeals)}
           note={pick(locale, { es: "pipeline vivo", en: "live pipeline" })}
         />
         <MetricCard
-          label={pick(locale, { es: "Deals ganados", en: "Won deals" })}
+          label={pick(locale, { es: "Negocios ganados", en: "Won deals" })}
           value={String(wonDeals)}
           note={pick(locale, { es: "negocios convertidos", en: "converted business" })}
         />
         <MetricCard
-          label={pick(locale, { es: "Follow-ups", en: "Follow-ups" })}
+          label={pick(locale, { es: "Seguimientos", en: "Follow-ups" })}
           value={String(dashboard.priorityFollowUps.length)}
-          note={pick(locale, { es: "requieren accion", en: "require action" })}
+          note={pick(locale, { es: "requieren acción", en: "require action" })}
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className={s.metricGrid}>
         {dashboard.stageSummary.map((step) => (
           <Link
             key={step.stage}
             href={localizeHref(locale, stageHref(step.stage))}
-            className={`rounded-xl p-5 shadow-xs transition-transform hover:-translate-y-0.5 ${STAGE_THEME[step.stage].panel}`}
+            className={`${s.stageCard} ${STAGE_THEME[step.stage]}`}
           >
-            <span className={`inline-flex rounded-pill px-3 py-1 text-caption font-semibold ${STAGE_THEME[step.stage].chip}`}>
-              {step.label}
+            <span className={s.stageChip}>
+              {pick(locale, STAGE_LABELS[step.stage])}
             </span>
-            <p className="mt-4 text-display font-bold tracking-tight text-text">{step.count}</p>
-            <p className="mt-2 text-body text-text-muted">{step.note}</p>
+            <p className={s.stageValue}>{step.count}<span aria-hidden="true">↗</span></p>
+            <p className={s.description}>{pick(locale, STAGE_NOTES[step.stage])}</p>
           </Link>
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className={s.mainGrid}>
         <RecordTable
           locale={locale}
-          eyebrow={pick(locale, { es: "Zoho list", en: "Zoho list" })}
+          eyebrow={pick(locale, { es: "RELACIONES EN MOVIMIENTO", en: "RELATIONSHIPS IN MOTION" })}
           title={pick(locale, { es: "Contactos recientes", en: "Recent contacts" })}
           contacts={recentContacts}
         />
 
-        <SimpleListPanel
-          locale={locale}
-          eyebrow={{ es: "Shortcuts", en: "Shortcuts" }}
-          title={{ es: "Abrir vistas", en: "Open views" }}
-          items={buildLandingLinks(locale).map((item) => `${item.title} - ${item.body}`)}
-        />
+        <section className={s.panel}>
+          <p className={s.eyebrow}>{pick(locale, { es: "ACCESOS DIRECTOS", en: "SHORTCUTS" })}</p>
+          <h2 className={s.panelTitle}>{pick(locale, { es: "Tu próximo paso", en: "Your next step" })}</h2>
+          <div className={s.shortcuts}>
+            {buildLandingLinks(locale).map((item) => (
+              <Link key={item.href} href={localizeHref(locale, item.href)} className={s.shortcut}>
+                <div><strong>{item.title}</strong><p>{item.body}</p></div><span aria-hidden="true">↗</span>
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -105,40 +130,40 @@ export function CrmKpisPage({ locale, dashboard }: DashboardPageProps) {
   const ownerLoad = summarizeOwners(dashboard.contacts, dashboard.opportunities);
 
   return (
-    <div className="space-y-8">
+    <div className={s.page}>
       <PageIntro
         locale={locale}
         eyebrow={{ es: "KPIs", en: "KPIs" }}
         title={{
-          es: "Vision ejecutiva del modulo CRM.",
-          en: "Executive view of the CRM module.",
+          es: "Tu actividad, en perspectiva.",
+          en: "Your activity, in perspective.",
         }}
         body={{
-          es: "Resumen limpio del mix comercial, la conversion y la carga operativa.",
-          en: "A cleaner summary of commercial mix, conversion, and operational load.",
+          es: "Etapas, conversiones y actividad para orientar el próximo paso de tu equipo.",
+          en: "Stages, conversions, and activity to guide your team’s next step.",
         }}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className={s.metricGrid}>
         <MetricCard
           label={pick(locale, { es: "Contactos", en: "Contacts" })}
           value={String(dashboard.contacts.length)}
           note={pick(locale, { es: "base activa", en: "active base" })}
         />
         <MetricCard
-          label={pick(locale, { es: "Deals abiertos", en: "Open deals" })}
+          label={pick(locale, { es: "Negocios abiertos", en: "Open deals" })}
           value={String(openDeals)}
           note={pick(locale, { es: `${wonDeals} ganados`, en: `${wonDeals} won` })}
         />
         <MetricCard
-          label={pick(locale, { es: "Deals perdidos", en: "Lost deals" })}
+          label={pick(locale, { es: "Negocios perdidos", en: "Lost deals" })}
           value={String(lostDeals)}
           note={pick(locale, { es: "feedback comercial", en: "commercial feedback" })}
         />
         <MetricCard
           label={pick(locale, { es: "Actividad", en: "Activity" })}
           value={String(dashboard.activities.length)}
-          note={pick(locale, { es: "senales registradas", en: "signals recorded" })}
+          note={pick(locale, { es: "señales registradas", en: "signals recorded" })}
         />
       </div>
 
@@ -146,21 +171,21 @@ export function CrmKpisPage({ locale, dashboard }: DashboardPageProps) {
         <SimpleStatPanel
           locale={locale}
           eyebrow={{ es: "Mix de etapas", en: "Stage mix" }}
-          title={{ es: "Conteo por lifecycle stage", en: "Counts by lifecycle stage" }}
+          title={{ es: "Contactos por etapa", en: "Counts by lifecycle stage" }}
           rows={dashboard.stageSummary.map((item) => ({
-            label: item.label,
+            label: pick(locale, STAGE_LABELS[item.stage]),
             value: String(item.count),
-            note: item.note,
+            note: pick(locale, STAGE_NOTES[item.stage]),
           }))}
         />
         <SimpleStatPanel
           locale={locale}
           eyebrow={{ es: "Conversiones", en: "Conversions" }}
-          title={{ es: "Lecturas rapidas", en: "Quick reads" }}
+          title={{ es: "Lecturas rápidas", en: "Quick reads" }}
           rows={dashboard.conversions.map((item) => ({
-            label: item.label,
+            label: locale === "es" ? CONVERSION_COPY[item.label]?.label ?? item.label : item.label,
             value: item.value,
-            note: item.note,
+            note: locale === "es" ? CONVERSION_COPY[item.label]?.note ?? item.note : item.note,
           }))}
         />
       </div>
@@ -169,20 +194,20 @@ export function CrmKpisPage({ locale, dashboard }: DashboardPageProps) {
         <SimpleListPanel
           locale={locale}
           eyebrow={{ es: "Origen", en: "Source mix" }}
-          title={{ es: "De donde entra la demanda", en: "Where demand comes from" }}
+          title={{ es: "De dónde llegan tus contactos", en: "Where demand comes from" }}
           items={sourceMix.map((item) => `${item.label} - ${item.count}`)}
         />
         <SimpleListPanel
           locale={locale}
-          eyebrow={{ es: "Owners", en: "Owners" }}
+          eyebrow={{ es: "Responsables", en: "Owners" }}
           title={{ es: "Carga operativa", en: "Operational load" }}
-          items={ownerLoad.map((item) => `${item.owner} - ${item.contacts} contacts - ${item.deals} deals`)}
+          items={ownerLoad.map((item) => `${item.owner} · ${item.contacts} ${pick(locale, { es: "contactos", en: "contacts" })} · ${item.deals} ${pick(locale, { es: "negocios", en: "deals" })}`)}
         />
       </div>
 
       <SimpleListPanel
         locale={locale}
-        eyebrow={{ es: "Follow-ups", en: "Follow-ups" }}
+        eyebrow={{ es: "Seguimientos", en: "Follow-ups" }}
         title={{ es: "Acciones prioritarias", en: "Priority actions" }}
         items={dashboard.priorityFollowUps.slice(0, 5).map((item) => `${item.fullName} - ${item.nextAction}`)}
       />
@@ -198,26 +223,31 @@ export function CrmStagePage({
   const contacts = dashboard.contacts.filter((contact) => contact.lifecycleStage === stage);
 
   return (
-    <div className="space-y-6">
-      <RecordTable locale={locale} eyebrow="" title="" contacts={contacts} />
+    <div className={s.page}>
+      <PageIntro locale={locale}
+        eyebrow={{ es: "PIPELINE COMERCIAL", en: "SALES PIPELINE" }}
+        title={STAGE_LABELS[stage]}
+        body={{ es: "Contactos, responsables y próximos pasos para dar continuidad a cada relación.", en: "Contacts, owners, and next steps to keep every relationship moving." }}
+      />
+      <RecordTable locale={locale} eyebrow="" title={pick(locale, { es: `${contacts.length} registros`, en: `${contacts.length} records` })} contacts={contacts} />
     </div>
   );
 }
 
 export function CrmDemoFormPage({ locale }: { locale: Locale }) {
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <div className="rounded-xl bg-surface p-6 shadow-card">
+    <div className={s.mainGrid}>
+      <div className={s.panel}>
         <PageIntro
           locale={locale}
-          eyebrow={{ es: "Demo form", en: "Demo form" }}
+          eyebrow={{ es: "CAPTURA COMERCIAL", en: "LEAD CAPTURE" }}
           title={{
-            es: "Formulario demo para probar la captura CRM.",
-            en: "Demo form to test CRM capture.",
+            es: "Una conversación. Una oportunidad.",
+            en: "A conversation. An opportunity.",
           }}
           body={{
-            es: "Rellena los datos, envia el lead y valida el resultado local + Zoho dentro de la misma pantalla.",
-            en: "Fill the data, submit the lead, and validate the local + Zoho result on the same screen.",
+            es: "Registra un contacto y dale a tu equipo el contexto para dar el próximo paso.",
+            en: "Capture a contact and give your team the context to take the next step.",
           }}
         />
         <LeadCaptureForm locale={locale} />
@@ -227,17 +257,17 @@ export function CrmDemoFormPage({ locale }: { locale: Locale }) {
         <SimpleListPanel
           locale={locale}
           eyebrow={{ es: "Campos", en: "Fields" }}
-          title={{ es: "Datos minimos", en: "Minimum data" }}
+          title={{ es: "Datos del contacto", en: "Minimum data" }}
           items={buildFormFields(locale)}
         />
         <SimpleListPanel
           locale={locale}
           eyebrow={{ es: "Resultado", en: "Result" }}
-          title={{ es: "Que valida este flujo", en: "What this flow validates" }}
+          title={{ es: "Después del envío", en: "After submission" }}
           items={[
-            pick(locale, { es: "Persistencia local del lead", en: "Local lead persistence" }),
-            pick(locale, { es: "Estado de sincronizacion con Zoho", en: "Zoho sync status" }),
-            pick(locale, { es: "Payload/resumen enviado desde la web", en: "Payload/summary sent from the web" }),
+            pick(locale, { es: "Contacto registrado para seguimiento", en: "Contact recorded for follow-up" }),
+            pick(locale, { es: "Estado de sincronización con Zoho", en: "Zoho sync status" }),
+            pick(locale, { es: "Resumen de los datos enviados", en: "Summary of submitted details" }),
           ]}
         />
       </div>
@@ -257,24 +287,24 @@ function PageIntro({
   body: Record<Locale, string>;
 }) {
   return (
-    <div className="max-w-3xl">
-      <p className="text-label font-semibold uppercase tracking-[0.18em] text-action-strong">
+    <div className={s.pageIntro}>
+      <p className={s.eyebrow}>
         {pick(locale, eyebrow)}
       </p>
-      <h1 className="mt-2 text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[0.96] tracking-[-0.04em] text-text">
+      <h1 className={s.pageTitle}>
         {pick(locale, title)}
       </h1>
-      <p className="mt-4 text-body text-text-muted md:text-lg">{pick(locale, body)}</p>
+      <p className={s.introDescription}>{pick(locale, body)}</p>
     </div>
   );
 }
 
 function MetricCard({ label, value, note }: { label: string; value: string; note: string }) {
   return (
-    <article className="rounded-xl border border-stone-200 bg-stone-50 p-5 shadow-xs">
-      <p className="text-caption font-semibold uppercase tracking-[0.16em] text-text-muted">{label}</p>
-      <p className="mt-3 text-display font-bold tracking-tight text-text">{value}</p>
-      <p className="mt-3 text-body text-text-muted">{note}</p>
+    <article className={s.metricCard}>
+      <p className={s.metricLabel}>{label}</p>
+      <p className={s.metricValue}>{value}</p>
+      <p className={s.description}>{note}</p>
     </article>
   );
 }
@@ -291,11 +321,11 @@ function SimpleStatPanel({
   rows: Array<{ label: string; value: string; note: string }>;
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-surface p-6 shadow-xs">
-      <p className="text-label font-semibold uppercase tracking-[0.18em] text-accent">
+    <div className={s.panel}>
+      <p className={s.eyebrow}>
         {pick(locale, eyebrow)}
       </p>
-      <h2 className="mt-2 text-h-section font-semibold text-text">{pick(locale, title)}</h2>
+      <h2 className={s.panelTitle}>{pick(locale, title)}</h2>
       <div className="mt-5 divide-y divide-stone-200">
         {rows.map((row, index) => (
           <div key={`${row.label}-${row.value}-${index}`} className="grid gap-2 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
@@ -323,19 +353,19 @@ function SimpleListPanel({
   items: string[];
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-surface p-6 shadow-xs">
-      <p className="text-label font-semibold uppercase tracking-[0.18em] text-accent">
+    <div className={s.panel}>
+      <p className={s.eyebrow}>
         {pick(locale, eyebrow)}
       </p>
-      <h2 className="mt-2 text-h-section font-semibold text-text">{pick(locale, title)}</h2>
+      <h2 className={s.panelTitle}>{pick(locale, title)}</h2>
       <div className="mt-5 space-y-2">
         {items.length === 0 ? (
-          <p className="text-body text-text-muted">
-            {pick(locale, { es: "Sin datos todavia.", en: "No data yet." })}
+          <p className={s.description}>
+            {pick(locale, { es: "Sin datos todavía.", en: "No data yet." })}
           </p>
         ) : (
           items.map((item, index) => (
-            <div key={`${item}-${index}`} className="rounded-lg bg-stone-50 px-4 py-3 text-body text-text-muted">
+            <div key={`${item}-${index}`} className={s.listItem}>
               {item}
             </div>
           ))
@@ -357,62 +387,48 @@ function RecordTable({
   contacts: CommercialContactDto[];
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-surface p-6 shadow-xs">
-      {eyebrow ? (
-        <p className="text-label font-semibold uppercase tracking-[0.18em] text-accent">{eyebrow}</p>
-      ) : null}
-      {title ? <h2 className="mt-2 text-display font-bold tracking-tight text-text">{title}</h2> : null}
-
+    <section className={s.panel}>
+      {eyebrow ? <p className={s.eyebrow}>{eyebrow}</p> : null}
+      {title ? <h2 className={s.panelTitle}>{title}</h2> : null}
       {contacts.length === 0 ? (
-        <p className={`${eyebrow || title ? "mt-6" : ""} text-body text-text-muted`}>
-          {pick(locale, {
-            es: "Todavia no hay registros en esta vista.",
-            en: "There are no records in this view yet.",
-          })}
-        </p>
+        <div className={s.emptyState}>
+          <span aria-hidden="true">◫</span>
+          <p>{pick(locale, { es: "Todavía no hay registros en esta vista.", en: "There are no records in this view yet." })}</p>
+          <Link className={s.textLink} href={localizeHref(locale, "/zoho/demo-form")}>
+            {pick(locale, { es: "Registrar un contacto", en: "Capture a contact" })} <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
       ) : (
-        <div className={`${eyebrow || title ? "mt-6" : ""} overflow-hidden rounded-xl bg-white`}>
-          <div className="grid grid-cols-[minmax(0,2fr)_1fr_1fr_1.2fr] gap-3 border-b border-stone-200 px-4 py-3 text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
-            <span>{pick(locale, { es: "Contacto", en: "Contact" })}</span>
-            <span>{pick(locale, { es: "Stage", en: "Stage" })}</span>
-            <span>{pick(locale, { es: "Owner", en: "Owner" })}</span>
-            <span>{pick(locale, { es: "Ultima actividad", en: "Last activity" })}</span>
-          </div>
-          <div className="space-y-2 px-2 py-2">
-            {contacts.map((contact) => (
-              <article
-                key={contact.id}
-                className="grid grid-cols-[minmax(0,2fr)_1fr_1fr_1.2fr] gap-3 rounded-lg bg-white px-3 py-3 shadow-xs"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-title font-semibold text-text">{contact.fullName}</p>
-                  <p className="mt-1 truncate text-caption text-text-muted">
-                    {contact.email} - {contact.phone}
-                  </p>
-                  {contact.nextAction ? (
-                    <p className="mt-2 truncate text-caption text-text-muted">
-                      {pick(locale, { es: "Next", en: "Next" })}: {contact.nextAction}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex items-start">
-                  <span
-                    className={`inline-flex rounded-pill px-3 py-1 text-caption font-semibold ${STAGE_THEME[contact.lifecycleStage].chip}`}
-                  >
-                    {pick(locale, STAGE_LABELS[contact.lifecycleStage])}
-                  </span>
-                </div>
-                <div className="text-body text-text">{contact.owner}</div>
-                <div className="text-body text-text-muted">
-                  <p>{formatShortDate(locale, contact.lastActivityAt ?? contact.createdAt)}</p>
-                  <p className="mt-1 text-caption">{contact.source}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+        <div className={s.tableScroll} role="region" aria-label={title || pick(locale, { es: "Contactos", en: "Contacts" })} tabIndex={0}>
+          <table className={s.table}>
+            <caption className={s.srOnly}>{title || pick(locale, { es: "Contactos", en: "Contacts" })}</caption>
+            <thead><tr>
+              <th scope="col">{pick(locale, { es: "Contacto", en: "Contact" })}</th>
+              <th scope="col">{pick(locale, { es: "Etapa", en: "Stage" })}</th>
+              <th scope="col">{pick(locale, { es: "Responsable", en: "Owner" })}</th>
+              <th scope="col">{pick(locale, { es: "Última actividad", en: "Last activity" })}</th>
+            </tr></thead>
+            <tbody>{contacts.map((contact) => (
+              <tr key={contact.id}>
+                <td>
+                  <div className={s.contact}>
+                    <span className={s.avatar} aria-hidden="true">{contact.fullName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+                    <div>
+                      <p className={s.contactName}>{contact.fullName}</p>
+                      <p className={s.contactMeta}>{[contact.email, contact.phone].filter(Boolean).join(" · ")}</p>
+                      {contact.nextAction && <p className={s.contactNext}>{pick(locale, { es: "Próximo paso", en: "Next step" })}: {contact.nextAction}</p>}
+                    </div>
+                  </div>
+                </td>
+                <td><span className={`${s.stageChip} ${STAGE_THEME[contact.lifecycleStage]}`}>{pick(locale, STAGE_LABELS[contact.lifecycleStage])}</span></td>
+                <td>{contact.owner}</td>
+                <td><p>{formatShortDate(locale, contact.lastActivityAt ?? contact.createdAt)}</p><p className={s.contactMeta}>{contact.source}</p></td>
+              </tr>
+            ))}</tbody>
+          </table>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -441,9 +457,9 @@ function buildLandingLinks(locale: Locale) {
     },
     {
       href: "/zoho/subscribers",
-      title: pick(locale, { es: "Subscribers", en: "Subscribers" }),
+      title: pick(locale, { es: "Suscriptores", en: "Subscribers" }),
       body: pick(locale, {
-        es: "Base temprana y entradas de intencion baja.",
+        es: "El inicio de cada relación comercial.",
         en: "Early base and low-intent entries.",
       }),
     },
@@ -451,21 +467,21 @@ function buildLandingLinks(locale: Locale) {
       href: "/zoho/leads",
       title: pick(locale, { es: "Leads", en: "Leads" }),
       body: pick(locale, {
-        es: "Interes comercial abierto y proximos pasos.",
+        es: "Interés comercial y próximos pasos.",
         en: "Open commercial interest and next steps.",
       }),
     },
     {
       href: "/zoho/prospects",
-      title: pick(locale, { es: "Prospects", en: "Prospects" }),
+      title: pick(locale, { es: "Prospectos", en: "Prospects" }),
       body: pick(locale, {
-        es: "Leads ya calificados con contexto de deals.",
+        es: "Oportunidades calificadas para avanzar.",
         en: "Qualified leads with deal context.",
       }),
     },
     {
       href: "/zoho/customers",
-      title: pick(locale, { es: "Customers", en: "Customers" }),
+      title: pick(locale, { es: "Clientes", en: "Customers" }),
       body: pick(locale, {
         es: "Negocios cerrados y relaciones activas.",
         en: "Closed business and active relationships.",
@@ -473,10 +489,10 @@ function buildLandingLinks(locale: Locale) {
     },
     {
       href: "/zoho/demo-form",
-      title: pick(locale, { es: "Demo form", en: "Demo form" }),
+      title: pick(locale, { es: "Nuevo contacto", en: "New contact" }),
       body: pick(locale, {
-        es: "Formulario para probar la escritura al CRM.",
-        en: "Form to test the CRM write-path.",
+        es: "Registra una nueva oportunidad comercial.",
+        en: "Capture a new sales opportunity.",
       }),
     },
   ];
@@ -485,19 +501,19 @@ function buildLandingLinks(locale: Locale) {
 function buildFormFields(locale: Locale): string[] {
   return [
     pick(locale, {
-      es: "Nombre y telefono como minimos operativos para seguimiento.",
+      es: "Nombre y teléfono para iniciar el seguimiento.",
       en: "Name and phone as the minimum operating fields for follow-up.",
     }),
     pick(locale, {
-      es: "Email, interes y categoria para segmentacion inicial.",
+      es: "Email y categoría para conocer mejor al contacto.",
       en: "Email, interest, and category for initial segmentation.",
     }),
     pick(locale, {
-      es: "Source y campaign para trazabilidad del lead.",
+      es: "Campaña para identificar el origen de la oportunidad.",
       en: "Source and campaign for lead traceability.",
     }),
     pick(locale, {
-      es: "Mensaje libre y contexto comercial.",
+      es: "Mensaje para compartir el contexto comercial.",
       en: "Free-text message and commercial context.",
     }),
   ];
