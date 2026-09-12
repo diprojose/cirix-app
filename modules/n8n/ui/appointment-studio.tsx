@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/lib/locale";
+import s from "./automation-studio.module.css";
 import {
   APPOINTMENT_STORAGE_EVENT,
   addDays,
@@ -116,32 +117,32 @@ export function AppointmentStudio({ locale }: Props) {
     setNotes(demoNotes);
   };
 
-  return <div className="space-y-5">
-    <section className="grid gap-4 sm:grid-cols-3">
+  return <div className={`${s.appointments} space-y-5`}>
+    <section className={s.appointmentMetrics}>
       <Metric label={es ? "Invitaciones" : "Invitations"} value={invitations.length} />
       <Metric label={es ? "Confirmadas" : "Confirmed"} value={invitations.filter((item) => item.status === "confirmed").length} tone="success" />
       <Metric label={es ? "Slots libres esta semana" : "Open slots this week"} value={availableCount} tone="accent" />
     </section>
 
     <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(330px,0.65fr)]">
-      <div className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
+      <div className={s.appointmentPanel}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">{es ? "Agenda interna" : "Internal calendar"}</p><h2 className="mt-1 font-heading text-xl font-semibold">{formatWeek(weekStart, locale)}</h2><p className="mt-1 text-xs text-text-muted">{es ? "Lun–vie · 9:00–17:00 · hora de Florida" : "Mon–Fri · 9:00–17:00 · Florida time"}</p></div>
           <div className="flex gap-2"><button type="button" className={secondaryButton} onClick={() => setWeekStart(addDays(weekStart, -7))} aria-label={es ? "Semana anterior" : "Previous week"}>←</button><button type="button" className={secondaryButton} onClick={() => setWeekStart(startOfWeek(today))}>{es ? "Hoy" : "Today"}</button><button type="button" className={secondaryButton} onClick={() => setWeekStart(addDays(weekStart, 7))} aria-label={es ? "Semana siguiente" : "Next week"}>→</button></div>
         </div>
         <div className="grid gap-2 sm:grid-cols-5">
-          {days.map((day) => <div key={day} className="rounded-xl border border-border bg-bg/45 p-2"><p className="mb-2 text-center text-xs font-semibold text-text">{formatDay(day, locale)}</p><div className="grid grid-cols-2 gap-1 sm:grid-cols-1">{buildDaySlots(day, duration).map((slot) => {
+          {days.map((day) => <div key={day} className={s.appointmentDay}><p className="mb-2 text-center text-xs font-semibold text-text">{formatDay(day, locale)}</p><div className="grid grid-cols-2 gap-1 sm:grid-cols-1">{buildDaySlots(day, duration).map((slot) => {
             const chosen = selected.some((item) => item.id === slot.id);
             const available = day >= today && isSlotAvailable(slot, invitations);
-            return <button key={slot.id} type="button" disabled={!available} onClick={() => toggleSlot(slot)} className={`min-h-9 rounded-lg border px-1 text-[11px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-300 ${chosen ? "border-action bg-action-fill text-on-action" : available ? "border-border bg-surface text-text hover:border-accent hover:text-accent" : "cursor-not-allowed border-transparent bg-bg/55 text-text-muted/40 line-through"}`}>{slot.startsAt.slice(11, 16)}</button>;
+            return <button key={slot.id} type="button" disabled={!available} aria-pressed={chosen} aria-label={formatSlot(slot, locale)} onClick={() => toggleSlot(slot)} className={`min-h-9 rounded-lg border px-1 text-[11px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-300 ${chosen ? "border-action bg-action-fill text-on-action" : available ? "border-border bg-surface text-text hover:border-accent hover:text-accent" : "cursor-not-allowed border-transparent bg-bg/55 text-text-muted/40 line-through"}`}>{slot.startsAt.slice(11, 16)}</button>;
           })}</div></div>)}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
+      <div className={s.appointmentPanel}>
         <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">{es ? "Nueva invitación" : "New invitation"}</p>
         <h2 className="mt-1 font-heading text-xl font-semibold">{es ? "Configurar cita" : "Set up appointment"}</h2>
-          <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label={es ? "Modalidad" : "Mode"}>{(["direct", "proposal"] as const).map((value) => <button key={value} type="button" onClick={() => { setMode(value); setSelected([]); }} className={`min-h-11 rounded-xl border px-2 text-xs font-semibold ${mode === value ? "border-accent bg-accent-soft text-accent-strong" : "border-border bg-bg text-text-muted"}`}>{value === "direct" ? (es ? "Fecha directa" : "Direct date") : (es ? "Enviar opciones" : "Send options")}</button>)}</div>
+          <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label={es ? "Modalidad" : "Mode"}>{(["direct", "proposal"] as const).map((value) => <button key={value} type="button" aria-pressed={mode === value} onClick={() => { setMode(value); setSelected([]); }} className={`min-h-11 rounded-xl border px-2 text-xs font-semibold ${mode === value ? "border-accent bg-accent-soft text-accent-strong" : "border-border bg-bg text-text-muted"}`}>{value === "direct" ? (es ? "Fecha directa" : "Direct date") : (es ? "Enviar opciones" : "Send options")}</button>)}</div>
         <div className="mt-4 space-y-3">
           <label className="block text-xs text-text-muted">{es ? "Nombre del cliente" : "Customer name"}<input className={`${fieldClass} mt-1`} value={customerName} onChange={(event) => setCustomerName(event.target.value)} /></label>
           <label className="block text-xs text-text-muted">Email<input className={`${fieldClass} mt-1`} type="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} /></label>
@@ -156,8 +157,8 @@ export function AppointmentStudio({ locale }: Props) {
 
     {sent ? <SentPreview invitation={sent} locale={locale} onClose={() => setSent(null)} /> : null}
 
-    <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
-      <div className="mb-4 flex items-center justify-between gap-3"><div><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">{es ? "Seguimiento" : "Tracking"}</p><h2 className="mt-1 font-heading text-xl font-semibold">{es ? "Citas e invitaciones" : "Appointments and invitations"}</h2></div><button type="button" onClick={reset} className={secondaryButton}>{es ? "Reiniciar demo" : "Reset demo"}</button></div>
+    <section className={s.appointmentPanel}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">{es ? "Seguimiento" : "Tracking"}</p><h2 className="mt-1 font-heading text-xl font-semibold">{es ? "Citas e invitaciones" : "Appointments and invitations"}</h2></div><button type="button" onClick={reset} className={secondaryButton}>{es ? "Reiniciar demo" : "Reset demo"}</button></div>
       {invitations.length === 0 ? <p className="rounded-xl border border-dashed border-border p-7 text-center text-sm text-text-muted">{es ? "Aún no hay invitaciones. Selecciona un horario para comenzar." : "No invitations yet. Select a slot to begin."}</p> : <div className="space-y-2">{invitations.map((invitation) => <article key={invitation.id} className="flex flex-col gap-3 rounded-xl border border-border bg-bg/50 p-3 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-text">{invitation.subject}</p><StatusBadge status={invitation.status} es={es} /></div><p className="mt-1 text-xs text-text-muted">{invitation.customerName} · {invitation.customerEmail}</p><p className="mt-1 text-xs text-text-muted">{invitation.mode === "direct" ? formatSlot(invitation.slots[0], locale) : `${invitation.slots.length} ${es ? "opciones · vence en 72 h" : "options · expires in 72 h"}`}</p></div><div className="flex shrink-0 gap-2"><a className={secondaryButton} href={`/${locale}/n8n/invitacion/${invitation.token}`} target="_blank" rel="noreferrer">{es ? "Abrir" : "Open"}</a>{invitation.status === "pending" || invitation.status === "confirmed" ? <button type="button" className={secondaryButton} onClick={() => cancel(invitation.id)}>{es ? "Cancelar" : "Cancel"}</button> : null}</div></article>)}</div>}
     </section>
   </div>;
@@ -178,7 +179,7 @@ function formatDay(day: string, locale: Locale): string { const [y, m, d] = day.
 function formatWeek(day: string, locale: Locale): string { const end = addDays(day, 4); const format = (value: string) => { const [y, m, d] = value.split("-").map(Number); return new Intl.DateTimeFormat(locale === "es" ? "es-US" : "en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(y, m - 1, d, 12)); }; return `${format(day)} — ${format(end)}`; }
 function writeExpiredOnly(invitations: AppointmentInvitation[]) { const stored = readSnapshot().invitations; if (JSON.stringify(stored) !== JSON.stringify(invitations)) writeInvitations(invitations); }
 
-function Metric({ label, value, tone = "default" }: { label: string; value: number; tone?: "default" | "success" | "accent" }) { return <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-text-muted">{label}</p><p className={`mt-2 font-heading text-3xl font-semibold ${tone === "success" ? "text-[#7ff0b2]" : tone === "accent" ? "text-accent-strong" : "text-text"}`}>{value}</p></div>; }
+function Metric({ label, value, tone = "default" }: { label: string; value: number; tone?: "default" | "success" | "accent" }) { return <div className={s.appointmentMetric}><p className="text-xs text-text-muted">{label}</p><p className={`mt-2 font-heading text-3xl font-semibold ${tone === "success" ? "text-[#7ff0b2]" : tone === "accent" ? "text-accent-strong" : "text-text"}`}>{value}</p></div>; }
 
 function StatusBadge({ status, es }: { status: AppointmentInvitation["status"]; es: boolean }) { const labels = { pending: es ? "Pendiente" : "Pending", confirmed: es ? "Confirmada" : "Confirmed", declined: es ? "Rechazada" : "Declined", expired: es ? "Vencida" : "Expired", cancelled: es ? "Cancelada" : "Cancelled" }; const tone = status === "confirmed" ? "border-[#37d98a]/30 bg-[#37d98a]/10 text-[#7ff0b2]" : status === "pending" ? "border-accent/30 bg-accent-soft text-accent-strong" : "border-border bg-surface text-text-muted"; return <span className={`rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase ${tone}`}>{labels[status]}</span>; }
 

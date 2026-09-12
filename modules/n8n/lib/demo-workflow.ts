@@ -155,7 +155,7 @@ export const N8N_DEMO_WORKFLOW: WorkflowDemo = {
       glyph: "+",
       kind: "action",
       x: 442,
-      y: 500,
+      y: 530,
       status: "live",
       tone: "accent",
     },
