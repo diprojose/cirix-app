@@ -18,6 +18,19 @@ export type MvpModule = {
 
 export const MVP_MODULES: MvpModule[] = [
   {
+    slug: "pixels", title: "Pixel Hub", href: "/pixels", status: "live", accent: "brand",
+    eyebrow: { es: "Inteligencia de visitantes", en: "Visitor intelligence" },
+    summary: { es: "Centraliza sitios y píxeles, recibe visitas y conversiones con consentimiento y explora tus datos propios.", en: "Centralize sites and pixels, receive consented visits and conversions and explore your first-party data." },
+    badge: { es: "Medición propia", en: "First-party measurement" },
+    audience: { es: "Marketing y analítica", en: "Marketing and analytics" },
+    ctaLabel: { es: "Abrir Pixel Hub", en: "Open Pixel Hub" },
+    capabilities: [
+      { es: "Registro de sitios e IDs publicitarios", en: "Site and advertising ID registry" },
+      { es: "Eventos, conversiones y campañas UTM", en: "Events, conversions and UTM campaigns" },
+      { es: "Control de consentimiento y duplicados", en: "Consent controls and deduplication" },
+    ],
+  },
+  {
     slug: "zoho-crm",
     title: "Zoho CRM",
     href: "/zoho",

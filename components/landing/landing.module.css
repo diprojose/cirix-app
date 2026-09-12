@@ -358,6 +358,11 @@
   right: 0;
   top: 61%;
 }
+.node5 {
+  left: 50%;
+  top: 2%;
+  transform: translateX(-50%);
+}
 .node4 {
   left: 50%;
   bottom: 5%;

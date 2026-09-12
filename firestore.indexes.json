@@ -27,5 +27,8 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    { "collectionGroup": "pixel_events", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "pixel_rate_limits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+  ]
 }
