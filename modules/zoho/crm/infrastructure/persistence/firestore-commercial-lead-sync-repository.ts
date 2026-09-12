@@ -25,7 +25,7 @@ export class FirestoreCommercialLeadSyncRepository
         if (email && lead.email && lead.email === email) {
           return true;
         }
-        return lead.phoneDigits === phoneDigits;
+        return Boolean(phoneDigits) && lead.phoneDigits === phoneDigits;
       })
       .sort((left, right) => right.submittedAt.localeCompare(left.submittedAt));
 
@@ -39,6 +39,7 @@ export class FirestoreCommercialLeadSyncRepository
       phone: input.normalizedLead.phone,
       phoneDigits: input.phoneDigits,
       email: input.normalizedLead.email,
+      company: input.normalizedLead.company,
       message: input.normalizedLead.message,
       source: input.normalizedLead.source,
       campaign: input.normalizedLead.campaign,
@@ -87,6 +88,7 @@ function restore(id: string, document: CommercialLeadDocument): StoredCommercial
     phone: document.phone,
     phoneDigits: document.phoneDigits,
     email: document.email,
+    company: document.company ?? null,
     message: document.message,
     source: document.source,
     campaign: document.campaign,

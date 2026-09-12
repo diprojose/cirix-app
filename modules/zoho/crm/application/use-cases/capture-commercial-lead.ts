@@ -65,10 +65,19 @@ export class CaptureCommercialLead
 function normalize(
   input: CommercialLeadInput
 ): Result<NormalizedCommercialLeadInput, DomainError> {
+  if (!input || typeof input !== "object" ||
+      ["fullName", "phone", "source"].some((key) => typeof input[key as keyof CommercialLeadInput] !== "string") ||
+      ["email", "company", "message", "campaign", "interestCategory", "locale"].some((key) => {
+        const value = input[key as keyof CommercialLeadInput];
+        return value !== undefined && typeof value !== "string";
+      })) {
+    return err(new InvalidCommercialLeadError("Invalid lead fields."));
+  }
   const fullName = input.fullName.trim();
   const phone = input.phone.trim();
   const source = input.source.trim();
-  const email = normalizeOptional(input.email);
+  const email = normalizeOptional(input.email)?.toLowerCase() ?? null;
+  const company = normalizeOptional(input.company);
   const message = normalizeOptional(input.message);
   const campaign = normalizeOptional(input.campaign);
   const interestCategory = normalizeOptional(input.interestCategory);
@@ -77,7 +86,7 @@ function normalize(
   if (fullName.length < 2) {
     return err(new InvalidCommercialLeadError("Lead name is required."));
   }
-  if (digitsOnly(phone).length < 7) {
+  if ((!phone && !email) || (phone && digitsOnly(phone).length < 7)) {
     return err(new InvalidCommercialLeadError("Lead phone is required."));
   }
   if (!source) {
@@ -91,6 +100,7 @@ function normalize(
     fullName,
     phone,
     email,
+    company,
     message,
     source,
     campaign,
@@ -113,11 +123,11 @@ export function toZohoPayload(lead: NormalizedCommercialLeadInput): Record<strin
     Last_Name: deriveLastName(lead.fullName),
     First_Name: deriveFirstName(lead.fullName),
     Full_Name_Web: lead.fullName,
-    Phone: lead.phone,
+    ...(lead.phone ? { Phone: lead.phone } : {}),
     Email: lead.email,
     Lead_Source: lead.source,
     Description: lead.message,
-    Company: "Cirix Tech Platform web inquiry",
+    Company: lead.company || "Cirix Tech Platform web inquiry",
     Campaign_Name_Web: lead.campaign,
     Interest_Category_Web: lead.interestCategory,
     Locale_Web: lead.locale,

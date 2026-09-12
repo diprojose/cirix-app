@@ -16,10 +16,14 @@ export class ZohoCrmLeadsApi implements ZohoLeadsGateway {
     const payload = toZohoPayload(input.lead);
 
     if (existingZohoLeadId) {
-      await this.client.request(`/Leads/${existingZohoLeadId}`, {
+      const response = await this.client.request(`/Leads/${existingZohoLeadId}`, {
         method: "PUT",
         body: JSON.stringify({ data: [{ id: existingZohoLeadId, ...payload }] }),
       });
+      const json = (await response.json()) as { data?: Array<{ status?: string }> };
+      if (json.data?.[0]?.status !== "success") {
+        throw new Error("Zoho CRM did not confirm the lead update.");
+      }
       return { zohoLeadId: existingZohoLeadId, payload };
     }
 
@@ -46,6 +50,7 @@ export class ZohoCrmLeadsApi implements ZohoLeadsGateway {
       }
     }
 
+    if (!phone) return null;
     const byPhone = await this.searchLead(`(Phone:equals:${escapeCriteriaValue(phone)})`);
     return byPhone;
   }

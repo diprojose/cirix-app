@@ -2,6 +2,7 @@ export type CommercialLeadInput = {
   fullName: string;
   phone: string;
   email?: string;
+  company?: string;
   message?: string;
   source: string;
   campaign?: string;
@@ -11,9 +12,10 @@ export type CommercialLeadInput = {
 
 export type NormalizedCommercialLeadInput = Omit<
   CommercialLeadInput,
-  "email" | "message" | "campaign" | "interestCategory" | "locale"
+  "email" | "company" | "message" | "campaign" | "interestCategory" | "locale"
 > & {
   email: string | null;
+  company: string | null;
   message: string | null;
   campaign: string | null;
   interestCategory: string | null;
@@ -26,6 +28,7 @@ export type StoredCommercialLead = {
   phone: string;
   phoneDigits: string;
   email: string | null;
+  company: string | null;
   message: string | null;
   source: string;
   campaign: string | null;
