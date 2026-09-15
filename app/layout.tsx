@@ -32,6 +32,8 @@ export const metadata: Metadata = {
     template: "%s - Cirix",
   },
   description: SITE_DESCRIPTION,
+  // Public landing pages explicitly opt in to indexing in homeMetadata().
+  robots: { index: false, follow: false },
   appleWebApp: {
     capable: true,
     title: "Cirix",

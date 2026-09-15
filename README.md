@@ -6,6 +6,13 @@ Demo interactivo de e-commerce con loyalty y marca blanca. Cada cliente puede te
 
 Solo la landing es pública. Los módulos, las demos y las APIs internas requieren una cuenta previamente habilitada. El endpoint de captación `/api/contact` permanece público para la landing de marketing. Consulta [cómo crear, habilitar y revocar usuarios](docs/platform-access.md).
 
+## Google Search Console y SEO
+
+El portal genera su [sitemap](https://www.cirixadv.com/sitemap.xml) y
+[robots.txt](https://www.cirixadv.com/robots.txt) con Next.js. Consulta la
+[guía de indexación y mantenimiento](docs/search-console.md) para enviar el sitemap,
+solicitar el rastreo de la portada y revisar los metadatos.
+
 ## Desarrollo local
 
 ```bash

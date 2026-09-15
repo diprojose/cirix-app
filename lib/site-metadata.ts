@@ -5,6 +5,16 @@ export const SITE_URL = "https://www.cirixadv.com";
 export const SITE_NAME = "Cirix Tech Portal";
 export const SITE_DESCRIPTION = "Explore Cirix's technology portal: CRM, loyalty programs, workflow automation, AI support, and call tracking tools to grow your business.";
 
+export const SITE_STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: SITE_NAME,
+  alternateName: ["CIRIX", "cirixadv.com"],
+  url: `${SITE_URL}/`,
+  inLanguage: ["en", "es"],
+};
+
 export function homeMetadata(locale: Locale): Metadata {
   const title = pick(locale, {
     en: "Cirix Tech Portal | CRM, Automation & AI",
@@ -18,6 +28,7 @@ export function homeMetadata(locale: Locale): Metadata {
   return {
     title: { absolute: title },
     description,
+    robots: { index: true, follow: true },
     alternates: {
       canonical: `/${locale}`,
       languages: { en: "/en", es: "/es", "x-default": "/en" },

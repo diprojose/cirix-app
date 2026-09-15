@@ -6,7 +6,7 @@ import { getCurrentLocale, localizeHref, pick } from "@/lib/i18n";
 import { getViewer } from "@/lib/auth/dal";
 import { MVP_MODULES } from "@/shared/mvp-modules";
 import s from "@/components/landing/landing.module.css";
-import { homeMetadata } from "@/lib/site-metadata";
+import { homeMetadata, SITE_STRUCTURED_DATA } from "@/lib/site-metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   return homeMetadata(await getCurrentLocale());
@@ -36,6 +36,12 @@ export default async function ModulesLandingPage() {
   ];
   const contactHref = `https://wa.me/12393403877?text=${encodeURIComponent(t("Hola CIRIX, me gustaría conocer sus soluciones tecnológicas para mi negocio.", "Hello CIRIX, I'd like to learn about your technology solutions for my business."))}`;
   return <div className={s.landing} id="top">
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(SITE_STRUCTURED_DATA).replace(/</g, "\\u003c"),
+      }}
+    />
     <a href="#main-content" className={s.skipLink}>{t("Saltar al contenido", "Skip to content")}</a>
     <LandingMotion /><LandingHeader locale={locale} />
     <main id="main-content">
