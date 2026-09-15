@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { makeGetViewer } from "@/core/iam/infrastructure/di/iam-container";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
 import { isPublicAsset, isServiceEndpoint } from "@/lib/auth/route-access";
-import { detectPreferredLocale, localizeHref, stripLocaleFromPathname } from "@/lib/locale";
+import { DEFAULT_LOCALE, detectPreferredLocale, localizeHref, stripLocaleFromPathname } from "@/lib/locale";
 
 /** Default-deny access boundary. API handlers and server actions also check the DAL. */
 export async function proxy(request: NextRequest): Promise<NextResponse> {
@@ -14,7 +14,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   const { locale, pathname: barePathname } = stripLocaleFromPathname(pathname);
-  const resolvedLocale = locale ?? detectPreferredLocale(request.headers.get("accept-language"));
+  // Keep the public entry point consistently English for visitors and crawlers.
+  const resolvedLocale = locale ?? (pathname === "/" ? DEFAULT_LOCALE : detectPreferredLocale(request.headers.get("accept-language")));
   const isApi = pathname === "/api" || pathname.startsWith("/api/");
   const publicPage = readOnly && !isAction && (barePathname === "/" || barePathname === "/login");
 

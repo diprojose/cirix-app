@@ -1,7 +1,7 @@
 export const LOCALES = ["es", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 
-export const DEFAULT_LOCALE: Locale = "es";
+export const DEFAULT_LOCALE: Locale = "en";
 const INTERNAL_PATH = /^\/(?!\/)/;
 
 export function hasLocale(value: string): value is Locale {
@@ -42,5 +42,17 @@ export function stripLocaleFromPathname(pathname: string): {
 export function detectPreferredLocale(acceptLanguage: string | null): Locale {
   if (!acceptLanguage) return DEFAULT_LOCALE;
 
-  return acceptLanguage.toLowerCase().includes("en") ? "en" : DEFAULT_LOCALE;
+  const preferences = acceptLanguage.toLowerCase().split(",").map((entry) => {
+    const [tag, ...parameters] = entry.trim().split(";");
+    const quality = parameters.find((parameter) => parameter.trim().startsWith("q="));
+    return {
+      locale: tag.split("-")[0],
+      quality: quality ? Number(quality.trim().slice(2)) : 1,
+    };
+  }).sort((a, b) => b.quality - a.quality);
+
+  for (const preference of preferences) {
+    if (hasLocale(preference.locale) && preference.quality > 0) return preference.locale;
+  }
+  return DEFAULT_LOCALE;
 }

@@ -6,12 +6,10 @@ import { getCurrentLocale, localizeHref, pick } from "@/lib/i18n";
 import { getViewer } from "@/lib/auth/dal";
 import { MVP_MODULES } from "@/shared/mvp-modules";
 import s from "@/components/landing/landing.module.css";
+import { homeMetadata } from "@/lib/site-metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getCurrentLocale();
-  const title = pick(locale, { es: "Tecnología que mueve tu negocio", en: "Technology that moves your business" });
-  const description = pick(locale, { es: "Explora el ecosistema CIRIX: CRM, loyalty, automatización, inteligencia artificial y atribución de llamadas. De la primera conversación a la próxima compra.", en: "Explore the CIRIX ecosystem: CRM, loyalty, automation, AI, and call attribution. From the first conversation to the next purchase." });
-  return { title, description, openGraph: { title: `${title} | CIRIX`, description, type: "website", locale: locale === "es" ? "es_ES" : "en_US", images: [{ url: "/og.png", width: 1200, height: 630, alt: "CIRIX" }] }, twitter: { card: "summary_large_image", title: `${title} | CIRIX`, description, images: ["/og.png"] } };
+  return homeMetadata(await getCurrentLocale());
 }
 
 export default async function ModulesLandingPage() {

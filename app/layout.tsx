@@ -10,9 +10,7 @@ import { getCurrentLocale } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { requirePlatformUser } from "@/lib/auth/dal";
 
-const SITE_URL = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://mixmag.vercel.app"
-);
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site-metadata";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,13 +25,13 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: SITE_URL,
-  applicationName: "Cirix",
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
-    default: "Cirix",
+    default: SITE_NAME,
     template: "%s - Cirix",
   },
-  description: "Cirix digital experiences for CRM, loyalty and customer activation.",
+  description: SITE_DESCRIPTION,
   appleWebApp: {
     capable: true,
     title: "Cirix",

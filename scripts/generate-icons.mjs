@@ -1,5 +1,6 @@
 /**
- * Generates the PWA icon set as opaque PNGs, with no image dependency.
+ * Generates the grocery demo PWA icon set as opaque PNGs, with no image dependency.
+ * Portal favicons use the official Cirix artwork; see generate-favicon.mjs.
  *
  * The icons are still placeholders standing in for real Cirix Tech Platform artwork, but
  * they now carry the grocery brand green and a simple leaf mark instead of the
@@ -106,8 +107,6 @@ const targets = [
   ["public/icon-512x512.png", 512, 0.62],
   ["public/icon-maskable-192x192.png", 192, 0.42],
   ["public/icon-maskable-512x512.png", 512, 0.42],
-  ["app/icon.png", 512, 0.62],
-  ["app/apple-icon.png", 180, 0.62],
 ];
 
 for (const [path, size, safe] of targets) {

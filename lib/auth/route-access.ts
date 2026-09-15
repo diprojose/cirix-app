@@ -1,4 +1,5 @@
 const PUBLIC_ASSETS = new Set([
+  "/robots.txt", "/sitemap.xml",
   "/favicon.ico", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/sw.js",
   "/icon-192x192.png", "/icon-512x512.png", "/icon-maskable-192x192.png", "/icon-maskable-512x512.png",
   "/og.png", "/file.svg", "/globe.svg", "/next.svg", "/vercel.svg", "/window.svg", "/pixel.js",

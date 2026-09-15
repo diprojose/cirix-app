@@ -16,7 +16,7 @@ describe("private platform routes", () => {
     expect(execute).not.toHaveBeenCalled();
   });
   it("localizes the public root without requiring a session", async () => {
-    expect((await proxy(request("/"))).headers.get("location")).toBe("https://cirix.example/es");
+    expect((await proxy(request("/"))).headers.get("location")).toBe("https://cirix.example/en");
     expect(execute).not.toHaveBeenCalled();
   });
   it.each(["/es/zoho", "/es/zoho/leads/lead%3A123", "/en/zoho/customers/contact%3A456", "/en/n8n", "/es/ai-support", "/es/calls", "/es/loyalty", "/es/demo/mercado-fresco", "/es/demo/mercado-fresco/login", "/es/demo/mercado-fresco/admin/settings", "/es/orders/test", "/es/offline", "/es/new-module", "/es/demo/test/admin/settings.svg"])("rejects direct navigation, including demos and future routes: %s", async (path) => {
