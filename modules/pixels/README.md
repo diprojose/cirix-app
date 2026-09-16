@@ -2,6 +2,10 @@
 
 Módulo disponible en `/es/pixels` y `/en/pixels`. Implementa registro de sitios e IDs publicitarios, recolección propia de eventos con consentimiento, campañas UTM y diagnóstico reciente. Los datos se aíslan por el UID de la cuenta que registra cada sitio.
 
+## Guía descargable
+
+El botón **Descargar guía .md** está disponible en la cabecera del contenido y en la sección de instalación. Genera un archivo Markdown en el idioma del panel con los pasos de registro, instalación, consentimiento, conversiones, verificación y preparación de producción. Con un sitio seleccionado, incluye su ID, origen autorizado y el código de instalación usando la URL de la plataforma abierta. Sin un sitio seleccionado, utiliza `YOUR_SITE_ID` como marcador que debe sustituirse. Para instalar en producción, descarga la guía desde la plataforma publicada con HTTPS.
+
 ## Conectar la web Cirix
 
 1. Publicar esta versión de `cirix-tech-platform` en `https://cirixadv.com`, con las credenciales Firebase Admin que ya utiliza la plataforma.
