@@ -3,6 +3,7 @@ import { makeGetViewer } from "@/core/iam/infrastructure/di/iam-container";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
 import { isPublicAsset, isPublicPage, isServiceEndpoint } from "@/lib/auth/route-access";
 import { DEFAULT_LOCALE, detectPreferredLocale, localizeHref, stripLocaleFromPathname } from "@/lib/locale";
+import { SITE_URL } from "@/lib/site-metadata";
 
 /** Default-deny access boundary. API handlers and server actions also check the DAL. */
 export async function proxy(request: NextRequest): Promise<NextResponse> {
@@ -18,6 +19,21 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const resolvedLocale = locale ?? (pathname === "/" ? DEFAULT_LOCALE : detectPreferredLocale(request.headers.get("accept-language")));
   const isApi = pathname === "/api" || pathname.startsWith("/api/");
   const publicPage = readOnly && !isAction && isPublicPage(barePathname);
+
+  // Consolidate indexable landing variants in one permanent hop. Keep preview
+  // and local origins intact, and leave actions/auth/service endpoints alone.
+  if (publicPage && barePathname === "/") {
+    const canonicalOrigin = new URL(SITE_URL);
+    const redirectUrl = request.nextUrl.clone();
+    if (redirectUrl.hostname === canonicalOrigin.hostname || redirectUrl.hostname === "cirixadv.com") {
+      redirectUrl.protocol = canonicalOrigin.protocol;
+      redirectUrl.host = canonicalOrigin.host;
+    }
+    redirectUrl.pathname = localizeHref(resolvedLocale, "/");
+    if (redirectUrl.href !== request.nextUrl.href) {
+      return NextResponse.redirect(redirectUrl, 308);
+    }
+  }
 
   if (!publicPage) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null;

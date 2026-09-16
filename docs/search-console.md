@@ -58,7 +58,49 @@ Enviar el sitemap facilita el descubrimiento; no garantiza indexación, posicion
 ni actualización inmediata del favicon. Los resultados de búsqueda y el selector
 de propiedades de Search Console pueden mostrar información anterior.
 
+## Diagnóstico del informe del 16 de septiembre de 2026
+
+El ZIP `cirixadv.com-Coverage-2026-09-16.zip` contiene un resumen, sin ejemplos
+de URLs. Su última fila, del 13 de septiembre, registra 6 páginas indexadas y
+4 sin indexar: 2 «Duplicada: el usuario no ha indicado ninguna versión canónica»
+y 2 «Página con redirección». No permite identificar cuáles son esas cuatro URLs.
+
+La comprobación pública del 16 de septiembre encontró:
+
+- `/en` y `/es` responden 200 y ya declaran canonical hacia su versión HTTPS con
+  `www`, además de `index, follow` y alternativas de idioma coherentes con el sitemap.
+- Las versiones sin `www` también responden 200 con ese canonical.
+- La raíz, con y sin `www`, redirige temporalmente (307) a `/en`.
+
+El ajuste en `proxy.ts` consolida las portadas del dominio de producción mediante
+308 hacia `https://www.cirixadv.com/en` o `/es`. Conserva los parámetros de consulta
+y el idioma explícito; la raíz siempre elige inglés. Solo se aplica a navegación
+GET/HEAD sin acciones. Desarrollo, previews, autenticación y endpoints de servicio
+conservan su dominio. Este ajuste refuerza las señales canónicas existentes; no
+demuestra que las dos duplicadas del informe fueran las variantes sin `www`.
+
+Después de desplegar:
+
+1. Comprobar que la raíz y las portadas sin `www` redirigen con 308 a la portada
+   canónica correspondiente, y que `/en` y `/es` con `www` responden 200.
+2. Abrir el detalle de «Duplicada: el usuario no ha indicado ninguna versión
+   canónica» en Search Console e inspeccionar cada URL de ejemplo. Comparar la
+   canónica declarada con la elegida por Google y probar la URL publicada.
+3. Si los ejemplos corresponden a las variantes ya corregidas, pulsar **Validar
+   corrección** y solicitar indexación de las dos URLs canónicas. Si son otras
+   rutas, revisarlas antes de dar el problema por resuelto.
+4. Mantener únicamente las URLs canónicas indexables en el sitemap actual.
+
+«Página con redirección» es una exclusión esperada cuando su destino es correcto;
+la URL de origen no necesita indexarse. No hay que eliminar las redirecciones
+ni bloquear las variantes en robots.txt. Search Console necesita un nuevo rastreo
+para reflejar los cambios; este informe por sí solo no confirma un fallo actual
+de las etiquetas canónicas.
+
 ## Referencias
+
+- [Consolidar URLs duplicadas](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)
+- [Informe de indexación de páginas](https://support.google.com/webmasters/answer/7440203)
 
 - [Crear y enviar un sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)
 - [Nombre del sitio y datos WebSite](https://developers.google.com/search/docs/appearance/site-names)
