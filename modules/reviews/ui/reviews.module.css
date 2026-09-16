@@ -1,0 +1,30 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: radial-gradient(ellipse at top, var(--color-brand-800), transparent 65%), var(--color-bg);
+}
+.container { width: 100%; max-width: 520px; }
+.logo { display: block; width: 128px; height: auto; margin: 0 auto 40px; }
+.heading { text-align: center; }
+.heading h1 { font-size: clamp(1.75rem, 6vw, 2.25rem); font-weight: 600; line-height: 1.15; letter-spacing: -.035em; }
+.heading p { margin-top: 12px; color: var(--color-text-muted); font-size: 1rem; line-height: 1.5; }
+.stars { display: flex; justify-content: center; gap: 4px; margin: 28px 0; }
+.star { width: 52px; height: 52px; display: grid; place-items: center; border-radius: var(--radius-md); color: var(--color-text-muted); cursor: pointer; }
+.star svg { width: 36px; height: 36px; fill: transparent; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+.star[data-filled="true"] { color: var(--color-accent); }
+.star[data-filled="true"] svg { fill: currentColor; }
+.star:focus-visible, .comment:focus-visible, .continue:focus-visible { outline: 2px solid var(--color-accent-strong); outline-offset: 5px; }
+.label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: .9375rem; font-weight: 500; margin-bottom: 10px; }
+.label span { color: var(--color-text-muted); font-weight: 400; font-size: .875rem; }
+.comment { display: block; width: 100%; min-height: 128px; resize: vertical; border: 1px solid var(--color-stone-400); border-radius: var(--radius-lg); background: var(--color-surface); padding: 16px; font-size: 1rem; line-height: 1.5; color: var(--color-text); }
+.comment::placeholder { color: var(--color-text-muted); opacity: 1; }
+.continue { display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; min-height: 56px; margin-top: 20px; padding: 14px 20px; border-radius: var(--radius-pill); background: var(--color-action-fill); color: var(--color-on-action); font-weight: 600; cursor: pointer; }
+.continue:hover { background: var(--color-action-fill-strong); }
+.continue:disabled { opacity: .75; cursor: wait; }
+.hint, .publication { text-align: center; color: var(--color-text-muted); font-size: .875rem; line-height: 1.5; }
+.hint { max-width: 340px; margin: 16px auto 0; }
+.publication { margin-top: 24px; }
+@media (min-width: 640px) { .container { padding: 16px; } }

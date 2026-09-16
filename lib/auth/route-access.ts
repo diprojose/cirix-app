@@ -5,6 +5,11 @@ const PUBLIC_ASSETS = new Set([
   "/og.png", "/file.svg", "/globe.svg", "/next.svg", "/vercel.svg", "/window.svg", "/pixel.js",
 ]);
 
+/** Exact public pages; nested module routes remain private by default. */
+export function isPublicPage(pathname: string): boolean {
+  return pathname === "/" || pathname === "/login" || pathname === "/review";
+}
+
 /** Public build/brand assets are explicit; module URLs with extensions stay private. */
 export function isPublicAsset(pathname: string): boolean {
   return PUBLIC_ASSETS.has(pathname) || pathname.startsWith("/brand/") || pathname.startsWith("/products/");
@@ -15,6 +20,7 @@ export function isServiceEndpoint(pathname: string): boolean {
   return [
     "/api/auth/session",
     "/api/contact",
+    "/api/reviews/events",
     "/api/pixels/collect",
     "/api/webhooks/twilio/voice",
     "/api/webhooks/twilio/call-status",

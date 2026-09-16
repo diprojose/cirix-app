@@ -11,6 +11,25 @@ beforeEach(() => { execute.mockReset(); execute.mockResolvedValue(ok(guestViewer
 const request = (path: string, init?: ConstructorParameters<typeof NextRequest>[1]) => new NextRequest(`https://cirix.example${path}`, init);
 
 describe("private platform routes", () => {
+  it.each(["/es/review", "/en/review?source=qr"])("allows public review requests: %s", async (path) => {
+    const response = await proxy(request(path));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-request-x-mixmag-pathname")).toBe("/review");
+    expect(execute).not.toHaveBeenCalled();
+  });
+  it.each(["qr", "whatsapp", "email", "sms", "direct"])("preserves review attribution when localizing: %s", async (source) => {
+    const response = await proxy(request(`/review?source=${source}`, { headers: { "accept-language": "es" } }));
+    expect(response.headers.get("location")).toBe(`https://cirix.example/es/review?source=${source}`);
+    expect(execute).not.toHaveBeenCalled();
+  });
+  it("keeps review actions and nested pages private", async () => {
+    expect((await proxy(request("/es/review", { method: "POST", headers: { "next-action": "test" } }))).status).toBe(401);
+    expect((await proxy(request("/es/review/admin"))).headers.get("location")).toContain("/es/login");
+  });
+  it("allows anonymous events to reach their validated handler", async () => {
+    expect((await proxy(request("/api/reviews/events", { method: "POST" }))).status).toBe(200);
+    expect(execute).not.toHaveBeenCalled();
+  });
   it.each(["/es", "/en", "/es/login", "/en/login", "/brand/logo-white.svg", "/favicon.ico", "/pixel.js"])("keeps the landing, login and public assets reachable: %s", async (path) => {
     expect((await proxy(request(path))).status).toBe(200);
     expect(execute).not.toHaveBeenCalled();

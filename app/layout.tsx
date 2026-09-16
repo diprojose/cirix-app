@@ -9,6 +9,7 @@ import { ToastProvider } from "@/components/toast-provider";
 import { getCurrentLocale } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { requirePlatformUser } from "@/lib/auth/dal";
+import { isPublicPage } from "@/lib/auth/route-access";
 
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site-metadata";
 
@@ -60,7 +61,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getCurrentLocale();
   const pathname = (await headers()).get("x-mixmag-pathname") ?? "/";
-  if (pathname !== "/" && pathname !== "/login") await requirePlatformUser();
+  if (!isPublicPage(pathname)) await requirePlatformUser();
 
   return (
     <html

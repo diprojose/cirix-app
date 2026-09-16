@@ -1,6 +1,8 @@
 # Acceso controlado a CIRIX
 
-La landing (`/`, `/es`, `/en`) es la única página de contenido pública. `/login` y sus variantes de idioma son la puerta de autenticación. Todas las demos, módulos, páginas operativas y APIs internas de negocio requieren una sesión verificada de una cuenta habilitada previamente.
+La landing (`/`, `/es`, `/en`) y la solicitud de reseñas (`/review`, `/es/review`, `/en/review`) son páginas públicas. `/login` y sus variantes de idioma son la puerta de autenticación. Las demás demos, módulos, páginas operativas y APIs internas de negocio requieren una sesión verificada de una cuenta habilitada previamente.
+
+`/api/reviews/events` es una excepción pública para telemetría anónima: valida mismo origen, tamaño y un esquema cerrado; no recibe comentarios ni expone lectura de datos. Las acciones de servidor sobre `/review` y las rutas anidadas siguen protegidas.
 
 ## Crear o habilitar una cuenta
 

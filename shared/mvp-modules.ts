@@ -6,6 +6,7 @@ export type MvpModule = {
   slug: string;
   title: string;
   href: string;
+  public?: boolean;
   status: MvpModuleStatus;
   accent: "brand" | "action";
   eyebrow: Record<Locale, string>;
@@ -17,6 +18,19 @@ export type MvpModule = {
 };
 
 export const MVP_MODULES: MvpModule[] = [
+  {
+    slug: "reviews", title: "Google Reviews", href: "/review", public: true, status: "live", accent: "action",
+    eyebrow: { es: "Experiencia del cliente", en: "Customer experience" },
+    summary: { es: "Invita a tus clientes a compartir su experiencia y continuar al formulario oficial de Google.", en: "Invite your customers to share their experience and continue to the official Google review form." },
+    badge: { es: "Acceso público", en: "Public access" },
+    audience: { es: "Clientes y atención al cliente", en: "Customers and customer service" },
+    ctaLabel: { es: "Abrir solicitud de reseña", en: "Open review request" },
+    capabilities: [
+      { es: "Estrellas y comentario opcionales", en: "Optional rating and comment" },
+      { es: "Enlaces para QR, WhatsApp, email y SMS", en: "Links for QR, WhatsApp, email and SMS" },
+      { es: "Publicación manual del cliente en Google", en: "Customer publishes manually on Google" },
+    ],
+  },
   {
     slug: "pixels", title: "Pixel Hub", href: "/pixels", status: "live", accent: "brand",
     eyebrow: { es: "Inteligencia de visitantes", en: "Visitor intelligence" },
