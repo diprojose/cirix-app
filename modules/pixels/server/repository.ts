@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldPath, Timestamp } from "firebase-admin/firestore";
+import type { EventPage, ReportQuery } from "../domain/report";
 import { adminFirestore } from "@/shared/infrastructure/firebase-admin";
 import { sanitizeEvent, type PixelSite, type PixelSiteInput, type PixelEvent, type PixelEventInput } from "../domain/pixel";
 
@@ -37,8 +38,27 @@ export async function listEvents(siteId: string): Promise<PixelEvent[]> {
   }).filter((event) => Date.parse(event.receivedAt) > cutoff);
 }
 
+/** Stable keyset pagination, including events with identical server timestamps. */
+export async function listEventPage(siteId: string, period: ReportQuery): Promise<EventPage> {
+  const from = new Date(Math.max(Date.parse(period.from), Date.now() - 90 * 86400_000)).toISOString();
+  if (from >= period.to) return { events: [], nextCursor: null };
+  let query = sites().doc(siteId).collection("pixel_events")
+    .where("receivedAt", ">=", from).where("receivedAt", "<", period.to)
+    .orderBy("receivedAt", "desc").orderBy(FieldPath.documentId(), "desc");
+  if (period.cursorTime && period.cursorId) query = query.startAfter(period.cursorTime, period.cursorId);
+  const snapshot = await query.limit(501).get();
+  const docs = snapshot.docs.slice(0, 500);
+  const events = docs.map((doc) => {
+    const { expiresAt: _expiry, ...event } = doc.data();
+    void _expiry;
+    return event as PixelEvent;
+  });
+  const last = docs.at(-1);
+  return { events, nextCursor: snapshot.docs.length > 500 && last ? { time: events.at(-1)!.receivedAt, id: last.id } : null };
+}
+
 /** Transaction gives idempotency and a shared per-site/minute write ceiling across instances. */
-export async function recordEvent(input: PixelEventInput, origin: string): Promise<"created" | "duplicate" | "limited" | "forbidden"> {
+export async function recordEvent(input: PixelEventInput, origin: string, geo?: PixelEvent["geo"]): Promise<"created" | "duplicate" | "limited" | "forbidden"> {
   const db = adminFirestore();
   return db.runTransaction(async (tx) => {
     const siteRef = sites().doc(input.siteId);
@@ -52,7 +72,7 @@ export async function recordEvent(input: PixelEventInput, origin: string): Promi
     if (count >= 300) return "limited";
     const now = Date.now();
     tx.set(rateRef, { count: count + 1, expiresAt: Timestamp.fromMillis(now + 86400_000) });
-    tx.create(eventRef, { ...sanitizeEvent(input), receivedAt: new Date(now).toISOString(), expiresAt: Timestamp.fromMillis(now + 90 * 86400_000) });
+    tx.create(eventRef, { ...sanitizeEvent(input), ...(geo ? { geo } : {}), receivedAt: new Date(now).toISOString(), expiresAt: Timestamp.fromMillis(now + 90 * 86400_000) });
     return "created";
   });
 }

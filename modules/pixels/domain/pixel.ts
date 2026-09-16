@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const EVENT_NAMES = ["page_view", "view_item", "add_to_cart", "begin_checkout", "purchase", "generate_lead", "contact"] as const;
+export const EVENT_NAMES = ["page_view", "view_item", "add_to_cart", "begin_checkout", "purchase", "generate_lead", "contact", "engagement", "scroll"] as const;
 export const PROVIDERS = ["meta", "google_ads", "ga4", "tiktok", "linkedin", "pinterest", "snapchat", "other"] as const;
 export const idSchema = z.string().uuid();
 const campaignValue = z.string().max(160).regex(/^[\w .~+-]*$/);
@@ -30,12 +30,25 @@ export const eventInputSchema = z.object({
   clickIds: z.object({ gclid: z.string().max(256).regex(/^[\w.-]+$/).optional(), fbclid: z.string().max(256).regex(/^[\w.-]+$/).optional(), ttclid: z.string().max(256).regex(/^[\w.-]+$/).optional() }).strict().default({}),
   value: z.number().finite().min(0).max(1_000_000_000).optional(),
   currency: z.string().regex(/^[A-Z]{3}$/).optional(),
+  context: z.object({
+    device: z.enum(["mobile", "tablet", "desktop", "unknown"]),
+    browser: z.enum(["Chrome", "Safari", "Firefox", "Edge", "Opera", "Samsung", "Other"]),
+    os: z.enum(["Windows", "macOS", "iOS", "Android", "Linux", "Other"]),
+    language: z.string().max(35).regex(/^[a-zA-Z0-9-]+$/).optional(),
+  }).strict().optional(),
+  attribution: z.object({
+    landingPath: z.string().max(500).regex(/^\/(?!\/)[^?#\s\\]*$/),
+    referrerHost: z.string().max(253).regex(/^[a-zA-Z0-9.-]+$/).optional(),
+  }).strict().optional(),
+  contactChannel: z.enum(["whatsapp", "phone", "email", "form", "other"]).optional(),
+  engagementMs: z.number().int().min(0).max(60_000).optional(),
+  scrollPercent: z.union([z.literal(25), z.literal(50), z.literal(75), z.literal(100)]).optional(),
 }).strict().refine((event) => event.name !== "purchase" || (event.value !== undefined && event.currency !== undefined), { message: "Purchase requires value and currency" });
 
 export type PixelSiteInput = z.infer<typeof siteInputSchema>;
 export type PixelSite = PixelSiteInput & { id: string; ownerId: string; createdAt: string };
 export type PixelEventInput = z.infer<typeof eventInputSchema>;
-export type PixelEvent = PixelEventInput & { receivedAt: string };
+export type PixelEvent = PixelEventInput & { receivedAt: string; geo?: { country: string; region?: string } };
 
 export function sanitizeEvent(event: PixelEventInput): PixelEventInput {
   return { ...event, clickIds: event.consent.marketing ? event.clickIds : {} };

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { eventInputSchema, sanitizeEvent, siteInputSchema, type PixelSite } from "@/modules/pixels/domain/pixel";
 import { guestViewer } from "@/core/iam/application/dtos/viewer-dto";
 
-const mocks = vi.hoisted(() => ({ getSite: vi.fn(), recordEvent: vi.fn(), listEvents: vi.fn(), updateSite: vi.fn(), getViewer: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getSite: vi.fn(), recordEvent: vi.fn(), listEvents: vi.fn(), listEventPage: vi.fn(), updateSite: vi.fn(), getViewer: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/modules/pixels/server/repository", () => mocks);
 vi.mock("@/lib/auth/dal", () => ({ getViewer: mocks.getViewer }));
@@ -84,6 +84,21 @@ describe("pixel ownership and minimization", () => {
     mocks.getSite.mockResolvedValue({ ...site, ownerId: "another-owner" });
     expect((await GET(request(), context)).status).toBe(404);
     expect(mocks.listEvents).not.toHaveBeenCalled();
+  });
+  it("validates period queries and retains ownership checks for paginated reports", async () => {
+    const from = new Date(Date.now() - 86400_000).toISOString(), to = new Date().toISOString();
+    const req = new Request(`https://cirixadv.com/api/pixels/sites/${site.id}?${new URLSearchParams({ from, to })}`);
+    mocks.listEventPage.mockResolvedValue({ events: [], nextCursor: null });
+    expect((await GET(req, context)).status).toBe(200);
+    expect(mocks.listEventPage).toHaveBeenCalledWith(site.id, { from, to });
+    mocks.listEventPage.mockClear();
+    mocks.getSite.mockResolvedValue({ ...site, ownerId: "another-owner" });
+    expect((await GET(req, context)).status).toBe(404);
+    expect(mocks.listEventPage).not.toHaveBeenCalled();
+    mocks.getSite.mockResolvedValue(site);
+    expect((await GET(new Request(req.url + "&cursorId=invalid"), context)).status).toBe(400);
+    expect((await GET(new Request(`https://cirixadv.com/api/pixels/sites/${site.id}?from=invalid`), context)).status).toBe(400);
+    expect(mocks.listEventPage).not.toHaveBeenCalled();
   });
   it("rejects cross-origin edits before reading their body", async () => {
     expect((await PATCH(request(), context)).status).toBe(403);

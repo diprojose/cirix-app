@@ -27,7 +27,7 @@
     const banner = document.createElement('section');
     banner.className = 'cirix-consent';
     banner.setAttribute('aria-label', 'Privacy preferences');
-    banner.innerHTML = '<h2>Your privacy, your choice</h2><p>Allow us to measure page visits and successful enquiries using random browser identifiers. Advertising permission also allows campaign click identifiers to be stored. Measurement data is retained for up to 90 days. You can change your choice at any time using Privacy preferences.</p><div class="cirix-consent-actions"><button type="button" data-choice="reject">Reject optional</button><button type="button" data-choice="analytics">Analytics only</button><button type="button" data-choice="all">Analytics + advertising</button></div>';
+    banner.innerHTML = '<h2>Your privacy, your choice</h2><p>Allow us to measure page visits, contact clicks, active time and successful enquiries using random browser identifiers. We record session campaigns, general device/browser categories, language and approximate country/region when available. Advertising permission also allows campaign click identifiers to be stored. Measurement data is retained for up to 90 days. You can change your choice at any time using Privacy preferences.</p><div class="cirix-consent-actions"><button type="button" data-choice="reject">Reject optional</button><button type="button" data-choice="analytics">Analytics only</button><button type="button" data-choice="all">Analytics + advertising</button></div>';
     const preferences = document.createElement('button');
     preferences.type = 'button';
     preferences.className = 'cirix-privacy-button';
@@ -68,11 +68,12 @@
         preferences.focus();
     }));
     document.addEventListener('click', (event) => {
+        if (window.cirixPixel?.version >= 2) return; // SDK v2 captures and classifies contact links.
         const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
         if (!anchor) return;
         const href = anchor.getAttribute('href') || '';
         if (/^(tel:|mailto:|https:\/\/(wa\.me\/|api\.whatsapp\.com\/))/.test(href)) {
-            window.cirixPixel?.track('contact');
+            window.cirixPixel?.track('contact', { contactChannel: href.startsWith('tel:') ? 'phone' : href.startsWith('mailto:') ? 'email' : 'whatsapp' });
         }
     });
     applyChoice();
