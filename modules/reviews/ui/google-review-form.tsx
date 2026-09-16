@@ -1,66 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useLocale } from "@/components/locale-provider";
-import { reviewCopy } from "../lib/copy";
-import type { ReviewSource } from "../lib/constants";
+import { GOOGLE_REVIEW_URL, type ReviewSource } from "../lib/constants";
 import { trackReviewEvent } from "../lib/analytics";
-import { continueToGoogle } from "../lib/continue-to-google";
-import { RatingSelector } from "./rating-selector";
 import s from "./reviews.module.css";
 
-export function GoogleReviewForm({ source }: { source: ReviewSource }) {
-  const copy = reviewCopy[useLocale()];
-  const [rating, setRating] = useState<number | null>(null);
-  const [comment, setComment] = useState("");
-  const [loading, setLoading] = useState(false);
-  const continuing = useRef(false);
-  const startedWriting = useRef(false);
-  const viewed = useRef(false);
-
+export function GoogleReviewForm({ source, token }: { source: ReviewSource; token?: string }) {
+  const locale = useLocale();
+  const t = (es: string, en: string) => locale === "es" ? es : en;
+  const clicked = useRef(false);
   useEffect(() => {
-    if (!viewed.current) {
-      viewed.current = true;
-      trackReviewEvent("review_page_view", { source });
-    }
-    const restore = () => { continuing.current = false; setLoading(false); };
-    window.addEventListener("pageshow", restore);
-    return () => window.removeEventListener("pageshow", restore);
-  }, [source]);
-
-  async function handleContinue() {
-    if (continuing.current) return;
-    continuing.current = true;
-    setLoading(true);
-    trackReviewEvent("review_google_clicked", { rating, source, hasComment: Boolean(comment.trim()) });
-    await continueToGoogle(comment);
-  }
-
+    let recorded = false;
+    const record = () => {
+      if (document.visibilityState === "visible" && !recorded) {
+        recorded = true; trackReviewEvent("review_page_view", { source, token });
+      }
+    };
+    const restore = () => { clicked.current = false; };
+    record(); document.addEventListener("visibilitychange", record); window.addEventListener("pageshow", restore);
+    return () => { document.removeEventListener("visibilitychange", record); window.removeEventListener("pageshow", restore); };
+  }, [source, token]);
   return <section aria-labelledby="review-title">
     <header className={s.heading}>
-      <h1 id="review-title">{copy.title}</h1>
-      <p>{copy.description}</p>
+      <p className={s.eyebrow}>{t("TU EXPERIENCIA CUENTA", "YOUR EXPERIENCE MATTERS")}</p>
+      <h1 id="review-title">{t("¿Cómo fue tu experiencia con Cirix?", "How was your experience with Cirix?")}</h1>
+      <p>{t("Comparte tu opinión en Google. Tu experiencia ayuda a otros a conocernos.", "Share your thoughts on Google. Your experience helps others get to know us.")}</p>
     </header>
-    <RatingSelector rating={rating} label={copy.ratingLabel} starLabel={copy.starLabel} onChange={(value) => {
-      setRating(value);
-      trackReviewEvent("review_rating_selected", { rating: value, source });
-    }} />
-    <form onSubmit={(event) => { event.preventDefault(); void handleContinue(); }}>
-      <label className={s.label} htmlFor="review-comment">{copy.textareaLabel}<span>{copy.optional}</span></label>
-      <textarea id="review-comment" className={s.comment} rows={4} value={comment}
-        placeholder={copy.textareaPlaceholder} aria-describedby="review-clipboard-hint"
-        onChange={(event) => {
-          setComment(event.target.value);
-          if (!startedWriting.current && event.target.value.length > 0) {
-            startedWriting.current = true;
-            trackReviewEvent("review_text_started", { source });
-          }
-        }} />
-      <button type="submit" className={s.continue} disabled={loading} aria-busy={loading}>
-        <span role="status">{loading ? copy.continuing : copy.continue}</span><span aria-hidden="true">→</span>
-      </button>
-      <p id="review-clipboard-hint" className={s.hint}>{copy.clipboardHint}</p>
-      <p className={s.publication}>{copy.publicationHint}</p>
-    </form>
+    <a className={s.continue} href={GOOGLE_REVIEW_URL} rel="noreferrer" onClick={() => {
+      if (!clicked.current) { clicked.current = true; trackReviewEvent("review_google_clicked", { source, token }); }
+    }}>
+      {t("Escribir mi reseña en Google", "Write my review on Google")} <span aria-hidden="true">↗</span>
+    </a>
+    <p className={s.hint}>{t("Escribes y publicas directamente en Google, con tu cuenta.", "Write and publish directly on Google, using your account.")}</p>
+    <p className={s.publication}>{t("Medimos la visita y el clic para mejorar nuestras invitaciones. No recibimos tu correo de Google.", "We measure visits and clicks to improve our invitations. Google does not share your email with us.")}</p>
   </section>;
 }

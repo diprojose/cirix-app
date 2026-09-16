@@ -60,7 +60,7 @@ export default async function ModulesLandingPage() {
             <div className={s.orbit}>
               <div className={s.orbitRing} aria-hidden="true" /><div className={s.orbitRingInner} aria-hidden="true" />
               <div className={s.orbitCenter}><Image src="/brand/logo-white.svg" alt="CIRIX" width={130} height={47} /><span>{t("TU NEGOCIO, AL CENTRO", "YOUR BUSINESS AT THE CENTER")}</span></div>
-              {MVP_MODULES.filter((module) => !module.public).map((module, index) => <a key={module.slug} href={`#solution-${module.slug}`} className={`${s.orbitNode} ${s[`node${index}`]}`}><span className={s.nodeSymbol} aria-hidden="true">{["◎", "↗", "♡", "⌘", "✳", "↗"][index]}</span><span>{["Pixel Hub", "CRM", "Loyalty", "Automation", "AI Support", "Call Tracking"][index]}</span></a>)}
+              {MVP_MODULES.filter((module) => module.slug !== "reviews").map((module, index) => <a key={module.slug} href={`#solution-${module.slug}`} className={`${s.orbitNode} ${s[`node${index}`]}`}><span className={s.nodeSymbol} aria-hidden="true">{["◎", "↗", "♡", "⌘", "✳", "↗"][index]}</span><span>{["Pixel Hub", "CRM", "Loyalty", "Automation", "AI Support", "Call Tracking"][index]}</span></a>)}
             </div>
             <div className={s.visualFooter}><span className={s.statusDot} /><p>{t("De la primera conversación a la próxima compra.", "From the first conversation to the next purchase.")}</p><span aria-hidden="true">↗</span></div>
           </div>

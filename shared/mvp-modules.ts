@@ -19,16 +19,16 @@ export type MvpModule = {
 
 export const MVP_MODULES: MvpModule[] = [
   {
-    slug: "reviews", title: "Google Reviews", href: "/review", public: true, status: "live", accent: "action",
-    eyebrow: { es: "Experiencia del cliente", en: "Customer experience" },
-    summary: { es: "Invita a tus clientes a compartir su experiencia y continuar al formulario oficial de Google.", en: "Invite your customers to share their experience and continue to the official Google review form." },
-    badge: { es: "Acceso público", en: "Public access" },
-    audience: { es: "Clientes y atención al cliente", en: "Customers and customer service" },
-    ctaLabel: { es: "Abrir solicitud de reseña", en: "Open review request" },
+    slug: "reviews", title: "Google Reviews", href: "/reviews", status: "live", accent: "action",
+    eyebrow: { es: "Reputación y experiencia", en: "Reputation and experience" },
+    summary: { es: "Gestiona campañas, sigue invitaciones y consulta las reseñas de tu negocio en Google.", en: "Manage campaigns, track invitations and view your business reviews on Google." },
+    badge: { es: "Panel de seguimiento", en: "Performance dashboard" },
+    audience: { es: "Marketing y atención al cliente", en: "Marketing and customer service" },
+    ctaLabel: { es: "Abrir Google Reviews", en: "Open Google Reviews" },
     capabilities: [
-      { es: "Estrellas y comentario opcionales", en: "Optional rating and comment" },
-      { es: "Enlaces para QR, WhatsApp, email y SMS", en: "Links for QR, WhatsApp, email and SMS" },
-      { es: "Publicación manual del cliente en Google", en: "Customer publishes manually on Google" },
+      { es: "Invitaciones individuales y QR por campaña", en: "Individual invitations and campaign QR codes" },
+      { es: "Aperturas, clics y efectividad de invitación", en: "Openings, clicks and invitation effectiveness" },
+      { es: "Consulta de calificaciones y reseñas de Google", en: "Google ratings and review retrieval" },
     ],
   },
   {

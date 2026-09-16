@@ -4,31 +4,89 @@
       "collectionGroup": "calls",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "businessId", "order": "ASCENDING" },
-        { "fieldPath": "startedAt", "order": "DESCENDING" }
+        {
+          "fieldPath": "businessId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startedAt",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "calls",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "businessId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "startedAt", "order": "DESCENDING" }
+        {
+          "fieldPath": "businessId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startedAt",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "calls",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "businessId", "order": "ASCENDING" },
-        { "fieldPath": "callerPhone", "order": "ASCENDING" },
-        { "fieldPath": "startedAt", "order": "DESCENDING" }
+        {
+          "fieldPath": "businessId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "callerPhone",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startedAt",
+          "order": "DESCENDING"
+        }
       ]
     }
   ],
   "fieldOverrides": [
-    { "collectionGroup": "pixel_events", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
-    { "collectionGroup": "pixel_rate_limits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+    {
+      "collectionGroup": "pixel_events",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "pixel_rate_limits",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "review_invitations",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "review_links",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "review_visits",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "review_rate_limits",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    }
   ]
 }

@@ -1,55 +1,52 @@
-# Solicitud de Google Review
+﻿# Google Reviews
 
-Entrada pública `/review`, localizada por el proxy existente en `/es/review` o
-`/en/review`. No requiere sesión. Aparece en el catálogo de módulos del portal.
+Panel privado de operadores: `/reviews` (`/es/reviews`, `/en/reviews`). Entrada pública: `/make-a-review`; `/review` sigue funcionando. El proxy conserva `ref` y `source` al localizar. La entrada pública abre el formulario oficial de Google sin pedir estrellas, comentarios ni email por segunda vez. No publica en nombre del cliente.
 
-`NEXT_PUBLIC_GOOGLE_REVIEW_URL` configura el destino durante el build. Su valor
-predeterminado está centralizado en `lib/constants.ts`. El dominio del portal no
-se cambia: publicar en `cirixad.com` requiere que ese dominio apunte a este despliegue.
+## Operación
 
-## Flujo
+1. Crear una campaña y preparar invitaciones con datos manuales o clientes del CRM existente.
+2. Abrir el mensaje en email, WhatsApp o SMS y enviarlo desde esa aplicación, o copiarlo. No se envían mensajes automáticamente.
+3. Pulsar **Registrar envío** inmediatamente después de enviarlo. Guardar/copiar/abrir el mensaje no cuenta como envío. Las visitas a borradores se ignoran para evitar contar pruebas del operador.
+4. Actualizar el panel para consultar avances. Los QR de campaña son generales y no identifican clientes. Los enlaces individuales contienen un token aleatorio de 192 bits, nunca el email.
 
-Rating y comentario opcionales, sin filtrar por puntuación. El botón intenta
-copiar el comentario recortado y navega en la misma pestaña. La copia tiene un
-límite de 1,2 segundos para que un permiso pendiente no detenga la navegación.
-Volver desde Google restablece el botón incluso con el back/forward cache.
-El cliente elige de nuevo la puntuación y publica manualmente en Google.
+El email procede del CRM o del operador. Google no devuelve el email del autor. Los enlaces pueden reenviarse; el seguimiento identifica una invitación, no acredita la identidad del visitante ni la publicación de una reseña. No se filtran las invitaciones por satisfacción ni se ofrecen incentivos.
 
-Se reutilizan logo, fuentes, tokens de color, proveedor de idioma y routing.
-La página tiene metadata `noindex`, carece de navegación de comercio y oculta
-la invitación de instalación de la PWA. Estrellas con foco itinerante, flechas,
-Home/End y activación nativa con espacio/Enter; áreas táctiles de 52 px.
+## KPIs
 
-## Medición interna
+- Períodos móviles de 7, 30 y 90 días; filtros de campaña y canal.
+- Enviadas: cohorte por `sentAt`, registrado por el operador; borradores excluidos.
+- Abiertas: primera visita al enlace individual; clic a Google también implica apertura si las peticiones llegan desordenadas.
+- Continuaron a Google: primera activación del enlace a Google. Apertura y clic se conservan en transacciones; repetir visitas no aumenta los contadores por invitación.
+- Apertura = abiertas / enviadas. Efectividad de invitación = clics / enviadas. Sin denominador se muestra `—`.
+- Las sesiones generales usan un UUID por pestaña en sessionStorage (memoria si el almacenamiento falla), por campaña y canal. No son personas únicas y no se mezclan con el denominador de invitaciones enviadas.
+- Google: reseñas nuevas por fecha de creación, período anterior de igual duración, cambio porcentual, promedio global, distribución y reseñas sin respuesta. Estos resultados son del negocio completo y no se atribuyen a campañas ni correos. No se calcula una supuesta conversión clic/reseña.
 
-Eventos: `review_page_view`, `review_rating_selected`, `review_text_started`
-(una vez por formulario) y `review_google_clicked`. No se infiere publicación.
+La telemetría es de mejor esfuerzo y respeta DNT/GPC. Se omiten bots conocidos; no constituye medición antifraude. Fallas de red, bloqueadores y cierres rápidos pueden producir subregistro. El enlace a Google funciona aunque falle el seguimiento o JavaScript.
 
-`POST /api/reviews/events` registra JSON estructurado en los logs del servidor,
-siguiendo el patrón de eventos operativos del proyecto. Consultar/contar por
-`module = reviews`, `event` y `source` en el proveedor de logs del despliegue.
-No hay dashboard ni persistencia en Firestore; la retención depende del proveedor
-de logs. Es telemetría de mejor esfuerzo, no un contador garantizado de conversiones.
+## Firestore y acceso
 
-Pixel Hub está orientado a sitios registrados, consentimiento e identificadores
-de visitante/sesión. Esta landing usa medición anónima sin cookies ni esos IDs;
-reutiliza las validaciones HTTP de ese módulo y no activa píxeles publicitarios.
-Respeta Do Not Track y Global Privacy Control. Solo admite nombre de evento,
-`rating`, `hasComment` y `source`; rechaza propiedades adicionales. No envía ni
-guarda comentarios, nombres, teléfonos, correo, IP ni URL de origen en el evento.
-Los logs de acceso de la infraestructura se administran por separado.
+Usa las credenciales Firebase Admin existentes. Colecciones `review_campaigns`, `review_invitations`, `review_links`, `review_visits`, `review_rate_limits`. No permitir lectura/escritura de estas colecciones desde Firebase cliente: las APIs privadas comprueban rol operador y los cambios exigen mismo origen. El endpoint público valida un esquema estricto y solo actualiza avance; nunca retorna datos de clientes.
 
-Los orígenes admitidos son `qr`, `whatsapp`, `email`, `sms`, `direct`; valores
-desconocidos se normalizan a `direct` para no registrar texto arbitrario.
-Ejemplo: `/review?source=qr`. El endpoint exige mismo origen, limita el cuerpo
-mediante el lector existente y no expone lecturas. El envío usa `keepalive` y
-no espera al servidor. El comentario permanece solo en memoria/portapapeles.
+Invitaciones y tokens expiran a los 180 días de creación; registrar envío extiende su retención 180 días desde el envío. Las consultas usan `reportAt` (creación o envío) para conservar cohortes completas de 90 días. Visitas duran 180 días desde la última interacción, pero los informes consultan 180 días desde la primera apertura. Los límites por minuto duran un día. Campañas y sus enlaces generales no expiran.
 
-## Verificación
+Activar las políticas TTL declaradas en `firestore.indexes.json` en el proyecto Firebase correspondiente. La declaración en el repositorio no activa TTL por sí sola. El código ignora invitaciones y enlaces expirados aunque la eliminación asíncrona no haya ocurrido. Para borrar un cliente, eliminar su documento de invitación y su token en `review_links` desde la consola administrativa.
 
-`npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build`.
-Las pruebas de `test/reviews.test.ts` cubren navegación con clipboard ausente,
-rechazado o pendiente; payload privado y no bloqueante; validación del endpoint.
-Las pruebas de rutas verifican acceso público, query strings y aislamiento
-de rutas privadas. Para revisión visual: móvil de 320/390 px, escritorio,
-zoom al 200 %, tabulación, flechas, 1–5 estrellas y vuelta desde Google.
+El informe admite 500 campañas y 5.000 invitaciones / sesiones por ventana de retención. Si supera el límite devuelve un error explícito, nunca KPIs basados en una muestra truncada; para mayor volumen implementar agregación/paginación del servidor. Intake: 300 eventos/minuto globales, cuerpos máximos 8 KB. No se registran cuerpos, emails, IP ni secretos en logs de aplicación.
+
+## Google Business Profile
+
+El enlace público `NEXT_PUBLIC_GOOGLE_REVIEW_URL` ya permite solicitar reseñas, pero no autoriza su lectura. Para consultar el perfil verificado de Cirix:
+
+1. Obtener acceso aprobado a Google Business Profile APIs en un proyecto Google Cloud y habilitar las APIs correspondientes.
+2. Configurar OAuth y autorizar una cuenta administradora del perfil con scope `https://www.googleapis.com/auth/business.manage` y acceso offline. Obtener un refresh token mediante el flujo OAuth del proyecto, sin introducirlo en el navegador de la aplicación ni en el repositorio.
+3. Configurar en `.env.local` y en los entornos Vercel apropiados: `GOOGLE_BUSINESS_CLIENT_ID`, `GOOGLE_BUSINESS_CLIENT_SECRET`, `GOOGLE_BUSINESS_REFRESH_TOKEN`, `GOOGLE_BUSINESS_ACCOUNT_ID`, `GOOGLE_BUSINESS_LOCATION_ID`. Los dos IDs son numéricos, sin prefijos `accounts/` o `locations/`. Estos cinco valores son exclusivamente del servidor.
+4. Volver a desplegar y seleccionar **Consultar reseñas** en el panel. El indicador de configuración solo confirma presencia de variables; una consulta exitosa confirma acceso real. No existe un flujo OAuth de autoservicio dentro del panel.
+
+Consulta paginada de 50 en 50, máximo 100 páginas y 45 segundos. Un error o token repetido aborta toda la consulta. No se persiste contenido de Google en Firestore, localStorage ni logs: se muestra en memoria durante la sesión, con fecha de consulta, respuestas `private, no-store` y botón manual para refrescar. El conteo/promedio global proviene de Google; no se usan fixtures como fallback.
+
+Referencias oficiales: [listar reseñas](https://developers.google.com/my-business/reference/rest/v4/accounts.locations.reviews/list), [campos de reseña y autor](https://developers.google.com/my-business/reference/rest/v4/accounts.locations.reviews), [políticas](https://developers.google.com/my-business/content/policies).
+
+## Validación
+
+`npm run lint`, `npx tsc --noEmit`, `npm test`, `node scripts/check-contrast.mjs`, `npm run build`.
+Pruebas: cohortes, filtros, ceros, privacidad, límites de intake, deduplicación transaccional, API Google paginada/errores y aislamiento de rutas. Validar manualmente el panel con operador y credenciales reales antes de una campaña comercial; comprobar envío, apertura, clic y consulta de reseñas en un entorno controlado.

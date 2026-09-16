@@ -12,13 +12,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ReviewPage({ searchParams }: {
-  searchParams: Promise<{ source?: string | string[] }>;
+  searchParams: Promise<{ source?: string | string[]; ref?: string | string[] }>;
 }) {
-  const source = reviewSource((await searchParams).source);
+  const query = await searchParams;
+  const source = reviewSource(query.source);
+  const candidate = Array.isArray(query.ref) ? query.ref[0] : query.ref;
+  const token = candidate && /^[a-f0-9]{48}$/.test(candidate) ? candidate : undefined;
   return <main className={s.page}>
     <div className={s.container}>
       <Image src="/brand/logo-white.svg" alt="CIRIX" width={160} height={57} className={s.logo} />
-      <GoogleReviewForm key={source} source={source} />
+      <GoogleReviewForm key={`${source}:${token ?? ""}`} source={source} token={token} />
     </div>
   </main>;
 }
