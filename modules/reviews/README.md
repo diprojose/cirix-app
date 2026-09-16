@@ -1,6 +1,6 @@
 ﻿# Google Reviews
 
-Panel privado de operadores: `/reviews` (`/es/reviews`, `/en/reviews`). Entrada pública: `/make-a-review`; `/review` sigue funcionando. El proxy conserva `ref` y `source` al localizar. La entrada pública abre el formulario oficial de Google sin pedir estrellas, comentarios ni email por segunda vez. No publica en nombre del cliente.
+Panel privado para cuentas habilitadas de la plataforma: `/reviews` (`/es/reviews`, `/en/reviews`). No requiere el rol de operador de Loyalty. Entrada pública: `/make-a-review`; `/review` sigue funcionando. El proxy conserva `ref` y `source` al localizar. La entrada pública abre el formulario oficial de Google sin pedir estrellas, comentarios ni email por segunda vez. No publica en nombre del cliente.
 
 ## Operación
 
@@ -25,7 +25,7 @@ La telemetría es de mejor esfuerzo y respeta DNT/GPC. Se omiten bots conocidos;
 
 ## Firestore y acceso
 
-Usa las credenciales Firebase Admin existentes. Colecciones `review_campaigns`, `review_invitations`, `review_links`, `review_visits`, `review_rate_limits`. No permitir lectura/escritura de estas colecciones desde Firebase cliente: las APIs privadas comprueban rol operador y los cambios exigen mismo origen. El endpoint público valida un esquema estricto y solo actualiza avance; nunca retorna datos de clientes.
+Usa las credenciales Firebase Admin existentes. Colecciones `review_campaigns`, `review_invitations`, `review_links`, `review_visits`, `review_rate_limits`. No permitir lectura/escritura de estas colecciones desde Firebase cliente: el panel y las APIs privadas comprueban una sesión de cuenta previamente habilitada, igual que CRM y Call Tracking; los cambios exigen mismo origen. El endpoint público valida un esquema estricto y solo actualiza avance; nunca retorna datos de clientes.
 
 Invitaciones y tokens expiran a los 180 días de creación; registrar envío extiende su retención 180 días desde el envío. Las consultas usan `reportAt` (creación o envío) para conservar cohortes completas de 90 días. Visitas duran 180 días desde la última interacción, pero los informes consultan 180 días desde la primera apertura. Los límites por minuto duran un día. Campañas y sus enlaces generales no expiran.
 

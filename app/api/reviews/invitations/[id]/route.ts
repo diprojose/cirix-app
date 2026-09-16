@@ -4,7 +4,7 @@ import { markInvitationSent } from "@/modules/reviews/server/repository";
 import { PayloadError, privateHeaders, readPayload, sameOrigin } from "@/modules/pixels/server/http";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const denied = await checkApiAccess(true); if (denied) return denied;
+  const denied = await checkApiAccess(); if (denied) return denied;
   if (!sameOrigin(request)) return new Response(null, { status: 403, headers: privateHeaders });
   try {
     const { id } = await params;

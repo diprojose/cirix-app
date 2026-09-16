@@ -6,7 +6,7 @@ Demo interactivo de e-commerce con loyalty y marca blanca. Cada cliente puede te
 
 La landing y la solicitud de reseñas `/review` son públicas. Los demás módulos, las demos y las APIs internas requieren una cuenta previamente habilitada. Los endpoints de captación `/api/contact` y eventos anónimos `/api/reviews/events` permanecen públicos con validación propia. Consulta [cómo crear, habilitar y revocar usuarios](docs/platform-access.md).
 
-El [módulo de Google Reviews](modules/reviews/README.md) está disponible en `/es/review` y `/en/review`, con estrellas, comentario opcional y continuación al formulario oficial de Google. Admite `?source=qr`, `whatsapp`, `email` o `sms`.
+El [módulo de Google Reviews](modules/reviews/README.md) está disponible en `/es/reviews` y `/en/reviews` para cuentas habilitadas de la plataforma, con campañas, invitaciones y métricas. La entrada pública `/make-a-review` conserva `/review` como alias y permite continuar al formulario oficial de Google sin duplicar campos. Admite `?source=qr`, `whatsapp`, `email` o `sms`.
 
 ## Google Search Console y SEO
 
