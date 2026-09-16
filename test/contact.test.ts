@@ -10,6 +10,7 @@ vi.mock("@/modules/zoho/crm/infrastructure/di/crm-container", () => ({
 }));
 import { POST, OPTIONS } from "@/app/api/contact/route";
 
+const trackingEventId = "12345678-1234-4123-8123-123456789abc";
 const payload = {
   name: "Ada Lovelace", email: "ada@example.com", company: "Analytical Engines",
   service_needed: "Website Design", message: "We need a website.",
@@ -34,7 +35,7 @@ describe("website contact endpoint", () => {
     expect(OPTIONS(request(payload, "http://localhost:8080")).status).toBe(204);
   });
   it("maps all website fields into the CRM with a server-controlled source", async () => {
-    execute.mockResolvedValue(ok({ syncStatus: "synced" }));
+    execute.mockResolvedValue(ok({ id: trackingEventId, syncStatus: "synced" }));
     const response = await POST(request({ ...payload, campaign: "fall", source: "spoofed" }));
     expect(response.status).toBe(201);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://cirixad.com");
@@ -43,7 +44,7 @@ describe("website contact endpoint", () => {
       interestCategory: payload.service_needed, message: payload.message,
       source: "CirixAd.com contact form", campaign: "fall", locale: "en",
     });
-    expect(await response.json()).toEqual({ ok: true, syncStatus: "synced" });
+    expect(await response.json()).toEqual({ ok: true, syncStatus: "synced", trackingEventId });
   });
   it.each([null, [], {}, { ...payload, email: "bad" }, { ...payload, phone: "123" }, { ...payload, message: 5 }])(
     "rejects invalid fields without writes: %j", async (body) => {
@@ -59,14 +60,16 @@ describe("website contact endpoint", () => {
     expect(execute).not.toHaveBeenCalled();
   });
   it("ignores honeypot submissions", async () => {
-    expect((await POST(request({ ...payload, _honey: "bot" }))).status).toBe(200);
+    const response = await POST(request({ ...payload, _honey: "bot" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
     expect(execute).not.toHaveBeenCalled();
   });
   it("acknowledges a stored inquiry when Zoho synchronization fails", async () => {
-    execute.mockResolvedValue(err(new CrmLeadSyncFailedError("private upstream error")));
+    execute.mockResolvedValue(err(new CrmLeadSyncFailedError("private upstream error", trackingEventId)));
     const response = await POST(request());
     expect(response.status).toBe(202);
-    expect(await response.json()).toEqual({ ok: true, syncStatus: "failed" });
+    expect(await response.json()).toEqual({ ok: true, syncStatus: "failed", trackingEventId });
   });
   it("does not acknowledge receipt on a database failure or expose internals", async () => {
     execute.mockRejectedValue(new Error("private database details"));
@@ -80,7 +83,7 @@ describe("commercial lead capture", () => {
   function setup() {
     const leads = {
       findLatestByContact: vi.fn().mockResolvedValue(null),
-      createPending: vi.fn().mockResolvedValue({ id: "local-1", submittedAt: "2026-09-12" }),
+      createPending: vi.fn().mockResolvedValue({ id: trackingEventId, submittedAt: "2026-09-12" }),
       markSynced: vi.fn(), markFailed: vi.fn(),
     };
     const zoho = { upsertLead: vi.fn().mockResolvedValue({ zohoLeadId: "zoho-1" }) };
@@ -89,12 +92,14 @@ describe("commercial lead capture", () => {
   const input = { fullName: payload.name, phone: "", email: "ADA@example.com", company: payload.company, source: "CirixAd.com contact form" };
   it("captures email-only leads and maps the actual company to Zoho", async () => {
     const { usecase, zoho, leads } = setup();
-    expect((await usecase.execute(input)).ok).toBe(true);
+    const result = await usecase.execute(input);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.id).toBe(trackingEventId);
     expect(leads.findLatestByContact).toHaveBeenCalledWith("ada@example.com", "");
     const normalized = zoho.upsertLead.mock.calls[0][0].lead;
     expect(toZohoPayload(normalized)).toMatchObject({ Company: payload.company, Email: "ada@example.com" });
     expect(toZohoPayload(normalized)).not.toHaveProperty("Phone");
-    expect(leads.markSynced).toHaveBeenCalledWith("local-1", "zoho-1", expect.any(String));
+    expect(leads.markSynced).toHaveBeenCalledWith(trackingEventId, "zoho-1", expect.any(String));
   });
   it("preserves phone-only capture for the existing CRM form", async () => {
     const { usecase } = setup();
@@ -110,8 +115,13 @@ describe("commercial lead capture", () => {
   it("retains the inquiry and marks a failed Zoho sync", async () => {
     const { usecase, zoho, leads } = setup();
     zoho.upsertLead.mockRejectedValue(new Error("Zoho unavailable"));
-    expect((await usecase.execute(input)).ok).toBe(false);
+    const result = await usecase.execute(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBeInstanceOf(CrmLeadSyncFailedError);
+      expect((result.error as CrmLeadSyncFailedError).leadId).toBe(trackingEventId);
+    }
     expect(leads.createPending).toHaveBeenCalledOnce();
-    expect(leads.markFailed).toHaveBeenCalledWith("local-1", "Zoho unavailable");
+    expect(leads.markFailed).toHaveBeenCalledWith(trackingEventId, "Zoho unavailable");
   });
 });

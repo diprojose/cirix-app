@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CrmLeadSyncFailedError } from "@/modules/zoho/crm/domain/errors/crm-errors";
 import { makeCaptureCommercialLead } from "@/modules/zoho/crm/infrastructure/di/crm-container";
 
 export const runtime = "nodejs";
@@ -85,14 +86,15 @@ export async function POST(request: Request) {
       locale: "en",
     });
     if (!result.ok) {
-      if (result.error.code === "crm/lead-sync-failed") {
+      if (result.error instanceof CrmLeadSyncFailedError) {
         // The use case already persisted the inquiry and its failed sync status.
         // Acknowledge receipt so the visitor does not submit duplicates.
-        return reply({ ok: true, syncStatus: "failed" }, 202);
+        return reply({ ok: true, syncStatus: "failed", trackingEventId: result.error.leadId }, 202);
       }
       return reply({ ok: false, message: "Please review the contact fields." }, 400);
     }
-    return reply({ ok: true, syncStatus: result.value.syncStatus }, 201);
+    // Reuse the persisted inquiry UUID so repeated conversion events deduplicate.
+    return reply({ ok: true, syncStatus: result.value.syncStatus, trackingEventId: result.value.id }, 201);
   } catch {
     return reply({ ok: false, message: "We could not send your message. Please try again." }, 503);
   }

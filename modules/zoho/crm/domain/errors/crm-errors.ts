@@ -6,6 +6,10 @@ export class InvalidCommercialLeadError extends DomainError {
 
 export class CrmLeadSyncFailedError extends DomainError {
   readonly code = "crm/lead-sync-failed";
+
+  constructor(message: string, readonly leadId: string) {
+    super(message);
+  }
 }
 
 export class CrmUnavailableError extends DomainError {

@@ -57,7 +57,7 @@ export class CaptureCommercialLead
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown Zoho sync failure";
       await this.leads.markFailed(record.id, message);
-      return err(new CrmLeadSyncFailedError(message));
+      return err(new CrmLeadSyncFailedError(message, record.id));
     }
   }
 }
