@@ -21,18 +21,25 @@ export function GoogleReviewForm({ source, token }: { source: ReviewSource; toke
     record(); document.addEventListener("visibilitychange", record); window.addEventListener("pageshow", restore);
     return () => { document.removeEventListener("visibilitychange", record); window.removeEventListener("pageshow", restore); };
   }, [source, token]);
-  return <section aria-labelledby="review-title">
+  return <section className={s.reviewLayout} aria-labelledby="review-title">
     <header className={s.heading}>
       <p className={s.eyebrow}>{t("TU EXPERIENCIA CUENTA", "YOUR EXPERIENCE MATTERS")}</p>
-      <h1 id="review-title">{t("¿Cómo fue tu experiencia con Cirix?", "How was your experience with Cirix?")}</h1>
+      <h1 id="review-title">{t("Tu experiencia.", "Your experience.")}<br /><span>{t("Tu voz.", "Your voice.")}</span></h1>
       <p>{t("Comparte tu opinión en Google. Tu experiencia ayuda a otros a conocernos.", "Share your thoughts on Google. Your experience helps others get to know us.")}</p>
+      <div className={s.heroNote}><span aria-hidden="true" />{t("Cada opinión nos ayuda a seguir construyendo mejores experiencias.", "Every opinion helps us keep building better experiences.")}</div>
     </header>
-    <a className={s.continue} href={GOOGLE_REVIEW_URL} rel="noreferrer" onClick={() => {
-      if (!clicked.current) { clicked.current = true; trackReviewEvent("review_google_clicked", { source, token }); }
-    }}>
-      {t("Escribir mi reseña en Google", "Write my review on Google")} <span aria-hidden="true">↗</span>
-    </a>
-    <p className={s.hint}>{t("Escribes y publicas directamente en Google, con tu cuenta.", "Write and publish directly on Google, using your account.")}</p>
-    <p className={s.publication}>{t("Medimos la visita y el clic para mejorar nuestras invitaciones. No recibimos tu correo de Google.", "We measure visits and clicks to improve our invitations. Google does not share your email with us.")}</p>
+    <div className={s.reviewCard}>
+      <div className={s.cardTop}><span>GOOGLE REVIEWS</span><span aria-hidden="true">↗</span></div>
+      <div className={s.quoteMark} aria-hidden="true">“</div>
+      <h2>{t("¿Cómo fue tu experiencia con Cirix?", "How was your experience with Cirix?")}</h2>
+      <p className={s.cardDescription}>{t("Nos gustaría conocerla. Comparte lo que más valoraste y lo que podemos mejorar.", "We would love to hear about it. Share what you valued most and what we can improve.")}</p>
+      <a className={s.continue} href={GOOGLE_REVIEW_URL} rel="noreferrer" onClick={() => {
+        if (!clicked.current) { clicked.current = true; trackReviewEvent("review_google_clicked", { source, token }); }
+      }}>
+        {t("Escribir mi reseña en Google", "Write my review on Google")} <span aria-hidden="true">↗</span>
+      </a>
+      <p className={s.hint}>{t("Escribes y publicas directamente en Google, con tu cuenta.", "Write and publish directly on Google, using your account.")}</p>
+      <p className={s.publication}>{t("Medimos la visita y el clic para mejorar nuestras invitaciones. No recibimos tu correo de Google.", "We measure visits and clicks to improve our invitations. Google does not share your email with us.")}</p>
+    </div>
   </section>;
 }

@@ -1,23 +1,55 @@
-.page {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  background: radial-gradient(ellipse at top, var(--color-brand-800), transparent 65%), var(--color-bg);
+﻿.page { min-height: 100dvh; display: flex; flex-direction: column; background: radial-gradient(ellipse at 80% 35%, #13376977, transparent 55%), #030e1d; color: #fff; font-family: var(--font-inter), sans-serif; }
+.container { width: min(1280px, calc(100% - 96px)); margin-inline: auto; }
+.header { border-bottom: 1px solid #ffffff12; background: #030e1de6; }
+.header > div { display: flex; align-items: center; gap: 24px; min-height: 88px; }
+.logo { display: block; width: 116px; height: auto; }
+.product { flex: 1; padding-left: 24px; border-left: 1px solid #ffffff25; color: #c9d1df; font-size: 13px; }
+.content { flex: 1; display: grid; align-items: center; position: relative; isolation: isolate; padding-block: 72px; }
+.content::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(#ffffff04 1px, transparent 1px), linear-gradient(90deg, #ffffff04 1px, transparent 1px); background-size: 88px 88px; mask-image: linear-gradient(90deg, transparent, #000); }
+.reviewLayout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; }
+.heading h1 { font-family: var(--font-outfit), sans-serif; font-size: clamp(56px, 6vw, 88px); font-weight: 600; line-height: 1.02; letter-spacing: -.05em; margin: 28px 0; }
+.heading h1 span { color: #ff3157; }
+.heading > p:not(.eyebrow) { max-width: 420px; color: #aebacf; font-size: 17px; line-height: 1.8; }
+.eyebrow { display: flex; align-items: center; gap: 10px; color: #bac6d8; font-size: 10px; letter-spacing: 2px; font-weight: 600; line-height: 1.6; }
+.eyebrow::before { content: ""; width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: #ff4264; box-shadow: 0 0 14px #ff426470; }
+.heroNote { display: flex; align-items: center; gap: 12px; max-width: 340px; margin-top: 36px; color: #8d9cb2; font-size: 11px; line-height: 1.8; }
+.heroNote > span { width: 24px; height: 1px; flex-shrink: 0; background: #ff3157; }
+.reviewCard { border: 1px solid #7aa6e22b; background: linear-gradient(140deg, #12326380, #05193499); border-radius: 12px; padding: 32px; }
+.cardTop { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid #ffffff14; color: #bac6d8; font-size: 10px; letter-spacing: 1.8px; }
+.cardTop > span:last-child { color: #ff647f; font-size: 20px; }
+.quoteMark { height: 80px; margin-top: 24px; font-family: var(--font-outfit), sans-serif; font-size: 112px; line-height: 1; color: #ff3157; }
+.reviewCard h2 { font-family: var(--font-outfit), sans-serif; font-size: 30px; font-weight: 500; letter-spacing: -.03em; line-height: 1.2; }
+.cardDescription { margin-top: 16px; color: #aebacf; font-size: 13px; line-height: 1.8; }
+.continue { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 54px; margin-top: 28px; padding: 15px 20px; border-radius: 4px; background: #e5002b; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform .2s, background .2s; }
+.continue > span { font-size: 22px; font-weight: 400; }
+.continue:hover { background: #fa1640; transform: translateY(-2px); }
+.page a:focus-visible { outline: 2px solid #60d7f2; outline-offset: 5px; }
+.hint { max-width: 310px; margin: 16px auto 0; text-align: center; color: #bac6d8; font-size: 11px; line-height: 1.7; }
+.publication { margin-top: 24px; padding-top: 20px; border-top: 1px solid #ffffff14; color: #8d9cb2; font-size: 10px; line-height: 1.8; }
+.footer { display: flex; justify-content: space-between; gap: 24px; border-top: 1px solid #ffffff14; padding-block: 28px; color: #8d9cb2; font-size: 10px; line-height: 1.7; }
+.footer > span { letter-spacing: 1px; }
+.footer a span { margin-left: 12px; color: #ff647f; }
+@media (max-width: 1100px) { .reviewLayout { gap: 40px; } .heading h1 { font-size: clamp(48px, 6vw, 72px); } }
+@media (max-width: 760px) {
+  .container { width: calc(100% - 40px); }
+  .header > div { min-height: 76px; gap: 16px; }
+  .logo { width: 96px; }
+  .product { padding-left: 16px; font-size: 11px; }
+  .content { padding-block: 44px; }
+  .reviewLayout { grid-template-columns: 1fr; gap: 32px; }
+  .heading h1 { font-size: clamp(52px, 10vw, 72px); margin-block: 24px; }
+  .heading > p:not(.eyebrow) { font-size: 15px; }
+  .heroNote { margin-top: 24px; }
+  .reviewCard { padding: 24px; }
+  .footer { flex-direction: column; gap: 12px; }
 }
-.container { width: 100%; max-width: 520px; }
-.logo { display: block; width: 128px; height: auto; margin: 0 auto 40px; }
-.heading { text-align: center; }
-.heading h1 { font-size: clamp(1.75rem, 6vw, 2.25rem); font-weight: 600; line-height: 1.15; letter-spacing: -.035em; }
-.heading p { margin-top: 12px; color: var(--color-text-muted); font-size: 1rem; line-height: 1.5; }
-.continue { display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; min-height: 56px; margin-top: 20px; padding: 14px 20px; border-radius: var(--radius-pill); background: var(--color-action-fill); color: var(--color-on-action); font-weight: 600; cursor: pointer; }
-.continue:hover { background: var(--color-action-fill-strong); }
-
-.hint, .publication { text-align: center; color: var(--color-text-muted); font-size: .875rem; line-height: 1.5; }
-.hint { max-width: 340px; margin: 16px auto 0; }
-.publication { margin-top: 24px; }
-@media (min-width: 640px) { .container { padding: 16px; } }
-
-.heading .eyebrow { color: var(--color-accent-strong); font-size: .75rem; letter-spacing: .12em; margin-bottom: 20px; }
-.continue:focus-visible { outline: 2px solid var(--color-accent-strong); outline-offset: 5px; }
+@media (max-width: 420px) {
+  .container { width: calc(100% - 32px); }
+  .heading h1 { font-size: clamp(40px, 12vw, 50px); }
+  .header > div { gap: 10px; }
+  .logo { width: 80px; }
+  .product { padding-left: 10px; font-size: 10px; }
+  .reviewCard h2 { font-size: 27px; }
+  .continue { padding-inline: 16px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .continue { transition: none; } .continue:hover { transform: none; } }

@@ -92,15 +92,31 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
     <div className={s.container}>
       <header className={s.header}>
         <a href={`/${locale}`} aria-label={t("Inicio de Cirix", "Cirix home")}><Image src="/brand/logo-white.svg" alt="CIRIX" width={120} height={43} /></a>
-        <span className={s.product}>Google Reviews</span><LanguageSwitcher />
+        <span className={s.product}>Google Reviews</span>
+        <a className={s.homeLink} href={`/${locale}`}>{t("Volver al inicio", "Back to home")} <span aria-hidden="true">↗</span></a><LanguageSwitcher />
       </header>
       <section className={s.hero}>
-        <div><p className={s.eyebrow}>{t("RELACIONES QUE GENERAN CONFIANZA", "RELATIONSHIPS THAT BUILD TRUST")}</p>
-          <h1>{t("Cada invitación.", "Every invitation.")}<br /><span>{t("Una oportunidad de escuchar.", "A chance to listen.")}</span></h1>
-          <p>{t("Mide el recorrido de tus invitaciones y sigue la reputación de Cirix en Google.", "Measure your invitation journey and follow Cirix’s reputation on Google.")}</p></div>
-        <div className={s.actions}><a className={s.button} href={`/${locale}/make-a-review`} target="_blank" rel="noreferrer">{t("Ver página pública", "View public page")} ↗</a>
-          <button className={s.primary} disabled={!data || busy} onClick={() => { setDraft({ ...emptyDraft, campaignId: data?.campaigns[0]?.id ?? "" }); setPanel(data?.campaigns.length ? "invitation" : "campaign"); }}>{t("+ Nueva invitación", "+ New invitation")}</button></div>
+        <div className={s.heroCopy}><p className={s.eyebrow}>{t("REPUTACIÓN Y EXPERIENCIA", "REPUTATION & EXPERIENCE")}</p>
+          <h1>{t("Cada opinión.", "Every opinion.")}<br /><span>{t("Más confianza.", "More trust.")}</span></h1>
+          <p>{t("Escucha a tus clientes. Conecta cada invitación con una oportunidad de fortalecer tu reputación en Google.", "Listen to your customers. Turn every invitation into an opportunity to strengthen your reputation on Google.")}</p>
+          <div className={s.actions}>
+            <button className={s.primary} disabled={!data || busy} onClick={() => { setDraft({ ...emptyDraft, campaignId: data?.campaigns[0]?.id ?? "" }); setPanel(data?.campaigns.length ? "invitation" : "campaign"); }}>{t("Nueva invitación", "New invitation")} <span aria-hidden="true">↗</span></button>
+            <a className={s.textLink} href={`/${locale}/make-a-review`} target="_blank" rel="noreferrer">{t("Ver página pública", "View public page")} <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <aside className={s.heroVisual} aria-label={t("Cómo funciona", "How it works")}>
+          <div className={s.visualHeading}><span>CIRIX · GOOGLE REVIEWS</span><span aria-hidden="true">↗</span></div>
+          <h2>{t("La confianza empieza", "Trust starts")}<br /><span>{t("por escuchar.", "with listening.")}</span></h2>
+          <ol className={s.visualSteps}>{[
+            [t("Invita", "Invite"), t("Un enlace. Una conversación.", "One link. One conversation.")],
+            [t("Acompaña", "Follow"), t("Sigue aperturas y clics.", "Track openings and clicks.")],
+            [t("Escucha", "Listen"), t("Conoce su experiencia en Google.", "Discover their experience on Google.")],
+          ].map(([title, description], index) => <li key={title}><span>0{index + 1}</span><div><strong>{title}</strong><p>{description}</p></div><span aria-hidden="true">{index === 2 ? "✳" : "↓"}</span></li>)}</ol>
+        </aside>
       </section>
+      <nav className={s.sectionNav} aria-label={t("Secciones de Reviews", "Reviews sections")}>
+        <a href="#resumen">01 / {t("Resumen", "Overview")}</a><a href="#campanas">02 / {t("Campañas", "Campaigns")}</a><a href="#clientes">03 / {t("Clientes", "Customers")}</a><a href="#resenas">04 / {t("Reseñas", "Reviews")}</a>
+      </nav>
       {error && <p role="alert" className={s.alert}>{error === "capacity" ? t("El volumen supera la capacidad del informe. Amplía la agregación antes de interpretar los KPIs.", "This report exceeds its capacity. Expand aggregation before interpreting KPIs.") : error === "clipboard" ? t("No se pudo copiar. Selecciona el enlace visible para copiarlo manualmente.", "Could not copy. Select the visible link to copy it manually.") : t("No se pudo completar la operación. Revisa tu sesión y la conexión; los datos anteriores pueden estar desactualizados.", "The operation failed. Check your session and connection; previous data may be outdated.")}</p>}
       <div role="status" className={s.notice}>{notice}</div>
       {panel && <section className={s.panel} aria-labelledby="editor-title">
@@ -122,6 +138,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
           </form>
         </>}
       </section>}
+      <div id="resumen" className={s.overviewHeading}><div><p className={s.eyebrow}>{t("UNA VISIÓN CLARA", "A CLEAR PICTURE")}</p><h2>{t("Tu reputación, en perspectiva.", "Your reputation, in perspective.")}</h2></div><span className={s.tag}>{days} {t("días de actividad", "days of activity")}</span></div>
       <div className={s.filters}>
         <label>{t("Período", "Period")}<select value={days} onChange={(event) => { setDays(Number(event.target.value)); reset(); }}>{[7, 30, 90].map((value) => <option key={value} value={value}>{t("Últimos", "Last")} {value} {t("días", "days")}</option>)}</select></label>
         <label>{t("Campaña", "Campaign")}<select value={campaignId} onChange={(event) => { setCampaignId(event.target.value); reset(); }}><option value="">{t("Todas las campañas", "All campaigns")}</option>{data?.campaigns.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -133,7 +150,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         [t("Abiertas", "Opened"), metrics.opened, t("Enlaces individuales visitados", "Individual links visited")],
         [t("Continuaron a Google", "Continued to Google"), metrics.clicked, t("Invitaciones con clic registrado", "Invitations with a recorded click")],
         [t("Efectividad de invitación", "Invitation effectiveness"), rate(metrics.clickRate), t("Clics ÷ invitaciones enviadas", "Clicks ÷ invitations sent")],
-      ].map(([label, value, hint]) => <article className={s.card} key={label}><p>{label}</p><strong>{data ? value : "—"}</strong><small>{hint}</small></article>)}</div>
+      ].map(([label, value, hint], index) => <article className={s.card} key={label}><div className={s.metricHeading}><p>{label}</p><span aria-hidden="true">{["↗", "◎", "→", "%"][index]}</span></div><strong>{data ? value : "—"}</strong><small>{hint}</small></article>)}</div>
       {data && <><section className={s.panel}>
         <div className={s.sectionHead}><h2>{t("El recorrido de tus invitaciones", "Your invitation journey")}</h2><span className={s.tag}>{days} {t("días", "days")}</span></div>
         <div className={s.journey}>{[[t("Enviadas", "Sent"), metrics.sent], [t("Abiertas", "Opened"), metrics.opened], [t("Clic a Google", "Clicked to Google"), metrics.clicked]].map(([label, count], index) => <div key={label}><small>0{index + 1} / {label}</small><strong>{data ? count : "—"}</strong><progress aria-label={String(label)} value={Number(count)} max={Math.max(1, metrics.sent)} /></div>)}</div>
@@ -141,7 +158,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         <p className={s.muted}>{t("Se cuentan invitaciones enviadas en el período, una vez por enlace. Un clic indica intención; no confirma una reseña publicada. Las visitas bloqueadas por privacidad pueden no registrarse y los enlaces pueden reenviarse.", "Invitations sent in the period are counted once per link. A click indicates intent; it does not confirm a published review. Privacy controls can prevent tracking and links can be forwarded.")}</p>
         {asOf && <small className={s.muted}>{t("Datos consultados", "Data refreshed")}: {date(asOf)}</small>}
       </section>
-      <section className={s.panel}>
+      <section id="campanas" className={s.panel}>
         <div className={s.sectionHead}><div><p className={s.eyebrow}>{t("ENLACES Y QR", "LINKS & QR")}</p><h2>{t("Campañas abiertas", "Open campaigns")}</h2></div><button className={s.button} disabled={!data || busy} onClick={() => setPanel("campaign")}>{t("+ Nueva campaña", "+ New campaign")}</button></div>
         <p className={s.muted}>{t("Para mostrador, material impreso o enlaces compartidos. Estas sesiones se miden aparte de las invitaciones individuales.", "For counters, printed materials or shared links. These sessions are measured separately from individual invitations.")}</p>
         <div className={s.sessionStats}><span>{visits.opened} {t("sesiones", "sessions")}</span><span>{visits.clicked} {t("con clic", "with a click")}</span><span>{rate(visits.rate)} {t("continuó a Google", "continued to Google")}</span></div>
@@ -151,7 +168,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         })}</div>
         {data && !data.campaigns.length && <p className={s.empty}>{t("Crea tu primera campaña para generar enlaces e invitaciones.", "Create your first campaign to generate links and invitations.")}</p>}
       </section>
-      <section className={s.panel}>
+      <section id="clientes" className={s.panel}>
         <div className={s.sectionHead}><h2>{t("Seguimiento por cliente", "Customer follow-up")}</h2><span className={s.tag}>{filtered.length}</span></div>
         <p className={s.muted}>{t("Abre el mensaje en tu aplicación y envíalo. Después pulsa «Registrar envío». Los borradores no cuentan en los KPIs; regístralo inmediatamente para medir las aperturas posteriores.", "Open the message in your app and send it. Then select “Record send”. Drafts are excluded from KPIs; record sends immediately to measure subsequent openings.")}</p>
         <div className={s.filters}><label>{t("Buscar cliente", "Find customer")}<input type="search" value={search} onChange={(event) => { setSearch(event.target.value); reset(); }} placeholder={t("Nombre, email o teléfono", "Name, email or phone")} /></label><label>{t("Estado", "Status")}<select value={status} onChange={(event) => { setStatus(event.target.value); reset(); }}><option value="">{t("Todos los estados", "All statuses")}</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
@@ -163,7 +180,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         {!filtered.length && <p className={s.empty}>{loading ? t("Cargando invitaciones…", "Loading invitations…") : t("No hay invitaciones para estos filtros.", "No invitations match these filters.")}</p>}
         {filtered.length > 20 && <div className={s.pagination}><button className={s.button} disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>{t("Anterior", "Previous")}</button><span>{currentPage + 1} / {Math.ceil(filtered.length / 20)}</span><button className={s.button} disabled={(currentPage + 1) * 20 >= filtered.length} onClick={() => setPage(currentPage + 1)}>{t("Siguiente", "Next")}</button></div>}
       </section></>}
-      <section className={s.panel}>
+      <section id="resenas" className={s.panel}>
         <div className={s.sectionHead}><div><p className={s.eyebrow}>GOOGLE BUSINESS PROFILE</p><h2>{t("Lo que dicen tus clientes", "What your customers say")}</h2></div>{data?.googleConfigured && <button className={s.primary} disabled={syncing} onClick={() => void synchronize()}>{syncing ? t("Consultando Google…", "Fetching from Google…") : t("Consultar reseñas", "Fetch reviews")}</button>}</div>
         <p className={s.muted}>{t("Reseñas reales de todo el negocio. Se aplica el período seleccionado, pero no los filtros de campaña o canal. Google no comparte el email del autor ni permite vincularlo automáticamente a una invitación.", "Actual reviews for the entire business. The selected period applies, but campaign and channel filters do not. Google does not share reviewer email or allow automatic invitation matching.")}</p>
         {data && !data.googleConfigured && <div className={s.empty}><h3>{t("Conecta tu perfil de Google", "Connect your Google profile")}</h3><p>{t("El administrador debe configurar el acceso a Google Business Profile para consultar calificaciones y reseñas. Puedes usar las campañas y medir invitaciones desde ahora.", "Your administrator must configure Google Business Profile access to fetch ratings and reviews. Campaigns and invitation tracking are available now.")}</p></div>}
@@ -178,6 +195,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
           {!reviewList.length && <p className={s.empty}>{t("No hay reseñas con estos filtros.", "No reviews match these filters.")}</p>}
         </>}
       </section>
+      <footer className={s.footer}><span>CIRIX · DIGITAL BUSINESS SOLUTIONS</span><a href={`/${locale}`}>{t("Explorar el ecosistema", "Explore the ecosystem")} <span aria-hidden="true">↗</span></a></footer>
     </div>
   </main>;
 }
