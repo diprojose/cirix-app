@@ -14,6 +14,10 @@ import { ResolveUserByEmail } from "../../application/use-cases/resolve-user-by-
 
 // One provider instance per server runtime.
 const identityProvider: IdentityProvider = new FirebaseIdentityProvider();
+// Only the review entry point uses identity without platform admission.
+const reviewIdentityProvider: IdentityProvider = new FirebaseIdentityProvider("reviews");
+export const makeGetReviewViewer = (): GetViewer => new GetViewer(reviewIdentityProvider);
+export const makeCreateReviewSession = (): CreateSession => new CreateSession(reviewIdentityProvider);
 
 /** Builds the "resolve current viewer" use case with its dependencies wired. */
 export const makeGetViewer = (): GetViewer => new GetViewer(identityProvider);

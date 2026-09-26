@@ -14,8 +14,10 @@ import { localizeHref, pick } from "@/lib/locale";
 
 export function GoogleSignInButton({
   redirectTo = null,
+  reviewLogin = false,
 }: {
   redirectTo?: string | null;
+  reviewLogin?: boolean;
 }) {
   const router = useRouter();
   const locale = useLocale();
@@ -37,12 +39,12 @@ export function GoogleSignInButton({
       const response = await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ idToken, audience: reviewLogin ? "reviews" : "platform" }),
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
         throw new Error(
-          payload?.error?.code === "iam/access-denied" ? pick(locale, {
+          payload?.error?.code === "iam/access-denied" && !reviewLogin ? pick(locale, {
             es: "Esta cuenta no tiene acceso autorizado. Solicita al administrador que la habilite previamente.",
             en: "This account is not authorized. Ask your administrator to enable access first.",
           }) : pick(locale, {
@@ -90,7 +92,7 @@ export function GoogleSignInButton({
         <GoogleGlyph />
         {loading
           ? pick(locale, { es: "Conectando...", en: "Connecting..." })
-          : pick(locale, {
+          : reviewLogin ? pick(locale, { es: "Continuar con Google", en: "Continue with Google" }) : pick(locale, {
               es: "Ingresar con cuenta autorizada",
               en: "Sign in with an authorized account",
             })}

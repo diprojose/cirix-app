@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { makeGetViewer } from "@/core/iam/infrastructure/di/iam-container";
+import { makeGetViewer, makeGetReviewViewer } from "@/core/iam/infrastructure/di/iam-container";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
-import { isPublicAsset, isPublicPage, isServiceEndpoint } from "@/lib/auth/route-access";
+import { isPublicAsset, isPublicPage, isReviewPage, isServiceEndpoint } from "@/lib/auth/route-access";
 import { DEFAULT_LOCALE, detectPreferredLocale, localizeHref, stripLocaleFromPathname } from "@/lib/locale";
 import { SITE_URL } from "@/lib/site-metadata";
 
@@ -37,7 +37,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   if (!publicPage) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null;
-    const viewer = await makeGetViewer().execute({ sessionCookie });
+    const reviewPage = readOnly && !isAction && isReviewPage(barePathname);
+    const viewer = await (reviewPage ? makeGetReviewViewer() : makeGetViewer()).execute({ sessionCookie });
     if (!viewer.ok || !viewer.value.authenticated) {
       if (isApi || !readOnly) {
         return NextResponse.json({ error: { code: "iam/access-denied", message: "Authorized account required." } }, {

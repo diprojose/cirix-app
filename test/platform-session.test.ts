@@ -5,6 +5,7 @@ import { PlatformAccessDeniedError, SessionCreationError } from "@/core/iam/doma
 
 const mocks = vi.hoisted(() => ({
   create: vi.fn(), viewer: vi.fn(), revoke: vi.fn(), cookieSet: vi.fn(), cookieDelete: vi.fn(), cookieGet: vi.fn(),
+  reviewCreate: vi.fn(), reviewViewer: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ cookies: async () => ({ set: mocks.cookieSet, delete: mocks.cookieDelete, get: mocks.cookieGet }) }));
@@ -12,6 +13,8 @@ vi.mock("@/core/iam/infrastructure/di/iam-container", () => ({
   makeCreateSession: () => ({ execute: mocks.create }),
   makeGetViewer: () => ({ execute: mocks.viewer }),
   makeRevokeSession: () => ({ execute: mocks.revoke }),
+  makeCreateReviewSession: () => ({ execute: mocks.reviewCreate }),
+  makeGetReviewViewer: () => ({ execute: mocks.reviewViewer }),
 }));
 vi.mock("@/shared/infrastructure/firebase-admin", () => ({ adminAuth: vi.fn() }));
 vi.mock("@/modules/loyalty/referrals/infrastructure/di/referrals-container", () => ({ makeRegisterReferral: vi.fn() }));
@@ -27,6 +30,19 @@ beforeEach(() => {
 });
 
 describe("session exchange boundary", () => {
+  it("creates a review session without requiring platform admission", async () => {
+    mocks.reviewCreate.mockResolvedValue(ok({ cookie: "review-cookie", expiresAt: Date.now() + 60000 }));
+    mocks.reviewViewer.mockResolvedValue(ok({ ...guestViewer, authenticated: true, uid: "reviewer" }));
+    const response = await POST(new Request("https://cirix.example/api/auth/session", {
+      method: "POST", headers: { origin: "https://cirix.example", "content-type": "application/json" },
+      body: JSON.stringify({ idToken: "token", audience: "reviews" }),
+    }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, landing: "/make-a-review" });
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.viewer).not.toHaveBeenCalled();
+    expect(mocks.cookieSet).toHaveBeenCalledWith("session", "review-cookie", expect.objectContaining({ httpOnly: true }));
+  });
   it("rejects login CSRF before token exchange", async () => {
     expect((await POST(request("https://attacker.example"))).status).toBe(403);
     expect(mocks.create).not.toHaveBeenCalled();

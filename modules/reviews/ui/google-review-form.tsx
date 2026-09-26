@@ -39,7 +39,7 @@ export function GoogleReviewForm({ source, token }: { source: ReviewSource; toke
         {t("Escribir mi reseña en Google", "Write my review on Google")} <span aria-hidden="true">↗</span>
       </a>
       <p className={s.hint}>{t("Escribes y publicas directamente en Google, con tu cuenta.", "Write and publish directly on Google, using your account.")}</p>
-      <p className={s.publication}>{t("Medimos la visita y el clic para mejorar nuestras invitaciones. No recibimos tu correo de Google.", "We measure visits and clicks to improve our invitations. Google does not share your email with us.")}</p>
+      <p className={s.publication}>{t("Usamos tu cuenta para iniciar sesión y medimos la visita y el clic. La reseña se publica directamente en Google.", "We use your account to sign you in and measure visits and clicks. Your review is published directly on Google.")}</p>
     </div>
   </section>;
 }

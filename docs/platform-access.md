@@ -1,12 +1,12 @@
 # Acceso controlado a CIRIX
 
-La landing (`/`, `/es`, `/en`) y la solicitud de reseñas (`/review`, `/es/review`, `/en/review`) son páginas públicas. `/login` y sus variantes de idioma son la puerta de autenticación. Las demás demos, módulos, páginas operativas y APIs internas de negocio requieren una sesión verificada de una cuenta habilitada previamente.
+La landing (`/`, `/es`, `/en`) y `/login` son públicas. `/make-a-review` y su alias `/review`, con sus variantes de idioma, requieren iniciar sesión con Google mediante Firebase y aceptan cualquier cuenta verificada y activa. No requieren habilitación administrativa. Las demás demos, módulos, páginas operativas y APIs internas requieren una sesión de una cuenta habilitada previamente.
 
 `/api/reviews/events` es una excepción pública para telemetría anónima: valida mismo origen, tamaño y un esquema cerrado; no recibe comentarios ni expone lectura de datos. Las acciones de servidor sobre `/review` y las rutas anidadas siguen protegidas.
 
 ## Crear o habilitar una cuenta
 
-Usamos Google para verificar la identidad y Firebase Admin para autorizarla. Un inicio de sesión con Google puede generar un registro de identidad en Firebase, pero **no concede acceso a CIRIX**. No basta con que el correo exista ni con agregarlo a `OPERATOR_EMAILS`.
+Usamos Google para verificar la identidad y Firebase Admin para autorizarla. Un inicio de sesión con Google puede generar un registro de identidad en Firebase, pero **solo permite continuar a las reseñas; no concede acceso a los módulos privados**. No basta con que el correo exista ni con agregarlo a `OPERATOR_EMAILS`.
 
 Configura las credenciales Firebase Admin de `.env.example` en `.env.local` y ejecuta desde un entorno administrativo de confianza:
 
@@ -29,7 +29,7 @@ El permiso administrativo es el custom claim `platformAccess: true`. Los operado
 
 - Proxy verifica la cookie real y la autorización actual; una cookie inventada no permite entrar. La política deniega por defecto, incluidas nuevas rutas y URLs de módulos con extensiones.
 - El layout, las APIs de negocio y las acciones de servidor vuelven a verificar el acceso. Los permisos de operador siguen aplicándose donde corresponden.
-- La creación de sesión requiere identidad verificada, autorización previa e inicio de sesión reciente. El navegador conserva únicamente la cookie httpOnly del servidor, no una sesión persistente de Firebase.
+- La creación de sesión requiere identidad verificada e inicio de sesión reciente. El intercambio con `audience: "reviews"` acepta cuentas sin habilitación administrativa. Los módulos y sus APIs siguen consultando la autorización actual en Firebase, incluso con una cookie creada para reseñas. El navegador conserva únicamente la cookie httpOnly del servidor, no una sesión persistente de Firebase.
 - El servidor consulta los permisos actuales al verificar la sesión; no confía en los roles antiguos guardados en la cookie.
 - HTML, RSC y respuestas de módulos no se guardan en el service worker. La actualización elimina los cachés anteriores.
 - Los recursos estáticos necesarios para la landing/login son públicos. Los webhooks de Twilio y el cron conservan su validación por firma o secreto; no usan el login interactivo.

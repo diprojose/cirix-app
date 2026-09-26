@@ -1,6 +1,6 @@
 ﻿# Google Reviews
 
-Panel privado para cuentas habilitadas de la plataforma: `/reviews` (`/es/reviews`, `/en/reviews`). No requiere el rol de operador de Loyalty. Entrada pública: `/make-a-review`; `/review` sigue funcionando. El proxy conserva `ref` y `source` al localizar. La entrada pública abre el formulario oficial de Google sin pedir estrellas, comentarios ni email por segunda vez. No publica en nombre del cliente.
+Panel privado para cuentas habilitadas de la plataforma: `/reviews` (`/es/reviews`, `/en/reviews`). No requiere el rol de operador de Loyalty. Entrada para cualquier persona autenticada con Google mediante Firebase: `/make-a-review`; `/review` sigue funcionando con el mismo requisito. No requiere habilitación administrativa. El proxy conserva `ref` y `source` al iniciar sesión y localizar. Tras iniciar sesión, la entrada abre el formulario oficial de Google sin pedir estrellas, comentarios ni email por segunda vez. No publica en nombre del cliente.
 
 ## Operación
 

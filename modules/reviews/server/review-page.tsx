@@ -1,4 +1,7 @@
 import Image from "next/image";
+import { redirect } from "next/navigation";
+import { getReviewViewer } from "@/lib/auth/dal";
+import { localizeHref } from "@/lib/locale";
 import type { Metadata } from "next";
 import { getCurrentLocale } from "@/lib/i18n";
 import { reviewCopy } from "../lib/copy";
@@ -20,6 +23,13 @@ export default async function ReviewPage({ searchParams }: {
   const source = reviewSource(query.source);
   const candidate = Array.isArray(query.ref) ? query.ref[0] : query.ref;
   const token = candidate && /^[a-f0-9]{48}$/.test(candidate) ? candidate : undefined;
+  const viewer = await getReviewViewer();
+  if (!viewer.authenticated) {
+    const params = new URLSearchParams({ source });
+    if (token) params.set("ref", token);
+    const returnTo = localizeHref(locale, `/make-a-review?${params}`);
+    redirect(localizeHref(locale, `/login?from=${encodeURIComponent(returnTo)}`));
+  }
   return <div className={s.page}>
     <header className={s.header}><div className={s.container}>
       <a href={`/${locale}`} aria-label={locale === "es" ? "Inicio de Cirix" : "Cirix home"}><Image src="/brand/logo-white.svg" alt="CIRIX" width={128} height={46} className={s.logo} /></a>

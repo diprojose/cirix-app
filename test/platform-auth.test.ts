@@ -22,6 +22,23 @@ beforeEach(() => {
 });
 
 describe("administrative admission", () => {
+  it("accepts a review identity without granting access to any platform module", async () => {
+    const reviews = new FirebaseIdentityProvider("reviews");
+    auth.getUser.mockResolvedValue({ ...user, customClaims: {} });
+    expect((await new CreateSession(reviews).execute({ idToken: "token" })).ok).toBe(true);
+    expect(await reviews.verifySession("valid-cookie")).not.toBeNull();
+    expect(await provider.verifySession("valid-cookie")).toBeNull();
+    expect((await new CreateSession(provider).execute({ idToken: "token" })).ok).toBe(false);
+  });
+  it.each([{ disabled: true }, { emailVerified: false }, { email: undefined }])(
+    "rejects invalid review identities: %j", async (overrides) => {
+      const reviews = new FirebaseIdentityProvider("reviews");
+      auth.getUser.mockResolvedValue({ ...user, customClaims: {}, ...overrides });
+      expect(await reviews.verifySession("cookie")).toBeNull();
+      expect((await new CreateSession(reviews).execute({ idToken: "token" })).ok).toBe(false);
+      expect(auth.createSessionCookie).not.toHaveBeenCalled();
+    }
+  );
   it("rejects a Google-created identity without prior authorization before minting a cookie", async () => {
     auth.getUser.mockResolvedValue({ ...user, customClaims: {} });
     const result = await new CreateSession(provider).execute({ idToken: "token" });

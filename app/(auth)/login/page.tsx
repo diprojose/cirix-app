@@ -4,7 +4,9 @@ import { LoginBrandHeader } from "@/components/auth/login-brand-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
 import { COLUMN } from "@/components/store/layout";
-import { getViewer } from "@/lib/auth/dal";
+import { getViewer, getReviewViewer } from "@/lib/auth/dal";
+import { isReviewPage } from "@/lib/auth/route-access";
+import { stripLocaleFromPathname } from "@/lib/locale";
 import {
   getCurrentLocale,
   localizeForCurrentRequest,
@@ -32,13 +34,16 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ from?: string }>;
 }) {
-  const [{ from }, locale, viewer] = await Promise.all([
+  const [{ from }, locale] = await Promise.all([
     searchParams,
     getCurrentLocale(),
-    getViewer(),
   ]);
   const internalFrom = safeInternalPath(from);
   const redirectTo = internalFrom ? localizeHref(locale, internalFrom) : null;
+  const reviewLogin = internalFrom !== null && isReviewPage(
+    stripLocaleFromPathname(new URL(internalFrom, INTERNAL_ORIGIN).pathname).pathname
+  );
+  const viewer = await (reviewLogin ? getReviewViewer() : getViewer());
 
   if (viewer.authenticated) {
     redirect(
@@ -57,9 +62,9 @@ export default async function LoginPage({
         <LanguageSwitcher />
       </div>
 
-      <LoginBrandHeader />
+      <LoginBrandHeader reviewLogin={reviewLogin} />
 
-      <GoogleSignInButton redirectTo={redirectTo} />
+      <GoogleSignInButton redirectTo={redirectTo} reviewLogin={reviewLogin} />
 
       <p className="text-center text-caption text-text-muted">
         <LocalizedLink

@@ -3,7 +3,7 @@ import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { localizeForCurrentRequest } from "@/lib/i18n";
-import { makeGetViewer } from "@/core/iam/infrastructure/di/iam-container";
+import { makeGetViewer, makeGetReviewViewer } from "@/core/iam/infrastructure/di/iam-container";
 import {
   guestViewer,
   type ViewerDto,
@@ -23,6 +23,13 @@ export const getViewer = cache(async (): Promise<ViewerDto> => {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
   const result = await makeGetViewer().execute({ sessionCookie });
+  return result.ok ? result.value : guestViewer;
+});
+
+/** Review identity must never be used to authorize private module operations. */
+export const getReviewViewer = cache(async (): Promise<ViewerDto> => {
+  const sessionCookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value ?? null;
+  const result = await makeGetReviewViewer().execute({ sessionCookie });
   return result.ok ? result.value : guestViewer;
 });
 

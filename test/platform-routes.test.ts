@@ -2,34 +2,38 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { ok } from "@/shared/domain/result";
 import { guestViewer } from "@/core/iam/application/dtos/viewer-dto";
-const execute = vi.hoisted(() => vi.fn());
-vi.mock("@/core/iam/infrastructure/di/iam-container", () => ({ makeGetViewer: () => ({ execute }) }));
+const { execute, reviewExecute } = vi.hoisted(() => ({ execute: vi.fn(), reviewExecute: vi.fn() }));
+vi.mock("@/core/iam/infrastructure/di/iam-container", () => ({ makeGetViewer: () => ({ execute }), makeGetReviewViewer: () => ({ execute: reviewExecute }) }));
 import { proxy, config } from "@/proxy";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 
-beforeEach(() => { execute.mockReset(); execute.mockResolvedValue(ok(guestViewer)); });
+beforeEach(() => { execute.mockReset(); execute.mockResolvedValue(ok(guestViewer)); reviewExecute.mockReset(); reviewExecute.mockResolvedValue(ok(guestViewer)); });
 const request = (path: string, init?: ConstructorParameters<typeof NextRequest>[1]) => new NextRequest(`https://cirix.example${path}`, init);
 
 describe("private platform routes", () => {
-  it("keeps the new public handoff open and the operator dashboard private", async () => {
+  it("allows authenticated reviewers while keeping the dashboard private", async () => {
+    reviewExecute.mockResolvedValue(ok({ ...guestViewer, authenticated: true, uid: "reviewer" }));
     expect((await proxy(request("/es/make-a-review?source=qr&ref=token"))).status).toBe(200);
     const localized = await proxy(request("/make-a-review?source=email&ref=token", { headers: { "accept-language": "es" } }));
     expect(localized.headers.get("location")).toBe("https://cirix.example/es/make-a-review?source=email&ref=token");
     expect((await proxy(request("/es/reviews"))).headers.get("location")).toContain("/es/login");
     for (const path of ["dashboard", "campaigns", "invitations", "google"]) expect((await proxy(request(`/api/reviews/${path}`))).status).toBe(401);
   });
-  it.each(["/es/review", "/en/review?source=qr"])("allows public review requests: %s", async (path) => {
+  it.each(["/es/review", "/en/review?source=qr"])("requires Firebase login for review requests: %s", async (path) => {
     const response = await proxy(request(path));
-    expect(response.status).toBe(200);
-    expect(response.headers.get("x-middleware-request-x-mixmag-pathname")).toBe("/review");
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location")!).searchParams.get("from")).toBe(path);
+    expect(reviewExecute).toHaveBeenCalledOnce();
     expect(execute).not.toHaveBeenCalled();
   });
   it.each(["qr", "whatsapp", "email", "sms", "direct"])("preserves review attribution when localizing: %s", async (source) => {
+    reviewExecute.mockResolvedValue(ok({ ...guestViewer, authenticated: true, uid: "reviewer" }));
     const response = await proxy(request(`/review?source=${source}`, { headers: { "accept-language": "es" } }));
     expect(response.headers.get("location")).toBe(`https://cirix.example/es/review?source=${source}`);
     expect(execute).not.toHaveBeenCalled();
   });
   it("keeps review actions and nested pages private", async () => {
+    reviewExecute.mockResolvedValue(ok({ ...guestViewer, authenticated: true, uid: "reviewer" }));
     expect((await proxy(request("/es/review", { method: "POST", headers: { "next-action": "test" } }))).status).toBe(401);
     expect((await proxy(request("/es/review/admin"))).headers.get("location")).toContain("/es/login");
   });

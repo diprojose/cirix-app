@@ -17,12 +17,15 @@ import { PlatformAccessDeniedError } from "../../domain/errors/iam-errors";
  * adapter alone — domain and application stay untouched.
  */
 export class FirebaseIdentityProvider implements IdentityProvider {
+  constructor(private readonly audience: "platform" | "reviews" = "platform") {}
+
   async verifySession(sessionCookie: string): Promise<UserAccount | null> {
     try {
       // `true` checks the token has not been revoked (logout, disabled user).
       const decoded = await adminAuth().verifySessionCookie(sessionCookie, true);
       const user = await adminAuth().getUser(decoded.uid);
-      if (!hasPlatformAccess(user)) return null;
+      if (user.disabled || !user.email || !user.emailVerified) return null;
+      if (this.audience === "platform" && !hasPlatformAccess(user)) return null;
       // Read current admission and role, never stale claims in a 14-day cookie.
       return toUserAccount({
         ...decoded,
@@ -41,7 +44,8 @@ export class FirebaseIdentityProvider implements IdentityProvider {
   ): Promise<MintedSession> {
     const decoded = await adminAuth().verifyIdToken(idToken, true);
     const user = await adminAuth().getUser(decoded.uid);
-    if (!decoded.email_verified || !hasPlatformAccess(user)) {
+    if (!decoded.email_verified || user.disabled || !user.email || !user.emailVerified ||
+        (this.audience === "platform" && !hasPlatformAccess(user))) {
       throw new PlatformAccessDeniedError();
     }
     const secondsSinceSignIn = Date.now() / 1000 - decoded.auth_time;

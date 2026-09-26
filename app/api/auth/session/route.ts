@@ -4,6 +4,8 @@ import {
   makeCreateSession,
   makeGetViewer,
   makeRevokeSession,
+  makeCreateReviewSession,
+  makeGetReviewViewer,
 } from "@/core/iam/infrastructure/di/iam-container";
 import { makeRegisterReferral } from "@/modules/loyalty/referrals/infrastructure/di/referrals-container";
 import { adminAuth } from "@/shared/infrastructure/firebase-admin";
@@ -20,7 +22,9 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/session — exchanges a client Firebase id token for an httpOnly
- * session cookie. The body is `{ idToken: string }`. Domain errors are mapped
+ * session cookie. The body is `{ idToken: string, audience?: "reviews" | "platform" }`.
+ * Review sessions authenticate identity only; private modules still check admission.
+ * Domain errors are mapped
  * to a plain `{ code, message }` shape before crossing to the client.
  *
  * The response carries a `landing` path: the role is only known once the
@@ -33,10 +37,12 @@ export async function POST(request: Request) {
   }
   const body = (await request.json().catch(() => null)) as {
     idToken?: unknown;
+    audience?: unknown;
   } | null;
   const idToken = typeof body?.idToken === "string" ? body.idToken : "";
 
-  const result = await makeCreateSession().execute({ idToken });
+  const reviewLogin = body?.audience === "reviews";
+  const result = await (reviewLogin ? makeCreateReviewSession() : makeCreateSession()).execute({ idToken });
   if (!result.ok) {
     (await cookies()).delete(SESSION_COOKIE_NAME);
     return NextResponse.json(
@@ -45,7 +51,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const viewer = await makeGetViewer().execute({ sessionCookie: result.value.cookie });
+  const viewer = await (reviewLogin ? makeGetReviewViewer() : makeGetViewer()).execute({ sessionCookie: result.value.cookie });
   if (!viewer.ok || !viewer.value.authenticated) {
     (await cookies()).delete(SESSION_COOKIE_NAME);
     return NextResponse.json({ error: { code: "iam/access-denied" } }, { status: 403 });
@@ -60,13 +66,13 @@ export async function POST(request: Request) {
     expires: new Date(result.value.expiresAt),
   });
 
-  await bindPendingReferral(idToken, cookieStore);
+  if (!reviewLogin) await bindPendingReferral(idToken, cookieStore);
 
   // Resolve the viewer from the freshly minted cookie rather than from the
   // request's cookie jar: the DAL's `getViewer` is memoised per render pass and
   // would not see a cookie set in this very handler.
   const landing =
-    viewer.value.permissions.canOperateStore ? "/admin" : "/";
+    reviewLogin ? "/make-a-review" : viewer.value.permissions.canOperateStore ? "/admin" : "/";
 
   return NextResponse.json({ ok: true, landing });
 }
