@@ -7,6 +7,7 @@ import type { Locale } from "@/lib/locale";
 import { invitationInput, type DashboardData, type GoogleSnapshot, type Invitation } from "../domain/reviews";
 import { googleMetrics, invitationMetrics, visitMetrics } from "../domain/metrics";
 import { invitationComposeLink, invitationMessage, publicReviewLink } from "../lib/invitation-links";
+import { CampaignQr } from "./campaign-qr";
 import s from "./reviews-dashboard.module.css";
 
 type Contact = { id: string; fullName: string; email: string; phone: string; lifecycleStage: string };
@@ -164,7 +165,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         <div className={s.sessionStats}><span>{visits.opened} {t("sesiones", "sessions")}</span><span>{visits.clicked} {t("con clic", "with a click")}</span><span>{rate(visits.rate)} {t("continuó a Google", "continued to Google")}</span></div>
         <div className={s.campaigns}>{data?.campaigns.filter((item) => !campaignId || item.id === campaignId).map((item) => {
           const link = origin ? publicReviewLink(origin, item.token, "qr", locale) : "";
-          return <article key={item.id} className={s.campaign}><h3>{item.name}</h3><label>{t("Enlace público · origen QR", "Public link · QR source")}<input readOnly value={link} onFocus={(event) => event.target.select()} /></label><div className={s.actions}><button className={s.button} onClick={() => void copy(link)}>{t("Copiar enlace", "Copy link")}</button><button className={s.button} disabled={busy} onClick={() => void mutate(async () => { const qr = await import("qrcode"); const href = await qr.toDataURL(link, { width: 600, margin: 4, errorCorrectionLevel: "M", color: { dark: "#051934", light: "#ffffff" } }); const anchor = document.createElement("a"); anchor.href = href; anchor.download = `cirix-review-${item.id}.png`; anchor.click(); })}>{t("Descargar QR", "Download QR")}</button></div></article>;
+          return <article key={item.id} className={s.campaign}><h3>{item.name}</h3><label>{t("Enlace público · origen QR", "Public link · QR source")}<input readOnly value={link} onFocus={(event) => event.target.select()} /></label><div className={s.actions}><button className={s.button} onClick={() => void copy(link)}>{t("Copiar enlace", "Copy link")}</button></div><CampaignQr link={link} campaignId={item.id} name={item.name} locale={locale} /></article>;
         })}</div>
         {data && !data.campaigns.length && <p className={s.empty}>{t("Crea tu primera campaña para generar enlaces e invitaciones.", "Create your first campaign to generate links and invitations.")}</p>}
       </section>
