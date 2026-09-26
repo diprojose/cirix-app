@@ -29,6 +29,7 @@ export function isServiceEndpoint(pathname: string): boolean {
     "/api/pixels/collect",
     "/api/webhooks/twilio/voice",
     "/api/webhooks/twilio/call-status",
+    "/api/webhooks/resend",
     "/api/cron/rewards",
   ].includes(pathname);
 }
