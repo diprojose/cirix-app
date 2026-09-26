@@ -57,6 +57,7 @@
 .filters label { min-width: 180px; flex: 1; }
 .form label { flex: 1 1 240px; }
 .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+.cards.sessionCards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .card { padding: 22px; background: linear-gradient(140deg, #0c2444, #07182f); border: 1px solid #7aa6e226; border-radius: 8px; }
 .card:last-child { background: linear-gradient(140deg, #32172e, #11182c); border-color: #ff647f38; }
 .metricHeading { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 32px; }

@@ -44,17 +44,34 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
   const [page, setPage] = useState(0);
   const mutation = useRef(false);
   const sync = useRef(false);
+  const refreshSequence = useRef(0);
   const refresh = useCallback((signal?: AbortSignal) => {
+    const sequence = ++refreshSequence.current;
     return api("/api/reviews/dashboard", "GET", undefined, signal).then((result: DashboardData) => {
-      if (signal?.aborted) return;
-      setData(result); setOrigin(window.location.origin); setAsOf(new Date().toISOString()); setError("");
+      if (signal?.aborted || sequence !== refreshSequence.current) return;
+      setData(result); setOrigin(window.location.origin); setAsOf(result.fetchedAt);
+      setError((previous) => previous === "load" || previous === "capacity" ? "" : previous);
     }).catch((cause: unknown) => {
-      if (!signal?.aborted) setError(cause instanceof Error && cause.message === "report_capacity" ? "capacity" : "load");
-    }).finally(() => { if (!signal?.aborted) setLoading(false); });
+      if (!signal?.aborted && sequence === refreshSequence.current) setError(cause instanceof Error && cause.message === "report_capacity" ? "capacity" : "load");
+    }).finally(() => { if (!signal?.aborted && sequence === refreshSequence.current) setLoading(false); });
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    void refresh(controller.signal); return () => controller.abort();
+    let pending = false;
+    const update = () => {
+      if (document.visibilityState !== "visible" || pending || mutation.current) return;
+      pending = true;
+      void refresh(controller.signal).finally(() => { pending = false; });
+    };
+    update();
+    const timer = window.setInterval(update, 30_000);
+    window.addEventListener("focus", update);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      controller.abort(); window.clearInterval(timer);
+      window.removeEventListener("focus", update);
+      document.removeEventListener("visibilitychange", update);
+    };
   }, [refresh]);
   const mutate = async (task: () => Promise<void>) => {
     if (mutation.current) return;
@@ -68,7 +85,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
   };
   const synchronize = async () => {
     if (sync.current) return; sync.current = true; setSyncing(true); setGoogleError(false);
-    try { setGoogle(await api("/api/reviews/google", "POST", {})); setAsOf(new Date().toISOString()); }
+    try { setGoogle(await api("/api/reviews/google", "POST", {})); }
     catch { setGoogleError(true); } finally { setSyncing(false); sync.current = false; }
   };
   const start = asOf ? new Date(Date.parse(asOf) - days * 86400_000).toISOString() : "";
@@ -146,6 +163,19 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         <label>{t("Canal", "Channel")}<select value={source} onChange={(event) => { setSource(event.target.value); reset(); }}><option value="">{t("Todos los canales", "All channels")}</option>{Object.entries(channels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <button className={s.button} disabled={loading || busy} onClick={() => { setLoading(true); void refresh(); }}>{loading ? t("Cargando…", "Loading…") : t("Actualizar datos", "Refresh data")}</button>
       </div>
+      <section aria-labelledby="public-activity-heading">
+        <div className={s.sectionHead}><h2 id="public-activity-heading">{t("Actividad de enlaces y QR", "Link & QR activity")}</h2></div>
+        <p className={s.muted}>{t("Aquí aparecen las visitas a la página de reseñas desde enlaces compartidos, QR y acceso directo. Se cuentan sesiones del navegador; registrarse o cambiar de cuenta no crea otra sesión en la misma pestaña.", "Visits to the review page from shared links, QR codes and direct access appear here. These are browser sessions; signing up or switching accounts does not create another session in the same tab.")}</p>
+        <div className={`${s.cards} ${s.sessionCards}`}>{[
+          [t("Sesiones en la página", "Page sessions"), visits.opened, t("Visitas registradas a la página de reseñas", "Recorded visits to the review page")],
+          [t("Sesiones con clic a Google", "Sessions with a Google click"), visits.clicked, t("Pulsaron el botón para escribir una reseña", "Clicked the button to write a review")],
+          [t("Continuación a Google", "Continuation to Google"), rate(visits.rate), t("Sesiones con clic ÷ sesiones registradas", "Sessions with a click ÷ recorded sessions")],
+        ].map(([label, value, hint]) => <article className={s.card} key={label}><p>{label}</p><strong>{data ? value : "—"}</strong><small>{hint}</small></article>)}</div>
+        <p className={s.muted}>{t("Se actualiza cada 30 segundos mientras el panel está visible y al volver a esta pestaña. Los controles de privacidad pueden impedir el seguimiento. Un clic no confirma una reseña publicada.", "Updates every 30 seconds while visible and when you return to this tab. Privacy controls can prevent tracking. A click does not confirm a published review.")}</p>
+        {asOf && <p className={s.muted}>{t("Datos consultados", "Data refreshed")}: {date(asOf)}</p>}
+      </section>
+      <div className={s.sectionHead}><h2>{t("Invitaciones individuales", "Individual invitations")}</h2></div>
+      {data && metrics.sent === 0 && <p className={s.muted}>{t("No hay invitaciones individuales marcadas como enviadas con estos filtros. Las visitas a enlaces y QR se muestran arriba y no aumentan estos contadores.", "No individual invitations are marked as sent for these filters. Link and QR visits appear above and do not increase these counters.")}</p>}
       <div className={s.cards}>{[
         [t("Invitaciones enviadas", "Invitations sent"), metrics.sent, t("Envíos registrados por el equipo", "Sends recorded by your team")],
         [t("Abiertas", "Opened"), metrics.opened, t("Enlaces individuales visitados", "Individual links visited")],

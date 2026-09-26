@@ -58,6 +58,19 @@ describe("private platform review access", () => {
     const response = await GET(); expect(response.status).toBe(503); expect(await response.json()).toEqual({ error: "report_capacity" });
     expect(response.headers.get("cache-control")).toBe("private, no-store");
   });
+  it("returns public sessions even without invitations, with a server report time", async () => {
+    const openedAt = "2026-09-26T13:16:45.649Z";
+    const visit = { id, campaignId: id, source: "qr" as const, openedAt, clickedAt: null };
+    vi.mocked(listReviewData).mockResolvedValue({ campaigns: [], invitations: [], visits: [visit], windowStart: "2026-09-01T00:00:00.000Z" });
+    const before = Date.now();
+    const response = await GET();
+    const data = await response.json();
+    expect(data.invitations).toEqual([]);
+    expect(data.visits).toEqual([visit]);
+    expect(Date.parse(data.fetchedAt)).toBeGreaterThanOrEqual(before);
+    expect(Date.parse(data.fetchedAt)).toBeLessThanOrEqual(Date.now());
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
   it("does not query Google until it is configured", async () => {
     vi.mocked(googleReviewsConfigured).mockReturnValue(false);
     expect((await google(request({}))).status).toBe(409); expect(fetchGoogleReviews).not.toHaveBeenCalled();
