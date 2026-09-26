@@ -174,22 +174,23 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         <p className={s.muted}>{t("Se actualiza cada 30 segundos mientras el panel está visible y al volver a esta pestaña. Los controles de privacidad pueden impedir el seguimiento. Un clic no confirma una reseña publicada.", "Updates every 30 seconds while visible and when you return to this tab. Privacy controls can prevent tracking. A click does not confirm a published review.")}</p>
         {asOf && <p className={s.muted}>{t("Datos consultados", "Data refreshed")}: {date(asOf)}</p>}
       </section>
+      {data && metrics.sent > 0 && <>
       <div className={s.sectionHead}><h2>{t("Invitaciones individuales", "Individual invitations")}</h2></div>
-      {data && metrics.sent === 0 && <p className={s.muted}>{t("No hay invitaciones individuales marcadas como enviadas con estos filtros. Las visitas a enlaces y QR se muestran arriba y no aumentan estos contadores.", "No individual invitations are marked as sent for these filters. Link and QR visits appear above and do not increase these counters.")}</p>}
       <div className={s.cards}>{[
         [t("Invitaciones enviadas", "Invitations sent"), metrics.sent, t("Envíos registrados por el equipo", "Sends recorded by your team")],
         [t("Abiertas", "Opened"), metrics.opened, t("Enlaces individuales visitados", "Individual links visited")],
         [t("Continuaron a Google", "Continued to Google"), metrics.clicked, t("Invitaciones con clic registrado", "Invitations with a recorded click")],
         [t("Efectividad de invitación", "Invitation effectiveness"), rate(metrics.clickRate), t("Clics ÷ invitaciones enviadas", "Clicks ÷ invitations sent")],
       ].map(([label, value, hint], index) => <article className={s.card} key={label}><div className={s.metricHeading}><p>{label}</p><span aria-hidden="true">{["↗", "◎", "→", "%"][index]}</span></div><strong>{data ? value : "—"}</strong><small>{hint}</small></article>)}</div>
-      {data && <><section className={s.panel}>
+      <section className={s.panel}>
         <div className={s.sectionHead}><h2>{t("El recorrido de tus invitaciones", "Your invitation journey")}</h2><span className={s.tag}>{days} {t("días", "days")}</span></div>
         <div className={s.journey}>{[[t("Enviadas", "Sent"), metrics.sent], [t("Abiertas", "Opened"), metrics.opened], [t("Clic a Google", "Clicked to Google"), metrics.clicked]].map(([label, count], index) => <div key={label}><small>0{index + 1} / {label}</small><strong>{data ? count : "—"}</strong><progress aria-label={String(label)} value={Number(count)} max={Math.max(1, metrics.sent)} /></div>)}</div>
         <p>{t("Tasa de apertura", "Open rate")}: <b>{rate(metrics.openRate)}</b> · {t("Abiertas sin clic", "Opened without a click")}: <b>{metrics.withoutClick}</b></p>
         <p className={s.muted}>{t("Se cuentan invitaciones enviadas en el período, una vez por enlace. Un clic indica intención; no confirma una reseña publicada. Las visitas bloqueadas por privacidad pueden no registrarse y los enlaces pueden reenviarse.", "Invitations sent in the period are counted once per link. A click indicates intent; it does not confirm a published review. Privacy controls can prevent tracking and links can be forwarded.")}</p>
         {asOf && <small className={s.muted}>{t("Datos consultados", "Data refreshed")}: {date(asOf)}</small>}
       </section>
-      <section id="campanas" className={s.panel}>
+      </>}
+      {data && <><section id="campanas" className={s.panel}>
         <div className={s.sectionHead}><div><p className={s.eyebrow}>{t("ENLACES Y QR", "LINKS & QR")}</p><h2>{t("Campañas abiertas", "Open campaigns")}</h2></div><button className={s.button} disabled={!data || busy} onClick={() => setPanel("campaign")}>{t("+ Nueva campaña", "+ New campaign")}</button></div>
         <p className={s.muted}>{t("Para mostrador, material impreso o enlaces compartidos. Estas sesiones se miden aparte de las invitaciones individuales.", "For counters, printed materials or shared links. These sessions are measured separately from individual invitations.")}</p>
         <div className={s.sessionStats}><span>{visits.opened} {t("sesiones", "sessions")}</span><span>{visits.clicked} {t("con clic", "with a click")}</span><span>{rate(visits.rate)} {t("continuó a Google", "continued to Google")}</span></div>
