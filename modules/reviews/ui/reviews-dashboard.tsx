@@ -8,6 +8,7 @@ import { invitationInput, type DashboardData, type GoogleSnapshot, type Invitati
 import { googleMetrics, invitationMetrics, visitMetrics } from "../domain/metrics";
 import { invitationComposeLink, invitationMessage, publicReviewLink } from "../lib/invitation-links";
 import { CampaignQr } from "./campaign-qr";
+import { ReviewParticipants } from "./review-participants";
 import s from "./reviews-dashboard.module.css";
 
 type Contact = { id: string; fullName: string; email: string; phone: string; lifecycleStage: string };
@@ -165,7 +166,7 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
       </div>
       <section aria-labelledby="public-activity-heading">
         <div className={s.sectionHead}><h2 id="public-activity-heading">{t("Actividad de enlaces y QR", "Link & QR activity")}</h2></div>
-        <p className={s.muted}>{t("Aquí aparecen las visitas a la página de reseñas desde enlaces compartidos, QR y acceso directo. Se cuentan sesiones del navegador; registrarse o cambiar de cuenta no crea otra sesión en la misma pestaña.", "Visits to the review page from shared links, QR codes and direct access appear here. These are browser sessions; signing up or switching accounts does not create another session in the same tab.")}</p>
+        <p className={s.muted}>{t("Aquí aparecen las visitas a la página de reseñas desde enlaces compartidos, QR y acceso directo. Se cuentan sesiones por cuenta y pestaña. La tabla de usuarios muestra quién visitó la página y quién hizo clic a Google.", "Visits to the review page from shared links, QR codes and direct access appear here. Sessions are counted per account and tab. The user table identifies who visited the page and who clicked through to Google.")}</p>
         <div className={`${s.cards} ${s.sessionCards}`}>{[
           [t("Sesiones en la página", "Page sessions"), visits.opened, t("Visitas registradas a la página de reseñas", "Recorded visits to the review page")],
           [t("Sesiones con clic a Google", "Sessions with a Google click"), visits.clicked, t("Pulsaron el botón para escribir una reseña", "Clicked the button to write a review")],
@@ -174,6 +175,8 @@ export function ReviewsDashboard({ locale }: { locale: Locale }) {
         <p className={s.muted}>{t("Se actualiza cada 30 segundos mientras el panel está visible y al volver a esta pestaña. Los controles de privacidad pueden impedir el seguimiento. Un clic no confirma una reseña publicada.", "Updates every 30 seconds while visible and when you return to this tab. Privacy controls can prevent tracking. A click does not confirm a published review.")}</p>
         {asOf && <p className={s.muted}>{t("Datos consultados", "Data refreshed")}: {date(asOf)}</p>}
       </section>
+      {data && <ReviewParticipants key={`${days}:${campaignId}:${source}`} participants={data.participants ?? []} campaigns={data.campaigns}
+        start={start} end={asOf} campaignId={campaignId} source={source} locale={locale} />}
       {data && metrics.sent > 0 && <>
       <div className={s.sectionHead}><h2>{t("Invitaciones individuales", "Individual invitations")}</h2></div>
       <div className={s.cards}>{[

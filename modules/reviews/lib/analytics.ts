@@ -14,6 +14,6 @@ export function trackReviewEvent(event: TrackingInput["event"], properties: Pick
     if (navigator.doNotTrack === "1" || (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl) return;
     const body = JSON.stringify({ event, source: properties.source, token: properties.token, visitId: visitId() });
     void fetch("/api/reviews/events", { method: "POST", headers: { "Content-Type": "application/json" },
-      body, keepalive: true, credentials: "omit", referrerPolicy: "no-referrer" }).catch(() => {});
+      body, keepalive: true, credentials: "same-origin", referrerPolicy: "no-referrer" }).catch(() => {});
   } catch { /* Tracking must never prevent access to Google. */ }
 }

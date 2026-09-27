@@ -2,7 +2,7 @@
 
 La landing (`/`, `/es`, `/en`) y `/login` son públicas. `/make-a-review` y su alias `/review`, con sus variantes de idioma, requieren iniciar sesión con Google mediante Firebase y aceptan cualquier cuenta verificada y activa. No requieren habilitación administrativa. Las demás demos, módulos, páginas operativas y APIs internas requieren una sesión de una cuenta habilitada previamente.
 
-`/api/reviews/events` es una excepción pública para telemetría anónima: valida mismo origen, tamaño y un esquema cerrado; no recibe comentarios ni expone lectura de datos. Las acciones de servidor sobre `/review` y las rutas anidadas siguen protegidas.
+`/api/reviews/events` acepta actividad de cualquier cuenta verificada y activa con sesión de reseñas. El handler verifica la sesión, mismo origen, tamaño y un esquema cerrado; vincula la identidad en el servidor, no recibe comentarios ni expone lectura de datos. Las acciones de servidor sobre `/review` y las rutas anidadas siguen protegidas.
 
 ## Crear o habilitar una cuenta
 

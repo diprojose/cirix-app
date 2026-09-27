@@ -83,6 +83,12 @@
       "indexes": []
     },
     {
+      "collectionGroup": "review_participants",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
       "collectionGroup": "review_rate_limits",
       "fieldPath": "expiresAt",
       "ttl": true,

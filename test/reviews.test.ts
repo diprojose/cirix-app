@@ -7,6 +7,10 @@ import { invitationComposeLink, publicReviewLink } from "@/modules/reviews/lib/i
 vi.mock("server-only", () => ({}));
 vi.mock("@/modules/reviews/server/repository", () => ({ recordReviewEvent: vi.fn() }));
 import { recordReviewEvent } from "@/modules/reviews/server/repository";
+vi.mock("@/lib/auth/dal", () => ({ getReviewViewer: vi.fn() }));
+vi.mock("@/shared/infrastructure/firebase-admin", () => ({ adminAuth: () => ({ getUser: async () => ({ displayName: "Reviewer" }) }) }));
+import { getReviewViewer } from "@/lib/auth/dal";
+import { guestViewer } from "@/core/iam/application/dtos/viewer-dto";
 import { POST } from "@/app/api/reviews/events/route";
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const payload = { event: "review_google_clicked", source: "qr", visitId: id };
@@ -15,6 +19,7 @@ beforeEach(() => {
   vi.stubGlobal("navigator", {}); vi.stubGlobal("fetch", fetchEvent);
   const storage = new Map<string, string>();
   vi.stubGlobal("sessionStorage", { getItem: (key: string) => storage.get(key), setItem: (key: string, value: string) => storage.set(key, value) });
+  vi.mocked(getReviewViewer).mockResolvedValue({ ...guestViewer, authenticated: true, uid: "reviewer-1", email: "reviewer@example.com" });
   fetchEvent.mockReset().mockResolvedValue({ ok: true });
   vi.mocked(recordReviewEvent).mockReset().mockResolvedValue("recorded");
 });
@@ -22,14 +27,14 @@ afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 function request(body: unknown = payload, origin = "https://cirix.example") {
   return new Request("https://cirix.example/api/reviews/events", { method: "POST", headers: { origin, "Content-Type": "application/json" }, body: JSON.stringify(body) });
 }
-describe("anonymous public tracking", () => {
+describe("authenticated review tracking", () => {
   it("uses a stable session identifier and excludes unrelated customer properties", () => {
     const properties = { source: "qr" as const, email: "private@example.com", comment: "private" };
     trackReviewEvent("review_page_view", properties); trackReviewEvent("review_google_clicked", properties);
     const first = JSON.parse(fetchEvent.mock.calls[0][1].body); const second = JSON.parse(fetchEvent.mock.calls[1][1].body);
     expect(first.visitId).toBe(second.visitId);
     expect(Object.keys(first).sort()).toEqual(["event", "source", "visitId"]);
-    expect(fetchEvent.mock.calls[0][1]).toMatchObject({ keepalive: true, credentials: "omit", referrerPolicy: "no-referrer" });
+    expect(fetchEvent.mock.calls[0][1]).toMatchObject({ keepalive: true, credentials: "same-origin", referrerPolicy: "no-referrer" });
   });
   it.each([{ doNotTrack: "1" }, { globalPrivacyControl: true }])("respects privacy signal %j", (value) => {
     vi.stubGlobal("navigator", value); trackReviewEvent("review_page_view", { source: "direct" }); expect(fetchEvent).not.toHaveBeenCalled();
@@ -41,15 +46,20 @@ describe("anonymous public tracking", () => {
   });
   it("accepts supported events without returning any customer information", async () => {
     const response = await POST(request()); expect(response.status).toBe(204); expect(await response.text()).toBe("");
-    expect(recordReviewEvent).toHaveBeenCalledWith(payload);
+    expect(recordReviewEvent).toHaveBeenCalledWith(payload, { uid: "reviewer-1", email: "reviewer@example.com", name: "Reviewer" });
   });
-  it.each([{ ...payload, email: "private@example.com" }, { ...payload, rating: 5 }, { ...payload, comment: "hello" }, { ...payload, event: "review_published" }, { ...payload, token: "email@example.com" }])("rejects unsupported data %j", async (body) => {
+  it.each([{ ...payload, uid: "forged-user" }, { ...payload, email: "private@example.com" }, { ...payload, rating: 5 }, { ...payload, comment: "hello" }, { ...payload, event: "review_published" }, { ...payload, token: "email@example.com" }])("rejects unsupported data %j", async (body) => {
     expect((await POST(request(body))).status).toBe(400); expect(recordReviewEvent).not.toHaveBeenCalled();
   });
   it("enforces origin, size and privacy boundaries", async () => {
     expect((await POST(request(payload, "https://other.example"))).status).toBe(403);
     expect((await POST(request({ ...payload, comment: "x".repeat(9000) }))).status).toBe(413);
     const input = request(); input.headers.set("sec-gpc", "1"); expect((await POST(input)).status).toBe(204);
+    expect(recordReviewEvent).not.toHaveBeenCalled();
+  });
+  it("rejects an unauthenticated event without recording an identity", async () => {
+    vi.mocked(getReviewViewer).mockResolvedValue(guestViewer);
+    expect((await POST(request())).status).toBe(401);
     expect(recordReviewEvent).not.toHaveBeenCalled();
   });
   it("reports unavailable storage and throttling without customer data", async () => {

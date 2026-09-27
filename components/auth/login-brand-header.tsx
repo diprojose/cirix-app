@@ -18,8 +18,8 @@ export function LoginBrandHeader({ reviewLogin = false }: { reviewLogin?: boolea
       </h1>
       <p className="max-w-sm text-body text-text-muted">
         {reviewLogin ? pick(locale, {
-          es: "Inicia sesión con tu cuenta de Google para continuar y dejar una reseña. Todas las personas son bienvenidas.",
-          en: "Sign in with your Google account to continue and leave a review. Everyone is welcome.",
+          es: "Inicia sesión con tu cuenta de Google para continuar y dejar una reseña. CIRIX vincula tu nombre y correo con tu visita y tu clic a Google para dar seguimiento.",
+          en: "Sign in with your Google account to continue and leave a review. CIRIX links your name and email to your visit and Google click for follow-up.",
         }) : pick(locale, {
           es: "Los módulos y demos de CIRIX están disponibles únicamente para cuentas creadas y habilitadas previamente por un administrador. Usa la cuenta de Google autorizada; no hay registro público.",
           en: "CIRIX modules and demos are available only to accounts previously created and enabled by an administrator. Use your authorized Google account; public registration is not available.",

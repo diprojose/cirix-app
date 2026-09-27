@@ -36,7 +36,7 @@ describe("private platform review access", () => {
     for (const operation of [listReviewData, createCampaign, createInvitation, markInvitationSent, fetchGoogleReviews]) expect(operation).not.toHaveBeenCalled();
   });
   it("allows all Reviews operations for admitted platform users without store permissions", async () => {
-    vi.mocked(listReviewData).mockResolvedValue({ campaigns: [], invitations: [], visits: [], windowStart: "2026-09-01T00:00:00.000Z" });
+    vi.mocked(listReviewData).mockResolvedValue({ campaigns: [], invitations: [], visits: [], participants: [], windowStart: "2026-09-01T00:00:00.000Z" });
     vi.mocked(createCampaign).mockResolvedValue({ id, name: "Campaign", token: "a".repeat(48), createdAt: "2026-09-16T00:00:00.000Z" });
     vi.mocked(markInvitationSent).mockResolvedValue(true);
     vi.mocked(googleReviewsConfigured).mockReturnValue(true);
@@ -61,7 +61,7 @@ describe("private platform review access", () => {
   it("returns public sessions even without invitations, with a server report time", async () => {
     const openedAt = "2026-09-26T13:16:45.649Z";
     const visit = { id, campaignId: id, source: "qr" as const, openedAt, clickedAt: null };
-    vi.mocked(listReviewData).mockResolvedValue({ campaigns: [], invitations: [], visits: [visit], windowStart: "2026-09-01T00:00:00.000Z" });
+    vi.mocked(listReviewData).mockResolvedValue({ campaigns: [], invitations: [], visits: [visit], participants: [], windowStart: "2026-09-01T00:00:00.000Z" });
     const before = Date.now();
     const response = await GET();
     const data = await response.json();

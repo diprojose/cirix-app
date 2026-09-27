@@ -1,4 +1,13 @@
-import type { GoogleReview, Invitation, ReviewVisit } from "./reviews";
+import type { GoogleReview, Invitation, ReviewVisit, ReviewParticipant } from "./reviews";
+
+export function filterParticipants(participants: ReviewParticipant[], start: string, end: string, campaignId = "", source = "", search = "", status = "") {
+  const query = search.trim().toLowerCase();
+  return participants.filter((item) => item.lastSeenAt >= start && item.lastSeenAt < end &&
+    (!campaignId || item.campaignId === campaignId) && (!source || item.source === source) &&
+    `${item.name ?? ""} ${item.email}`.toLowerCase().includes(query) &&
+    (!status || (item.clickedAt ? "clicked" : "opened") === status))
+    .sort((a, b) => b.lastSeenAt.localeCompare(a.lastSeenAt));
+}
 
 export const percentage = (numerator: number, denominator: number) => denominator ? Math.round(numerator / denominator * 1000) / 10 : null;
 

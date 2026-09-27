@@ -20,6 +20,11 @@ export type Invitation = z.infer<typeof invitationInput> & {
   id: string; token: string; createdAt: string; sentAt: string | null; openedAt: string | null; clickedAt: string | null;
 };
 export type ReviewVisit = { id: string; campaignId: string | null; source: ReviewSource; openedAt: string; clickedAt: string | null };
+export type ReviewIdentity = { uid: string; email: string; name: string | null };
+export type ReviewParticipant = ReviewIdentity & {
+  id: string; campaignId: string | null; source: ReviewSource;
+  openedAt: string; clickedAt: string | null; lastSeenAt: string;
+};
 export type GoogleReview = { id: string; author: string; rating: number; comment: string; createdAt: string; updatedAt: string; reply: string | null };
 export type GoogleSnapshot = { reviews: GoogleReview[]; averageRating: number | null; totalReviewCount: number; fetchedAt: string };
-export type DashboardData = { campaigns: Campaign[]; invitations: Invitation[]; visits: ReviewVisit[]; googleConfigured: boolean; windowStart: string; fetchedAt: string };
+export type DashboardData = { campaigns: Campaign[]; invitations: Invitation[]; visits: ReviewVisit[]; participants: ReviewParticipant[]; googleConfigured: boolean; windowStart: string; fetchedAt: string };
