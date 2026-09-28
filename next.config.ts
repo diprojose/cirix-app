@@ -18,6 +18,23 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Firebase's auth iframe must be embeddable by this same origin.
+        source: "/__/auth/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
+      ...["/login", "/:locale(es|en)/login"].map((source) => ({
+        source,
+        // Email callback URLs contain a one-time credential. Do not send it
+        // as a Referer, including to same-origin images or outbound links.
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      })),
+      {
         // The service worker must always be revalidated so users get updates.
         source: "/sw.js",
         headers: [

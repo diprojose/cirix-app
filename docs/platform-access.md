@@ -1,12 +1,12 @@
 # Acceso controlado a CIRIX
 
-La landing (`/`, `/es`, `/en`) y `/login` son públicas. `/make-a-review` y su alias `/review`, con sus variantes de idioma, requieren iniciar sesión con Google mediante Firebase y aceptan cualquier cuenta verificada y activa. No requieren habilitación administrativa. Las demás demos, módulos, páginas operativas y APIs internas requieren una sesión de una cuenta habilitada previamente.
+La landing (`/`, `/es`, `/en`) y `/login` son públicas. `/make-a-review` y su alias `/review`, con sus variantes de idioma, requieren iniciar sesión con Google o un enlace de acceso al correo mediante Firebase y aceptan cualquier cuenta verificada y activa. No requieren habilitación administrativa. Las demás demos, módulos, páginas operativas y APIs internas requieren una sesión de una cuenta habilitada previamente.
 
 `/api/reviews/events` acepta actividad de cualquier cuenta verificada y activa con sesión de reseñas. El handler verifica la sesión, mismo origen, tamaño y un esquema cerrado; vincula la identidad en el servidor, no recibe comentarios ni expone lectura de datos. Las acciones de servidor sobre `/review` y las rutas anidadas siguen protegidas.
 
 ## Crear o habilitar una cuenta
 
-Usamos Google para verificar la identidad y Firebase Admin para autorizarla. Un inicio de sesión con Google puede generar un registro de identidad en Firebase, pero **solo permite continuar a las reseñas; no concede acceso a los módulos privados**. No basta con que el correo exista ni con agregarlo a `OPERATOR_EMAILS`.
+Usamos Google o un enlace enviado al correo para verificar la identidad y Firebase Admin para autorizarla. Un inicio de sesión puede generar un registro de identidad en Firebase, pero **solo permite continuar a las reseñas; no concede acceso a los módulos privados**. No basta con que el correo exista ni con agregarlo a `OPERATOR_EMAILS`.
 
 Configura las credenciales Firebase Admin de `.env.example` en `.env.local` y ejecuta desde un entorno administrativo de confianza:
 
@@ -21,7 +21,7 @@ node scripts/manage-platform-user.mjs --email operador@empresa.com --grant --ope
 node scripts/manage-platform-user.mjs --email persona@empresa.com --revoke --confirm
 ```
 
-Estos comandos escriben en el proyecto Firebase configurado. No envían invitaciones, contraseñas ni correos. La persona debe iniciar sesión usando exactamente la cuenta de Google autorizada. No se marca su correo como verificado manualmente: Google debe verificarlo.
+Estos comandos escriben en el proyecto Firebase configurado. No envían invitaciones, contraseñas ni correos. La persona debe verificar exactamente el correo autorizado, mediante Google o un enlace de acceso. No se marca su correo como verificado manualmente. Configuración y recuperación del método por correo: [email-sign-in.md](email-sign-in.md).
 
 El permiso administrativo es el custom claim `platformAccess: true`. Los operadores existentes con `operator: true` conservan el acceso; `platformAccess: false` lo revoca incluso si tienen ese rol. `OPERATOR_EMAILS` solo determina el rol de una cuenta que ya pasó la verificación de acceso. Una cuenta eliminada, deshabilitada o sin email verificado no puede entrar.
 

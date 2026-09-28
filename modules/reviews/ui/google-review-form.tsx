@@ -39,7 +39,7 @@ export function GoogleReviewForm({ source, token }: { source: ReviewSource; toke
         {t("Escribir mi reseña en Google", "Write my review on Google")} <span aria-hidden="true">↗</span>
       </a>
       <p className={s.hint}>{t("Escribes y publicas directamente en Google, con tu cuenta.", "Write and publish directly on Google, using your account.")}</p>
-      <p className={s.publication}>{t("Vinculamos tu nombre y correo con tu visita y tu clic a Google para que el equipo de CIRIX conozca el estado de tu solicitud. La reseña se publica directamente en Google.", "We link your name and email to your visit and Google click so the CIRIX team can follow the status of your request. Your review is published directly on Google.")}</p>
+      <p className={s.publication}>{t("Vinculamos tu correo verificado y, cuando esté disponible, tu nombre con tu visita y tu clic a Google para que el equipo de CIRIX conozca el estado de tu solicitud. La reseña se publica directamente en Google.", "We link your verified email and, when available, your name to your visit and Google click so the CIRIX team can follow the status of your request. Your review is published directly on Google.")}</p>
     </div>
   </section>;
 }

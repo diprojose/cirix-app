@@ -11,6 +11,17 @@ beforeEach(() => { execute.mockReset(); execute.mockResolvedValue(ok(guestViewer
 const request = (path: string, init?: ConstructorParameters<typeof NextRequest>[1]) => new NextRequest(`https://cirix.example${path}`, init);
 
 describe("private platform routes", () => {
+  it.each(["GET", "POST"])("passes Firebase OAuth helpers through without locale/login redirects: %s", async (method) => {
+    const response = await proxy(request("/__/auth/handler?state=oauth-state", { method }));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(execute).not.toHaveBeenCalled();
+    expect(reviewExecute).not.toHaveBeenCalled();
+  });
+  it("does not exempt similarly named paths or server actions", async () => {
+    expect((await proxy(request("/__/auth-other/handler"))).status).toBe(307);
+    expect((await proxy(request("/__/auth/handler", { method: "POST", headers: { "next-action": "action" } }))).status).toBe(401);
+  });
   it("allows authenticated reviewers while keeping the dashboard private", async () => {
     reviewExecute.mockResolvedValue(ok({ ...guestViewer, authenticated: true, uid: "reviewer" }));
     expect((await proxy(request("/es/make-a-review?source=qr&ref=token"))).status).toBe(200);

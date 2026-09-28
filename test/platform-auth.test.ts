@@ -22,6 +22,16 @@ beforeEach(() => {
 });
 
 describe("administrative admission", () => {
+  it.each(["google.com", "password"])("requires a verified token for both login providers: %s", async (signInProvider) => {
+    const reviews = new FirebaseIdentityProvider("reviews");
+    auth.getUser.mockResolvedValue({ ...user, customClaims: {} });
+    auth.verifyIdToken.mockResolvedValue({ ...token(), firebase: { sign_in_provider: signInProvider }, email_verified: false });
+    expect((await new CreateSession(reviews).execute({ idToken: "unverified" })).ok).toBe(false);
+    expect(auth.createSessionCookie).not.toHaveBeenCalled();
+    auth.verifyIdToken.mockResolvedValue({ ...token(), firebase: { sign_in_provider: signInProvider } });
+    expect((await new CreateSession(reviews).execute({ idToken: "verified" })).ok).toBe(true);
+    expect(await provider.verifySession("review-cookie")).toBeNull();
+  });
   it("accepts a review identity without granting access to any platform module", async () => {
     const reviews = new FirebaseIdentityProvider("reviews");
     auth.getUser.mockResolvedValue({ ...user, customClaims: {} });

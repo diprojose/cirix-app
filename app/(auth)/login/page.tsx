@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { EmailSignInForm } from "@/components/auth/email-sign-in-form";
 import { LoginBrandHeader } from "@/components/auth/login-brand-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
@@ -7,6 +8,7 @@ import { COLUMN } from "@/components/store/layout";
 import { getViewer, getReviewViewer } from "@/lib/auth/dal";
 import { isReviewPage } from "@/lib/auth/route-access";
 import { stripLocaleFromPathname } from "@/lib/locale";
+import { safeInternalPath } from "@/lib/auth/return-path";
 import {
   getCurrentLocale,
   localizeForCurrentRequest,
@@ -16,25 +18,12 @@ import {
 
 const INTERNAL_ORIGIN = "https://internal.invalid";
 
-/** Rejects protocol-relative, backslash and otherwise external return targets. */
-function safeInternalPath(value: string | undefined): string | null {
-  if (!value?.startsWith("/") || value.startsWith("//")) return null;
-
-  try {
-    const parsed = new URL(value, INTERNAL_ORIGIN);
-    if (parsed.origin !== INTERNAL_ORIGIN || /^\/(?:es\/|en\/)?login\/?$/.test(parsed.pathname)) return null;
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-  } catch {
-    return null;
-  }
-}
-
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string | string[]; emailSignIn?: string | string[] }>;
 }) {
-  const [{ from }, locale] = await Promise.all([
+  const [{ from, emailSignIn }, locale] = await Promise.all([
     searchParams,
     getCurrentLocale(),
   ]);
@@ -45,7 +34,10 @@ export default async function LoginPage({
   );
   const viewer = await (reviewLogin ? getReviewViewer() : getViewer());
 
-  if (viewer.authenticated) {
+  // An email link may belong to another account; only Firebase can validate it.
+  // Do not skip its confirmation just because this browser has an older cookie.
+  const completeEmailLink = emailSignIn === "1";
+  if (viewer.authenticated && !completeEmailLink) {
     redirect(
       redirectTo ??
         (await localizeForCurrentRequest(
@@ -64,7 +56,11 @@ export default async function LoginPage({
 
       <LoginBrandHeader reviewLogin={reviewLogin} />
 
-      <GoogleSignInButton redirectTo={redirectTo} reviewLogin={reviewLogin} />
+      {!completeEmailLink && <GoogleSignInButton redirectTo={redirectTo} reviewLogin={reviewLogin} />}
+      {!completeEmailLink && <div className="flex items-center gap-3 text-caption text-text-muted" aria-hidden="true">
+        <span className="h-px flex-1 bg-border" />{pick(locale, { es: "o", en: "or" })}<span className="h-px flex-1 bg-border" />
+      </div>}
+      <EmailSignInForm redirectTo={redirectTo} reviewLogin={reviewLogin} completeLink={completeEmailLink} />
 
       <p className="text-center text-caption text-text-muted">
         <LocalizedLink

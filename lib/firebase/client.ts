@@ -1,6 +1,8 @@
 import { getApp, getApps, initializeApp, type FirebaseOptions } from "firebase/app";
 import {
-  getAuth,
+  initializeAuth,
+  inMemoryPersistence,
+  browserPopupRedirectResolver,
   GoogleAuthProvider,
   type Auth,
 } from "firebase/auth";
@@ -43,7 +45,12 @@ export function getFirebaseAuth() {
 
   if (!cachedAuth || !cachedGoogleProvider) {
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    cachedAuth = getAuth(app);
+    // Set persistence before the click: awaiting setPersistence inside the
+    // handler can lose Safari's user activation and block the popup.
+    cachedAuth = initializeAuth(app, {
+      persistence: inMemoryPersistence,
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
     cachedGoogleProvider = new GoogleAuthProvider();
   }
 

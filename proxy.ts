@@ -10,6 +10,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   const readOnly = request.method === "GET" || request.method === "HEAD";
   const isAction = request.headers.has("next-action");
+  // Forward Firebase's OAuth helper unchanged, including POST callbacks.
+  // Locale or login redirects here would interrupt the mobile sign-in flow.
+  if (pathname.startsWith("/__/auth/") && !isAction &&
+      (readOnly || request.method === "POST")) {
+    return NextResponse.next();
+  }
   if ((readOnly && !isAction && isPublicAsset(pathname)) || isServiceEndpoint(pathname)) {
     return NextResponse.next();
   }
