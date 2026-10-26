@@ -19,6 +19,11 @@ const reviewIdentityProvider: IdentityProvider = new FirebaseIdentityProvider("r
 export const makeGetReviewViewer = (): GetViewer => new GetViewer(reviewIdentityProvider);
 export const makeCreateReviewSession = (): CreateSession => new CreateSession(reviewIdentityProvider);
 
+// Customers and business staff: any verified account, authorized per business.
+const memberIdentityProvider: IdentityProvider = new FirebaseIdentityProvider("member");
+export const makeGetMemberViewer = (): GetViewer => new GetViewer(memberIdentityProvider);
+export const makeCreateMemberSession = (): CreateSession => new CreateSession(memberIdentityProvider);
+
 /** Builds the "resolve current viewer" use case with its dependencies wired. */
 export const makeGetViewer = (): GetViewer => new GetViewer(identityProvider);
 

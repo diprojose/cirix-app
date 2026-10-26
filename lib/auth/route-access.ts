@@ -15,6 +15,33 @@ export function isReviewPage(pathname: string): boolean {
   return pathname === "/review" || pathname === "/make-a-review";
 }
 
+/**
+ * Customer and business areas. Any verified account may open them, so every page
+ * and API behind them must also authorize the person for the specific business:
+ * - /me: the person's own cards.
+ * - /b/<slug>: the join page a business QR code opens.
+ * - /biz/<slug>[/...]: the business dashboard; its layout enforces membership.
+ */
+export function isMemberPage(pathname: string): boolean {
+  return pathname === "/me" ||
+    /^\/b\/[a-z0-9-]+\/?$/i.test(pathname) ||
+    /^\/biz\/[a-z0-9-]+(?:\/.*)?$/i.test(pathname);
+}
+
+/**
+ * True for pages that need an administrator-admitted (platform) account. The
+ * root layout enforces this as a second barrier behind the proxy, so both must
+ * agree on which pages are open to other kinds of verified accounts.
+ */
+export function requiresPlatformAccess(pathname: string): boolean {
+  return !isPublicPage(pathname) && !isReviewPage(pathname) && !isMemberPage(pathname);
+}
+
+/** Member-area APIs; each handler authorizes against one specific business. */
+export function isMemberApi(pathname: string): boolean {
+  return pathname.startsWith("/api/member/");
+}
+
 /** Public build/brand assets are explicit; module URLs with extensions stay private. */
 export function isPublicAsset(pathname: string): boolean {
   return PUBLIC_ASSETS.has(pathname) || pathname.startsWith("/brand/") || pathname.startsWith("/products/");

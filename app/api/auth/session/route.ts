@@ -6,11 +6,28 @@ import {
   makeRevokeSession,
   makeCreateReviewSession,
   makeGetReviewViewer,
+  makeCreateMemberSession,
+  makeGetMemberViewer,
 } from "@/core/iam/infrastructure/di/iam-container";
+import { parseAudience, type SessionAudience } from "@/lib/auth/audience";
 import { makeRegisterReferral } from "@/modules/loyalty/referrals/infrastructure/di/referrals-container";
 import { adminAuth } from "@/shared/infrastructure/firebase-admin";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie";
 import { REFERRAL_COOKIE_NAME } from "@/lib/referrals/referral-cookie";
+
+/** The session use case matching the kind of sign-in being exchanged. */
+function createSessionFor(audience: SessionAudience) {
+  if (audience === "reviews") return makeCreateReviewSession();
+  if (audience === "member") return makeCreateMemberSession();
+  return makeCreateSession();
+}
+
+/** The viewer use case that must agree with {@link createSessionFor}. */
+function viewerFor(audience: SessionAudience) {
+  if (audience === "reviews") return makeGetReviewViewer();
+  if (audience === "member") return makeGetMemberViewer();
+  return makeGetViewer();
+}
 
 /** A referral only binds if the account was created this recently (a fresh signup). */
 const NEW_ACCOUNT_WINDOW_MS = 10 * 60 * 1000;
@@ -22,8 +39,9 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/session — exchanges a client Firebase id token for an httpOnly
- * session cookie. The body is `{ idToken: string, audience?: "reviews" | "platform" }`.
- * Review sessions authenticate identity only; private modules still check admission.
+ * session cookie. The body is `{ idToken: string, audience?: "platform" | "reviews" | "member" }`.
+ * Review and member sessions authenticate identity only: private modules still
+ * check admission, and business data still checks membership in that business.
  * Domain errors are mapped
  * to a plain `{ code, message }` shape before crossing to the client.
  *
@@ -41,8 +59,8 @@ export async function POST(request: Request) {
   } | null;
   const idToken = typeof body?.idToken === "string" ? body.idToken : "";
 
-  const reviewLogin = body?.audience === "reviews";
-  const result = await (reviewLogin ? makeCreateReviewSession() : makeCreateSession()).execute({ idToken });
+  const audience = parseAudience(body?.audience);
+  const result = await createSessionFor(audience).execute({ idToken });
   if (!result.ok) {
     (await cookies()).delete(SESSION_COOKIE_NAME);
     return NextResponse.json(
@@ -51,7 +69,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const viewer = await (reviewLogin ? makeGetReviewViewer() : makeGetViewer()).execute({ sessionCookie: result.value.cookie });
+  const viewer = await viewerFor(audience).execute({ sessionCookie: result.value.cookie });
   if (!viewer.ok || !viewer.value.authenticated) {
     (await cookies()).delete(SESSION_COOKIE_NAME);
     return NextResponse.json({ error: { code: "iam/access-denied" } }, { status: 403 });
@@ -66,13 +84,17 @@ export async function POST(request: Request) {
     expires: new Date(result.value.expiresAt),
   });
 
-  if (!reviewLogin) await bindPendingReferral(idToken, cookieStore);
+  if (audience === "platform") await bindPendingReferral(idToken, cookieStore);
 
   // Resolve the viewer from the freshly minted cookie rather than from the
   // request's cookie jar: the DAL's `getViewer` is memoised per render pass and
   // would not see a cookie set in this very handler.
   const landing =
-    reviewLogin ? "/make-a-review" : viewer.value.permissions.canOperateStore ? "/admin" : "/";
+    audience === "reviews"
+      ? "/make-a-review"
+      : audience === "member"
+        ? "/me"
+        : viewer.value.permissions.canOperateStore ? "/admin" : "/";
 
   return NextResponse.json({ ok: true, landing });
 }

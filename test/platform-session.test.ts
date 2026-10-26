@@ -5,7 +5,7 @@ import { PlatformAccessDeniedError, SessionCreationError } from "@/core/iam/doma
 
 const mocks = vi.hoisted(() => ({
   create: vi.fn(), viewer: vi.fn(), revoke: vi.fn(), cookieSet: vi.fn(), cookieDelete: vi.fn(), cookieGet: vi.fn(),
-  reviewCreate: vi.fn(), reviewViewer: vi.fn(),
+  reviewCreate: vi.fn(), reviewViewer: vi.fn(), memberCreate: vi.fn(), memberViewer: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ cookies: async () => ({ set: mocks.cookieSet, delete: mocks.cookieDelete, get: mocks.cookieGet }) }));
@@ -15,6 +15,8 @@ vi.mock("@/core/iam/infrastructure/di/iam-container", () => ({
   makeRevokeSession: () => ({ execute: mocks.revoke }),
   makeCreateReviewSession: () => ({ execute: mocks.reviewCreate }),
   makeGetReviewViewer: () => ({ execute: mocks.reviewViewer }),
+  makeCreateMemberSession: () => ({ execute: mocks.memberCreate }),
+  makeGetMemberViewer: () => ({ execute: mocks.memberViewer }),
 }));
 vi.mock("@/shared/infrastructure/firebase-admin", () => ({ adminAuth: vi.fn() }));
 vi.mock("@/modules/loyalty/referrals/infrastructure/di/referrals-container", () => ({ makeRegisterReferral: vi.fn() }));
@@ -42,6 +44,29 @@ describe("session exchange boundary", () => {
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.viewer).not.toHaveBeenCalled();
     expect(mocks.cookieSet).toHaveBeenCalledWith("session", "review-cookie", expect.objectContaining({ httpOnly: true }));
+  });
+  it("creates a member session for customers without platform admission", async () => {
+    mocks.memberCreate.mockResolvedValue(ok({ cookie: "member-cookie", expiresAt: Date.now() + 60000 }));
+    mocks.memberViewer.mockResolvedValue(ok({ ...guestViewer, authenticated: true, uid: "customer" }));
+    const response = await POST(new Request("https://cirix.example/api/auth/session", {
+      method: "POST", headers: { origin: "https://cirix.example", "content-type": "application/json" },
+      body: JSON.stringify({ idToken: "token", audience: "member" }),
+    }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, landing: "/me" });
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.reviewCreate).not.toHaveBeenCalled();
+    expect(mocks.cookieSet).toHaveBeenCalledWith("session", "member-cookie", expect.objectContaining({ httpOnly: true }));
+  });
+  it("falls back to the strictest session for an unknown audience", async () => {
+    const response = await POST(new Request("https://cirix.example/api/auth/session", {
+      method: "POST", headers: { origin: "https://cirix.example", "content-type": "application/json" },
+      body: JSON.stringify({ idToken: "token", audience: "superuser" }),
+    }));
+    expect(response.status).toBe(200);
+    expect(mocks.create).toHaveBeenCalledOnce();
+    expect(mocks.memberCreate).not.toHaveBeenCalled();
+    expect(mocks.reviewCreate).not.toHaveBeenCalled();
   });
   it("rejects login CSRF before token exchange", async () => {
     expect((await POST(request("https://attacker.example"))).status).toBe(403);

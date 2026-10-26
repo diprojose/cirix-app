@@ -17,7 +17,11 @@ import { PlatformAccessDeniedError } from "../../domain/errors/iam-errors";
  * adapter alone — domain and application stay untouched.
  */
 export class FirebaseIdentityProvider implements IdentityProvider {
-  constructor(private readonly audience: "platform" | "reviews" = "platform") {}
+  /**
+   * `platform` requires administrator admission; `reviews` and `member` accept
+   * any verified, enabled account and leave authorization to the caller.
+   */
+  constructor(private readonly audience: "platform" | "reviews" | "member" = "platform") {}
 
   async verifySession(sessionCookie: string): Promise<UserAccount | null> {
     try {

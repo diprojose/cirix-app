@@ -6,6 +6,7 @@ import {
 } from "firebase/auth";
 import { z } from "zod";
 import { safeInternalPath } from "@/lib/auth/return-path";
+import type { SessionAudience } from "@/lib/auth/audience";
 import { localizeHref, type Locale } from "@/lib/locale";
 import { exchangeFirebaseSession } from "./session";
 
@@ -69,7 +70,7 @@ export async function completeEmailSignIn(
   auth: Auth,
   value: string,
   link: string,
-  audience: "reviews" | "platform",
+  audience: SessionAudience,
 ): Promise<string> {
   const email = parseSignInEmail(value);
   if (!isSignInWithEmailLink(auth, link)) {

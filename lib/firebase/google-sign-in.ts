@@ -7,6 +7,7 @@ import {
   type UserCredential,
 } from "firebase/auth";
 import { exchangeFirebaseSession } from "./session";
+import type { SessionAudience } from "@/lib/auth/audience";
 export { SessionExchangeError } from "./session";
 
 export function prefersGoogleRedirect(browser: {
@@ -61,7 +62,7 @@ export function resumeGoogleSignIn(auth: Auth): Promise<UserCredential | null> {
 export async function exchangeGoogleSession(
   auth: Auth,
   credential: UserCredential,
-  audience: "reviews" | "platform",
+  audience: SessionAudience,
 ): Promise<string> {
   try {
     return await exchangeFirebaseSession(auth, credential, audience);

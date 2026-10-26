@@ -11,15 +11,18 @@ import {
   hasFirebaseClientConfig,
 } from "@/lib/firebase/client";
 import { localizeHref, pick } from "@/lib/locale";
+import type { SessionAudience } from "@/lib/auth/audience";
 
 export function GoogleSignInButton({
   redirectTo = null,
-  reviewLogin = false,
+  audience = "platform",
 }: {
   redirectTo?: string | null;
-  reviewLogin?: boolean;
+  audience?: SessionAudience;
 }) {
   const locale = useLocale();
+  // Review and member sign-ins need no administrator admission.
+  const openAccess = audience !== "platform";
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const busy = useRef(false);
@@ -28,7 +31,7 @@ export function GoogleSignInButton({
   const reportError = useCallback((caught: unknown) => {
     const code = firebaseErrorCode(caught);
     if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
-    showError(caught instanceof SessionExchangeError && caught.accessDenied && !reviewLogin
+    showError(caught instanceof SessionExchangeError && caught.accessDenied && !openAccess
       ? pick(locale, {
           es: "Esta cuenta no tiene acceso autorizado. Solicita al administrador que la habilite previamente.",
           en: "This account is not authorized. Ask your administrator to enable access first.",
@@ -47,14 +50,14 @@ export function GoogleSignInButton({
             es: "No se pudo iniciar la sesión. Intenta de nuevo. Si abriste el enlace dentro de otra app, ábrelo en Safari o Chrome.",
             en: "We couldn't sign you in. Try again. If you opened this link inside another app, open it in Safari or Chrome.",
           }));
-  }, [locale, reviewLogin, showError]);
+  }, [locale, openAccess, showError]);
 
   const completeSignIn = useCallback(async (auth: Auth, credential: UserCredential) => {
-    const landing = await exchangeGoogleSession(auth, credential, reviewLogin ? "reviews" : "platform");
+    const landing = await exchangeGoogleSession(auth, credential, audience);
     // Load the destination with the new httpOnly cookie, without racing a
     // refresh of /login or reusing a route prefetched as an anonymous visitor.
     window.location.replace(redirectTo ?? localizeHref(locale, landing));
-  }, [locale, redirectTo, reviewLogin]);
+  }, [locale, redirectTo, audience]);
 
   useEffect(() => {
     if (!hasFirebaseClientConfig) return;
@@ -114,7 +117,7 @@ export function GoogleSignInButton({
         <GoogleGlyph />
         {loading || (hasFirebaseClientConfig && !ready)
           ? pick(locale, { es: "Conectando...", en: "Connecting..." })
-          : reviewLogin ? pick(locale, { es: "Continuar con Google", en: "Continue with Google" }) : pick(locale, {
+          : openAccess ? pick(locale, { es: "Continuar con Google", en: "Continue with Google" }) : pick(locale, {
               es: "Ingresar con cuenta autorizada",
               en: "Sign in with an authorized account",
             })}

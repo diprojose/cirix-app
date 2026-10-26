@@ -5,8 +5,9 @@ import { LoginBrandHeader } from "@/components/auth/login-brand-header";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
 import { COLUMN } from "@/components/store/layout";
-import { getViewer, getReviewViewer } from "@/lib/auth/dal";
-import { isReviewPage } from "@/lib/auth/route-access";
+import { getViewer, getReviewViewer, getMemberViewer } from "@/lib/auth/dal";
+import { isMemberPage, isReviewPage } from "@/lib/auth/route-access";
+import type { SessionAudience } from "@/lib/auth/audience";
 import { stripLocaleFromPathname } from "@/lib/locale";
 import { safeInternalPath } from "@/lib/auth/return-path";
 import {
@@ -29,10 +30,15 @@ export default async function LoginPage({
   ]);
   const internalFrom = safeInternalPath(from);
   const redirectTo = internalFrom ? localizeHref(locale, internalFrom) : null;
-  const reviewLogin = internalFrom !== null && isReviewPage(
-    stripLocaleFromPathname(new URL(internalFrom, INTERNAL_ORIGIN).pathname).pathname
-  );
-  const viewer = await (reviewLogin ? getReviewViewer() : getViewer());
+  const fromPath = internalFrom === null
+    ? null
+    : stripLocaleFromPathname(new URL(internalFrom, INTERNAL_ORIGIN).pathname).pathname;
+  // Where the person wants to go decides which kind of session they need.
+  const audience: SessionAudience =
+    fromPath !== null && isReviewPage(fromPath) ? "reviews"
+    : fromPath !== null && isMemberPage(fromPath) ? "member"
+    : "platform";
+  const viewer = await (audience === "reviews" ? getReviewViewer() : audience === "member" ? getMemberViewer() : getViewer());
 
   // An email link may belong to another account; only Firebase can validate it.
   // Do not skip its confirmation just because this browser has an older cookie.
@@ -41,7 +47,7 @@ export default async function LoginPage({
     redirect(
       redirectTo ??
         (await localizeForCurrentRequest(
-          viewer.permissions.canOperateStore ? "/admin" : "/loyalty"
+          audience === "member" ? "/me" : viewer.permissions.canOperateStore ? "/admin" : "/loyalty"
         ))
     );
   }
@@ -54,13 +60,13 @@ export default async function LoginPage({
         <LanguageSwitcher />
       </div>
 
-      <LoginBrandHeader reviewLogin={reviewLogin} />
+      <LoginBrandHeader audience={audience} />
 
-      {!completeEmailLink && <GoogleSignInButton redirectTo={redirectTo} reviewLogin={reviewLogin} />}
+      {!completeEmailLink && <GoogleSignInButton redirectTo={redirectTo} audience={audience} />}
       {!completeEmailLink && <div className="flex items-center gap-3 text-caption text-text-muted" aria-hidden="true">
         <span className="h-px flex-1 bg-border" />{pick(locale, { es: "o", en: "or" })}<span className="h-px flex-1 bg-border" />
       </div>}
-      <EmailSignInForm redirectTo={redirectTo} reviewLogin={reviewLogin} completeLink={completeEmailLink} />
+      <EmailSignInForm redirectTo={redirectTo} audience={audience} completeLink={completeEmailLink} />
 
       <p className="text-center text-caption text-text-muted">
         <LocalizedLink

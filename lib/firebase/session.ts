@@ -1,5 +1,6 @@
 import { signOut, type Auth, type UserCredential } from "firebase/auth";
 import { safeInternalPath } from "@/lib/auth/return-path";
+import type { SessionAudience } from "@/lib/auth/audience";
 
 export class SessionExchangeError extends Error {
   constructor(readonly accessDenied: boolean) {
@@ -11,7 +12,7 @@ export class SessionExchangeError extends Error {
 export async function exchangeFirebaseSession(
   auth: Auth,
   credential: UserCredential,
-  audience: "reviews" | "platform",
+  audience: SessionAudience,
 ): Promise<string> {
   try {
     const idToken = await credential.user.getIdToken();

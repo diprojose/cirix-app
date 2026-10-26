@@ -3,7 +3,7 @@ import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { localizeForCurrentRequest } from "@/lib/i18n";
-import { makeGetViewer, makeGetReviewViewer } from "@/core/iam/infrastructure/di/iam-container";
+import { makeGetViewer, makeGetReviewViewer, makeGetMemberViewer } from "@/core/iam/infrastructure/di/iam-container";
 import {
   guestViewer,
   type ViewerDto,
@@ -30,6 +30,17 @@ export const getViewer = cache(async (): Promise<ViewerDto> => {
 export const getReviewViewer = cache(async (): Promise<ViewerDto> => {
   const sessionCookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value ?? null;
   const result = await makeGetReviewViewer().execute({ sessionCookie });
+  return result.ok ? result.value : guestViewer;
+});
+
+/**
+ * Any verified account, with no administrative admission. It proves who the
+ * person is, never what they may see: business data must also go through
+ * `requireBusinessAccess` / `checkBusinessApiAccess`.
+ */
+export const getMemberViewer = cache(async (): Promise<ViewerDto> => {
+  const sessionCookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value ?? null;
+  const result = await makeGetMemberViewer().execute({ sessionCookie });
   return result.ok ? result.value : guestViewer;
 });
 

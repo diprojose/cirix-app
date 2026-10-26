@@ -9,6 +9,7 @@ import { completeEmailSignIn, rememberedSignInEmail, requestEmailSignIn } from "
 import { firebaseErrorCode } from "@/lib/firebase/google-sign-in";
 import { SessionExchangeError } from "@/lib/firebase/session";
 import { localizeHref, pick, type Locale } from "@/lib/locale";
+import type { SessionAudience } from "@/lib/auth/audience";
 
 function errorMessage(error: unknown, locale: Locale): string {
   if (error instanceof SessionExchangeError) {
@@ -52,11 +53,11 @@ function errorMessage(error: unknown, locale: Locale): string {
 
 export function EmailSignInForm({
   redirectTo = null,
-  reviewLogin = false,
+  audience = "platform",
   completeLink = false,
 }: {
   redirectTo?: string | null;
-  reviewLogin?: boolean;
+  audience?: SessionAudience;
   completeLink?: boolean;
 }) {
   const locale = useLocale();
@@ -102,7 +103,7 @@ export function EmailSignInForm({
     try {
       const { auth } = getFirebaseAuth();
       if (completeLink) {
-        const landing = await completeEmailSignIn(auth, email, window.location.href, reviewLogin ? "reviews" : "platform");
+        const landing = await completeEmailSignIn(auth, email, window.location.href, audience);
         window.location.replace(redirectTo ?? localizeHref(locale, landing));
         return;
       }

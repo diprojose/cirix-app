@@ -9,7 +9,7 @@ import { ToastProvider } from "@/components/toast-provider";
 import { getCurrentLocale } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { requirePlatformUser } from "@/lib/auth/dal";
-import { isPublicPage, isReviewPage } from "@/lib/auth/route-access";
+import { requiresPlatformAccess } from "@/lib/auth/route-access";
 
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site-metadata";
 
@@ -61,8 +61,9 @@ export default async function RootLayout({
 }>) {
   const locale = await getCurrentLocale();
   const pathname = (await headers()).get("x-mixmag-pathname") ?? "/";
-  // Review pages enforce their own Firebase identity check at the page boundary.
-  if (!isPublicPage(pathname) && !isReviewPage(pathname)) await requirePlatformUser();
+  // Review and member pages enforce their own identity check at the page
+  // boundary: members are verified accounts, authorized per business.
+  if (requiresPlatformAccess(pathname)) await requirePlatformUser();
 
   return (
     <html
