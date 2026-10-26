@@ -16,12 +16,12 @@ Una persona puede ser a la vez dueña de un negocio y clienta de otro. Tener un 
 
 ## Permisos
 
-| Rol | Ver clientes | Validar visitas (Fase 1) | Gestionar equipo |
-| --- | --- | --- | --- |
-| `owner` | Sí | Sí | Sí |
-| `staff` | **No** | Sí | No |
-| Administrador de Cirix (claim `operator`) | Sí, en cualquier negocio | Sí | Sí |
-| Cliente sin rol | No | No | No |
+| Rol | Ver clientes | Validar visitas | Configurar sellos | Gestionar equipo |
+| --- | --- | --- | --- | --- |
+| `owner` | Sí | Sí | Sí | Sí |
+| `staff` | **No** | Sí | No | No |
+| Administrador de Cirix (claim `operator`) | Sí, en cualquier negocio | Sí | Sí | Sí |
+| Cliente sin rol | No | No | No | No |
 
 El personal no ve la lista de clientes a propósito: solo valida visitas, así que los datos personales quedan con el dueño.
 

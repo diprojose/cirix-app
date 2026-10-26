@@ -21,12 +21,12 @@ Decisiones ya tomadas:
 - **Sin presupuesto por ahora:** nada que exija plan de pago de Firebase, y los servicios de uso (OpenAI, Twilio, WhatsApp) se difieren. Se construyen versiones sin costo detrás de puertos (`ReceiptReader`, `ChatResponder`…) para enchufar proveedores de pago después sin reescribir.
 - **Reseñas:** el enlace de Google se envía a **todos** los clientes, nunca solo a los que califican bien (filtrar reseñas va contra la política de Google). La encuesta sirve además para abrir un ticket privado.
 
-Fases (Fase 0 completada; las demás pendientes):
+Fases (0 y 1 completadas; las demás pendientes):
 
 | Fase | Contenido | Estado |
 |---|---|---|
 | 0. Cimientos | `core/tenancy` (negocios, roles), `modules/crm` (clientes y eventos), sesión `member`, registro por QR, `/me`, panel `/biz/[slug]`, script de negocios | **Hecha** |
-| 1. Restaurantes | QR personal rotativo, pantalla de escaneo para personal, tarjeta de sellos, límites antifraude y auditoría | Pendiente |
+| 1. Restaurantes | QR personal rotativo y firmado, pantalla de escaneo con confirmación, tarjeta de sellos animada, programa configurable, espera antifraude y registro por empleado (`docs/stamp-card.md`) | **Hecha** |
 | 2. Supermercado A | Puntos, bono de bienvenida, catálogo de premios, canje con código, captura manual de recibos | Pendiente |
 | 3. Supermercado B | Lectura gratuita de recibos con cola de revisión, campañas dinámicas | Pendiente |
 | 4. CRM y reputación | Seguimiento automático post-compra, encuesta, enlace de Google para todos, tickets | Pendiente |
@@ -58,7 +58,7 @@ Instalación: `npm ci` falla si `package-lock.json` queda desincronizado con `pa
 Prueba de integración contra el Firestore real (omitida por defecto; escribe datos temporales con prefijo `itest-` y los borra):
 
 ```bash
-FIRESTORE_INTEGRATION=1 npx vitest run test/firestore-tenancy-crm.integration.test.ts
+FIRESTORE_INTEGRATION=1 npx vitest run test/firestore-tenancy-crm.integration.test.ts test/firestore-stamp-card.integration.test.ts
 ```
 
 Negocios y personal (escribe en el Firebase de `.env.local`):
@@ -73,7 +73,7 @@ Scripts: `manage-platform-user.mjs` (dar/quitar acceso), `seed-call-tracking.mjs
 
 ## Entorno
 
-Copiar `.env.example` a `.env.local` (ignorado por git). Obligatorias: credenciales Firebase Admin (`FIREBASE_*`) y Web (`NEXT_PUBLIC_FIREBASE_*`), `OPERATOR_EMAILS`, `CRON_SECRET`, `CONTACT_ALLOWED_ORIGINS`, `NEXT_PUBLIC_SITE_URL`. Zoho, Resend, Twilio, Google Business y OpenAI son opcionales y se activan por módulo.
+Copiar `.env.example` a `.env.local` (ignorado por git). Obligatorias: credenciales Firebase Admin (`FIREBASE_*`) y Web (`NEXT_PUBLIC_FIREBASE_*`), `OPERATOR_EMAILS`, `CRON_SECRET`, `CONTACT_ALLOWED_ORIGINS`, `NEXT_PUBLIC_SITE_URL` y `STAMP_QR_SECRET` (≥32 caracteres; firma el QR de los clientes, ver `docs/stamp-card.md`). Zoho, Resend, Twilio, Google Business y OpenAI son opcionales y se activan por módulo.
 
 - Las variables de servidor y las `NEXT_PUBLIC_*` deben apuntar al **mismo** proyecto Firebase.
 - No pegar claves en chats, issues ni commits. Las claves se escriben directamente en `.env.local` o en Vercel.
@@ -93,6 +93,7 @@ El proyecto Firebase de desarrollo (`cirixadv-cae9c`) está **sin plan Blaze**. 
 |---|---|---|---|
 | `core/tenancy` | **Multi-negocio**: negocios (tenants), roles por negocio (dueño, personal) y la puerta de autorización | `/biz/[slug]`, `/api/member/biz/*` | — |
 | `crm` | **Núcleo CRM propio**: clientes por negocio y su línea de tiempo de eventos. Es el sistema de registro; Zoho es opcional | `/b/[slug]`, `/me`, `/api/member/*` | — |
+| `stamp-card` | **Tarjeta de sellos** para restaurantes: QR personal rotativo y firmado, escaneo del personal, premio y reinicio | `/me/cards/[slug]`, `/biz/[slug]/scan`, `/biz/[slug]/program`, `/api/member/*` | — |
 | `zoho/crm` | Integración opcional con Zoho: dashboard (leads, prospects, customers, subscribers, KPIs) y captura de leads | `/zoho/*`, `/api/zoho/*`, `/api/contact` | Zoho |
 | `pixels` | Pixel Hub: registro de sitios, colector con consentimiento, SDK `public/pixel.js` | `/pixels`, `/api/pixels/*` | — |
 | `reviews` | Campañas, invitaciones con token, QR, KPIs y lectura de reseñas de Google | `/reviews`, `/make-a-review`, `/api/reviews/*` | Google Business |
@@ -149,6 +150,7 @@ El producto aprobado (ver "Alcance") es **un solo sistema para varios negocios**
 - **Páginas bajo `/biz/<slug>`** heredan la comprobación de membresía de `app/biz/[slug]/layout.tsx`; no añadir páginas que la esquiven.
 - **Sin server actions en áreas de miembro:** el proxy las mantiene privadas. Las escrituras van por `/api/member/*` (mismo origen, validación con Zod, límite de tamaño).
 - **Cualquier `*Repository` de datos de negocio recibe `businessId` explícito.** Los clientes viven en `businesses/{id}/customers/{uid}`, de modo que una consulta solo puede ver un negocio.
+- **Códigos de escaneo:** el QR del cliente lleva un código firmado (HMAC) que vence a los 90 s y nombra a su negocio; un código de otro negocio se rechaza como falso. La espera mínima entre sellos (5 min) debe seguir siendo mayor que la vida del código: es lo que impide sumar un sello con una captura o un doble escaneo.
 - Crear negocios y personal: `node scripts/manage-business.mjs` (ver "Comandos"). Aún no hay UI para eso.
 
 ## Acceso y seguridad
@@ -175,7 +177,7 @@ El producto aprobado (ver "Alcance") es **un solo sistema para varios negocios**
 
 1. `npm run lint`
 2. `npx tsc --noEmit` (después de un build o `next typegen`)
-3. `npm test`: debe pasar completo (hoy: 31 archivos, 502 pruebas, más 7 de integración opcionales). Si tocaste tenancy, CRM o repositorios de Firestore, corre también la prueba de integración: los fakes en memoria no demuestran transacciones ni idempotencia reales
+3. `npm test`: debe pasar completo (hoy: 32 archivos, 572 pruebas, más 12 de integración opcionales). Si tocaste tenancy, CRM o repositorios de Firestore, corre también la prueba de integración: los fakes en memoria no demuestran transacciones ni idempotencia reales
 4. `npm run build`
 5. Si tocaste colores o temas: `node scripts/check-contrast.mjs`
 6. Si tocaste auth, rutas públicas o el proxy: revisar `lib/auth/route-access.ts` y las pruebas `platform-*.test.ts`
