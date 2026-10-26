@@ -14,12 +14,14 @@ export type BusinessRole = MemberRole | "platform_admin";
 export type BusinessPermission =
   | "customers:read"
   | "members:manage"
-  | "visits:record";
+  | "visits:record"
+  | "program:manage";
 
 const ALL_PERMISSIONS: readonly BusinessPermission[] = [
   "customers:read",
   "members:manage",
   "visits:record",
+  "program:manage",
 ];
 
 /**
