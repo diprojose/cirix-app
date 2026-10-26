@@ -8,7 +8,13 @@ import { InvalidCustomerEventError } from "../errors/customer-errors";
  * points, receipts, surveys); the timeline is the single history a business
  * reads for a person.
  */
-export const CUSTOMER_EVENT_TYPES = ["registered", "note"] as const;
+export const CUSTOMER_EVENT_TYPES = [
+  "registered",
+  "note",
+  "stamp_added",
+  "reward_unlocked",
+  "reward_redeemed",
+] as const;
 
 export type CustomerEventType = (typeof CUSTOMER_EVENT_TYPES)[number];
 

@@ -10,6 +10,7 @@ import { ListCustomers } from "../../application/use-cases/list-customers";
 import { GetCustomerTimeline } from "../../application/use-cases/get-customer-timeline";
 import { RecordCustomerEvent } from "../../application/use-cases/record-customer-event";
 import { ListMyCustomerBusinesses } from "../../application/use-cases/list-my-customer-businesses";
+import { GetCustomer } from "../../application/use-cases/get-customer";
 
 /*
  * Composition root for the CRM core (customers and their timeline). The only
@@ -35,6 +36,9 @@ function events(): CustomerEventRepository {
 
 /** Builds the "register customer" use case (idempotent per business and person). */
 export const makeRegisterCustomer = (): RegisterCustomer => new RegisterCustomer(customers(), events());
+
+/** Builds the "get customer" use case (one person in one business). */
+export const makeGetCustomer = (): GetCustomer => new GetCustomer(customers());
 
 /** Builds the "list customers" use case (owner view of one business). */
 export const makeListCustomers = (): ListCustomers => new ListCustomers(customers());
