@@ -18,12 +18,12 @@ export function isReviewPage(pathname: string): boolean {
 /**
  * Customer and business areas. Any verified account may open them, so every page
  * and API behind them must also authorize the person for the specific business:
- * - /me: the person's own cards.
+ * - /me and /me/cards/<slug>: the person's own area and one of their cards.
  * - /b/<slug>: the join page a business QR code opens.
  * - /biz/<slug>[/...]: the business dashboard; its layout enforces membership.
  */
 export function isMemberPage(pathname: string): boolean {
-  return pathname === "/me" ||
+  return /^\/me(?:\/cards\/[a-z0-9-]+)?\/?$/i.test(pathname) ||
     /^\/b\/[a-z0-9-]+\/?$/i.test(pathname) ||
     /^\/biz\/[a-z0-9-]+(?:\/.*)?$/i.test(pathname);
 }

@@ -60,11 +60,22 @@ export default async function MePage() {
         ) : (
           <ul className="flex flex-col gap-2">
             {cardBusinesses.map((business) => (
-              <li key={business.id} className={CARD}>
-                <span className="text-body font-medium text-text">{business.name}</span>
-                <span className="text-caption text-text-muted">
-                  {pick(locale, { es: "Tu tarjeta estará disponible pronto.", en: "Your card will be available soon." })}
-                </span>
+              <li key={business.id}>
+                {business.kind === "supermarket" ? (
+                  <div className={CARD}>
+                    <span className="text-body font-medium text-text">{business.name}</span>
+                    <span className="text-caption text-text-muted">
+                      {pick(locale, { es: "Tu tarjeta estará disponible pronto.", en: "Your card will be available soon." })}
+                    </span>
+                  </div>
+                ) : (
+                  <LocalizedLink href={`/me/cards/${business.slug}`} className={LINK_CARD}>
+                    <span className="text-body font-medium text-text">{business.name}</span>
+                    <span className="text-caption text-text-muted">
+                      {pick(locale, { es: "Ver mi tarjeta de sellos", en: "View my stamp card" })}
+                    </span>
+                  </LocalizedLink>
+                )}
               </li>
             ))}
           </ul>

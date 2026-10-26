@@ -13,6 +13,9 @@ export const metadata: Metadata = {
 
 const PAGE_SIZE = 50;
 
+const ACTION =
+  "flex min-h-11 items-center justify-center rounded-pill px-5 py-2 text-label font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
+
 /** The business dashboard. For now: who joined, newest first. */
 export default async function BusinessDashboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -43,11 +46,29 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
         </p>
       </header>
 
+      {access.business.kind !== "supermarket" && (
+        <nav
+          aria-label={pick(locale, { es: "Acciones del negocio", en: "Business actions" })}
+          className="flex flex-wrap gap-2"
+        >
+          {roleCan(access.role, "visits:record") && (
+            <LocalizedLink href={`/biz/${access.business.slug}/scan`} className={`${ACTION} bg-accent-fill text-on-accent hover:bg-accent-fill-strong`}>
+              {pick(locale, { es: "Escanear cliente", en: "Scan customer" })}
+            </LocalizedLink>
+          )}
+          {roleCan(access.role, "program:manage") && (
+            <LocalizedLink href={`/biz/${access.business.slug}/program`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
+              {pick(locale, { es: "Programa de sellos", en: "Stamp program" })}
+            </LocalizedLink>
+          )}
+        </nav>
+      )}
+
       {!canReadCustomers ? (
         <p className="text-body text-text-muted">
           {pick(locale, {
-            es: "Tu rol valida visitas de clientes. Esa función estará disponible pronto.",
-            en: "Your role validates customer visits. That feature will be available soon.",
+            es: "Tu rol valida visitas de clientes: escanea su código QR para sellar su tarjeta.",
+            en: "Your role validates customer visits: scan their QR code to stamp their card.",
           })}
         </p>
       ) : (

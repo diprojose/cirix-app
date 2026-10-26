@@ -26,12 +26,12 @@ beforeEach(() => {
 });
 
 describe("member route matching", () => {
-  it.each(["/me", "/b/cafe-luna", "/b/cafe-luna/", "/b/Cafe-Luna", "/biz/cafe-luna", "/biz/cafe-luna/scan", "/biz/cafe-luna/a/b/c"])(
+  it.each(["/me", "/me/cards/cafe-luna", "/me/cards/Cafe-Luna/", "/b/cafe-luna", "/b/cafe-luna/", "/b/Cafe-Luna", "/biz/cafe-luna", "/biz/cafe-luna/scan", "/biz/cafe-luna/a/b/c"])(
     "treats %s as a member page",
     (path) => expect(isMemberPage(path)).toBe(true)
   );
 
-  it.each(["/", "/me/other", "/b", "/b/", "/b/cafe/extra", "/b/caf e", "/biz", "/biz/", "/bizarre", "/admin", "/zoho", "/api/member/me/cards", "/ b/x"])(
+  it.each(["/", "/me/other", "/me/cards", "/me/cards/", "/me/cards/a/b", "/me/card/x", "/me/cards/caf e", "/b", "/b/", "/b/cafe/extra", "/b/caf e", "/biz", "/biz/", "/bizarre", "/admin", "/zoho", "/api/member/me/cards", "/ b/x"])(
     "keeps %s out of the member pages",
     (path) => expect(isMemberPage(path)).toBe(false)
   );

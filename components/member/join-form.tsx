@@ -12,7 +12,7 @@ const INPUT =
  * email comes from the verified session on the server, so the person never
  * retypes it and cannot register somebody else's address.
  */
-export function JoinForm({ slug, source }: { slug: string; source: "table_qr" | "web" }) {
+export function JoinForm({ slug, source, next }: { slug: string; source: "table_qr" | "web"; next: string }) {
   const locale = useLocale();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,7 +31,7 @@ export function JoinForm({ slug, source }: { slug: string; source: "table_qr" | 
         body: JSON.stringify({ name, phone, source }),
       });
       if (response.ok) {
-        window.location.assign(localizeHref(locale, "/me"));
+        window.location.assign(localizeHref(locale, next));
         return;
       }
       setError(
