@@ -1,0 +1,128 @@
+import type { Firestore } from "firebase-admin/firestore";
+import type { Result } from "@/shared/domain/result";
+import type { DomainError } from "@/shared/domain/domain-error";
+import { StampCard } from "../../domain/entities/stamp-card";
+import type { CardWrite, StampCardRepository } from "../../domain/ports/stamp-card-repository";
+import type { StampProgramRepository } from "../../domain/ports/stamp-program-repository";
+import { StampProgram } from "../../domain/value-objects/stamp-program";
+import { CorruptStampCardError } from "../../domain/errors/stamp-card-errors";
+
+/*
+ * Layout, under the customer's own CRM record so every query is tied to one
+ * business and one person, and no composite index is needed:
+ *
+ *   businesses/{businessId}/customers/{userId}/programs/stamps        the card (current state)
+ *   businesses/{businessId}/customers/{userId}/stamps/{stampId}       one immutable record per stamp
+ *   businesses/{businessId}/customers/{userId}/redemptions/{id}       one immutable record per reward
+ *   businesses/{businessId}/settings/stamp_program                    the business's rules
+ */
+type CardDocument = {
+  businessId: string;
+  userId: string;
+  stamps: number;
+  rewardReady: boolean;
+  totalStamps: number;
+  redeemedCount: number;
+  lastStampAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ProgramDocument = {
+  requiredStamps: number;
+  rewardName: string;
+  cooldownMinutes: number;
+  active: boolean;
+};
+
+const customerRef = (firestore: Firestore, businessId: string, userId: string) =>
+  firestore.collection("businesses").doc(businessId).collection("customers").doc(userId);
+
+function restoreCard(data: CardDocument): StampCard {
+  const result = StampCard.restore(data);
+  if (!result.ok) throw new CorruptStampCardError(`Card ${data.businessId}/${data.userId}: ${result.error.message}`);
+  return result.value;
+}
+
+/** Firestore adapter for {@link StampCardRepository}. Every change runs inside one transaction. */
+export class FirestoreStampCardRepository implements StampCardRepository {
+  constructor(private readonly firestore: Firestore) {}
+
+  private cardRef(businessId: string, userId: string) {
+    return customerRef(this.firestore, businessId, userId).collection("programs").doc("stamps");
+  }
+
+  async find(businessId: string, userId: string): Promise<StampCard | null> {
+    const snapshot = await this.cardRef(businessId, userId).get();
+    return snapshot.exists ? restoreCard(snapshot.data() as CardDocument) : null;
+  }
+
+  async transact<T extends CardWrite>(
+    businessId: string,
+    userId: string,
+    decide: (current: StampCard | null) => Result<T, DomainError>
+  ): Promise<Result<T, DomainError>> {
+    const cardRef = this.cardRef(businessId, userId);
+    const customer = customerRef(this.firestore, businessId, userId);
+    // Firestore may re-run this callback on contention. `decide` is pure, so that is safe.
+    return this.firestore.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(cardRef);
+      const current = snapshot.exists ? restoreCard(snapshot.data() as CardDocument) : null;
+      const result = decide(current);
+      if (!result.ok) return result;
+
+      const { card, stamp, redemption } = result.value;
+      transaction.set(cardRef, {
+        businessId: card.businessId,
+        userId: card.userId,
+        stamps: card.stamps,
+        rewardReady: card.rewardReady,
+        totalStamps: card.totalStamps,
+        redeemedCount: card.redeemedCount,
+        lastStampAt: card.lastStampAt,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
+      } satisfies CardDocument);
+      if (stamp) {
+        transaction.create(customer.collection("stamps").doc(stamp.id), {
+          staffUserId: stamp.staffUserId,
+          at: stamp.at,
+          sequence: stamp.sequence,
+        });
+      }
+      if (redemption) {
+        transaction.create(customer.collection("redemptions").doc(redemption.id), {
+          staffUserId: redemption.staffUserId,
+          at: redemption.at,
+        });
+      }
+      return result;
+    });
+  }
+}
+
+/** Firestore adapter for {@link StampProgramRepository}. */
+export class FirestoreStampProgramRepository implements StampProgramRepository {
+  constructor(private readonly firestore: Firestore) {}
+
+  private ref(businessId: string) {
+    return this.firestore.collection("businesses").doc(businessId).collection("settings").doc("stamp_program");
+  }
+
+  async get(businessId: string): Promise<StampProgram> {
+    const snapshot = await this.ref(businessId).get();
+    if (!snapshot.exists) return StampProgram.defaults();
+    const program = StampProgram.create(snapshot.data() as ProgramDocument);
+    if (!program.ok) throw new CorruptStampCardError(`Stamp program of ${businessId}: ${program.error.message}`);
+    return program.value;
+  }
+
+  async save(businessId: string, program: StampProgram): Promise<void> {
+    await this.ref(businessId).set({
+      requiredStamps: program.requiredStamps,
+      rewardName: program.rewardName,
+      cooldownMinutes: program.cooldownMinutes,
+      active: program.active,
+    } satisfies ProgramDocument);
+  }
+}
