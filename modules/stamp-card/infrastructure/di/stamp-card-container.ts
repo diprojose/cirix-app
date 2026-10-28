@@ -4,7 +4,12 @@ import type { StampProgramRepository } from "../../domain/ports/stamp-program-re
 import type { ScanTokenSigner } from "../../domain/ports/scan-token-signer";
 import type { CustomerDirectory } from "../../domain/ports/customer-directory";
 import type { CustomerActivityLog } from "../../domain/ports/customer-activity-log";
-import { FirestoreStampCardRepository, FirestoreStampProgramRepository } from "../persistence/firestore-stamp-repositories";
+import type { TableCodeRepository } from "../../domain/ports/table-code-repository";
+import {
+  FirestoreStampCardRepository,
+  FirestoreStampProgramRepository,
+  FirestoreTableCodeRepository,
+} from "../persistence/firestore-stamp-repositories";
 import { HmacScanTokenSigner } from "../crypto/hmac-scan-token-signer";
 import { CrmActivityLog, CrmCustomerDirectory } from "../adapters/crm-adapters";
 import { GetStampCard } from "../../application/use-cases/get-stamp-card";
@@ -13,6 +18,8 @@ import { PreviewScan } from "../../application/use-cases/preview-scan";
 import { RecordStamp } from "../../application/use-cases/record-stamp";
 import { RedeemReward } from "../../application/use-cases/redeem-reward";
 import { GetStampProgram, SaveStampProgram } from "../../application/use-cases/stamp-program-use-cases";
+import { ClaimTableStamp } from "../../application/use-cases/claim-table-stamp";
+import { GetTableCode, RotateTableCode } from "../../application/use-cases/table-code-use-cases";
 
 /*
  * Composition root for the stamp card module: the only place that knows the
@@ -28,12 +35,14 @@ let programs: StampProgramRepository | null = null;
 let signer: ScanTokenSigner | null = null;
 let directory: CustomerDirectory | null = null;
 let activity: CustomerActivityLog | null = null;
+let tableCodes: TableCodeRepository | null = null;
 
 const cardRepository = () => (cards ??= new FirestoreStampCardRepository(adminFirestore()));
 const programRepository = () => (programs ??= new FirestoreStampProgramRepository(adminFirestore()));
 const tokenSigner = () => (signer ??= new HmacScanTokenSigner(process.env.STAMP_QR_SECRET ?? ""));
 const customerDirectory = () => (directory ??= new CrmCustomerDirectory());
 const activityLog = () => (activity ??= new CrmActivityLog());
+const tableCodeRepository = () => (tableCodes ??= new FirestoreTableCodeRepository(adminFirestore()));
 
 /** Builds the "get my stamp card" use case. */
 export const makeGetStampCard = (): GetStampCard =>
@@ -59,3 +68,13 @@ export const makeGetStampProgram = (): GetStampProgram => new GetStampProgram(pr
 
 /** Builds the "save stamp program" use case (owner action). */
 export const makeSaveStampProgram = (): SaveStampProgram => new SaveStampProgram(programRepository());
+
+/** Builds the "stamp my card with the table QR" use case (customer action; needs no signing secret). */
+export const makeClaimTableStamp = (): ClaimTableStamp =>
+  new ClaimTableStamp(tableCodeRepository(), customerDirectory(), cardRepository(), programRepository(), activityLog());
+
+/** Builds the "get table code" use case (owner, to print the table QR). */
+export const makeGetTableCode = (): GetTableCode => new GetTableCode(tableCodeRepository());
+
+/** Builds the "replace table code" use case (owner, after a QR photo leaks). */
+export const makeRotateTableCode = (): RotateTableCode => new RotateTableCode(tableCodeRepository());

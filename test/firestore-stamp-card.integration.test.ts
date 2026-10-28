@@ -25,6 +25,7 @@ import { StampProgram } from "@/modules/stamp-card/domain/value-objects/stamp-pr
 import {
   FirestoreStampCardRepository,
   FirestoreStampProgramRepository,
+  FirestoreTableCodeRepository,
 } from "@/modules/stamp-card/infrastructure/persistence/firestore-stamp-repositories";
 
 const enabled = process.env.FIRESTORE_INTEGRATION === "1";
@@ -115,5 +116,37 @@ describe.skipIf(!enabled)("Stamp card on real Firestore", { timeout: 60_000 }, (
     await Promise.all([stamp("indep-a", T0), stamp("indep-b", T0)]);
     expect((await cards.find(businessId, "indep-a"))?.stamps).toBe(1);
     expect((await cards.find(businessId, "indep-b"))?.stamps).toBe(1);
+  });
+
+  it("stores a table stamp with its source and no employee, and reads table stamps back from the program", async () => {
+    const tableProgram = StampProgram.create({ requiredStamps: 3, rewardName: "Free coffee", cooldownMinutes: 60, tableStamps: true });
+    if (!tableProgram.ok) throw new Error(tableProgram.error.message);
+    await programs.save(businessId, tableProgram.value);
+    expect((await programs.get(businessId)).tableStamps).toBe(true);
+
+    const result = await cards.transact(businessId, "table", (current) =>
+      (current ?? StampCard.empty(businessId, "table", T0)).stamp(tableProgram.value, null, T0)
+    );
+    expect(result.ok).toBe(true);
+    const records = await firestore.collection("businesses").doc(businessId).collection("customers").doc("table").collection("stamps").get();
+    expect(records.docs[0].data()).toMatchObject({ source: "table_qr", staffUserId: null, sequence: 1 });
+  });
+
+  it("reads a program saved before table stamps existed as table stamps off", async () => {
+    await firestore.collection("businesses").doc(businessId).collection("settings").doc("stamp_program")
+      .set({ requiredStamps: 4, rewardName: "Free tea", cooldownMinutes: 10, active: true });
+    const stored = await programs.get(businessId);
+    expect([stored.requiredStamps, stored.tableStamps]).toEqual([4, false]);
+  });
+
+  it("agrees on one table code when many first requests arrive at once, and replaces it on rotate", async () => {
+    const codes = new FirestoreTableCodeRepository(firestore);
+    const first = await Promise.all(Array.from({ length: 6 }, () => codes.current(businessId)));
+    expect(new Set(first.map((entry) => entry.code)).size).toBe(1);
+    expect((await codes.current(businessId)).code).toBe(first[0].code);
+
+    const rotated = await codes.rotate(businessId);
+    expect(rotated.code).not.toBe(first[0].code);
+    expect((await codes.current(businessId)).code).toBe(rotated.code);
   });
 });

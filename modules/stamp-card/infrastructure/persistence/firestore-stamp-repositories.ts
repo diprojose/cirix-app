@@ -4,8 +4,10 @@ import type { DomainError } from "@/shared/domain/domain-error";
 import { StampCard } from "../../domain/entities/stamp-card";
 import type { CardWrite, StampCardRepository } from "../../domain/ports/stamp-card-repository";
 import type { StampProgramRepository } from "../../domain/ports/stamp-program-repository";
+import type { TableCode, TableCodeRepository } from "../../domain/ports/table-code-repository";
 import { StampProgram } from "../../domain/value-objects/stamp-program";
 import { CorruptStampCardError } from "../../domain/errors/stamp-card-errors";
+import { newTableCode } from "../crypto/table-code";
 
 /*
  * Layout, under the customer's own CRM record so every query is tied to one
@@ -15,6 +17,7 @@ import { CorruptStampCardError } from "../../domain/errors/stamp-card-errors";
  *   businesses/{businessId}/customers/{userId}/stamps/{stampId}       one immutable record per stamp
  *   businesses/{businessId}/customers/{userId}/redemptions/{id}       one immutable record per reward
  *   businesses/{businessId}/settings/stamp_program                    the business's rules
+ *   businesses/{businessId}/settings/table_code                       the code inside the table QR
  */
 type CardDocument = {
   businessId: string;
@@ -33,7 +36,12 @@ type ProgramDocument = {
   rewardName: string;
   cooldownMinutes: number;
   active: boolean;
+  /** Missing on programs saved before table stamps existed: read as off. */
+  tableStamps?: boolean;
 };
+
+/** Firestore's gRPC status for a create() that found the document already there. */
+const ALREADY_EXISTS = 6;
 
 const customerRef = (firestore: Firestore, businessId: string, userId: string) =>
   firestore.collection("businesses").doc(businessId).collection("customers").doc(userId);
@@ -85,6 +93,7 @@ export class FirestoreStampCardRepository implements StampCardRepository {
       } satisfies CardDocument);
       if (stamp) {
         transaction.create(customer.collection("stamps").doc(stamp.id), {
+          source: stamp.source,
           staffUserId: stamp.staffUserId,
           at: stamp.at,
           sequence: stamp.sequence,
@@ -123,6 +132,38 @@ export class FirestoreStampProgramRepository implements StampProgramRepository {
       rewardName: program.rewardName,
       cooldownMinutes: program.cooldownMinutes,
       active: program.active,
+      tableStamps: program.tableStamps,
     } satisfies ProgramDocument);
+  }
+}
+
+/** Firestore adapter for {@link TableCodeRepository}. */
+export class FirestoreTableCodeRepository implements TableCodeRepository {
+  constructor(private readonly firestore: Firestore) {}
+
+  private ref(businessId: string) {
+    return this.firestore.collection("businesses").doc(businessId).collection("settings").doc("table_code");
+  }
+
+  async current(businessId: string): Promise<TableCode> {
+    const ref = this.ref(businessId);
+    const snapshot = await ref.get();
+    if (snapshot.exists) return snapshot.data() as TableCode;
+
+    const fresh: TableCode = { code: newTableCode(), createdAt: new Date().toISOString() };
+    try {
+      // create() fails if someone else made the first code meanwhile; theirs wins.
+      await ref.create(fresh);
+      return fresh;
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== ALREADY_EXISTS) throw error;
+      return (await ref.get()).data() as TableCode;
+    }
+  }
+
+  async rotate(businessId: string): Promise<TableCode> {
+    const fresh: TableCode = { code: newTableCode(), createdAt: new Date().toISOString() };
+    await this.ref(businessId).set(fresh);
+    return fresh;
   }
 }

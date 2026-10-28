@@ -5,7 +5,9 @@ import type { CardWrite, StampCardRepository } from "../../domain/ports/stamp-ca
 import type { StampProgramRepository } from "../../domain/ports/stamp-program-repository";
 import type { CustomerActivityLog } from "../../domain/ports/customer-activity-log";
 import type { CustomerDirectory, CustomerSummary } from "../../domain/ports/customer-directory";
+import type { TableCode, TableCodeRepository } from "../../domain/ports/table-code-repository";
 import { StampProgram } from "../../domain/value-objects/stamp-program";
+import { newTableCode } from "../crypto/table-code";
 
 /** Process-local adapter for tests. `transact` has no await between read and write, so it is atomic. */
 export class InMemoryStampCardRepository implements StampCardRepository {
@@ -45,6 +47,26 @@ export class InMemoryStampProgramRepository implements StampProgramRepository {
 
   async save(businessId: string, program: StampProgram): Promise<void> {
     this.programs.set(businessId, program);
+  }
+}
+
+/** Process-local adapter for tests. */
+export class InMemoryTableCodeRepository implements TableCodeRepository {
+  private readonly codes = new Map<string, TableCode>();
+
+  async current(businessId: string): Promise<TableCode> {
+    let code = this.codes.get(businessId);
+    if (!code) {
+      code = { code: newTableCode(), createdAt: new Date().toISOString() };
+      this.codes.set(businessId, code);
+    }
+    return code;
+  }
+
+  async rotate(businessId: string): Promise<TableCode> {
+    const code = { code: newTableCode(), createdAt: new Date().toISOString() };
+    this.codes.set(businessId, code);
+    return code;
   }
 }
 

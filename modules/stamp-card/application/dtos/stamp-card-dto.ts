@@ -12,6 +12,8 @@ export type StampCardDto = {
   totalStamps: number;
   /** False while the business has paused its program. */
   active: boolean;
+  /** True when the customer may stamp their own card with the table QR. */
+  tableStamps: boolean;
   canStamp: boolean;
   canRedeem: boolean;
   /** Seconds before the next stamp is allowed, or 0. */
@@ -24,6 +26,7 @@ export type StampProgramDto = {
   rewardName: string;
   cooldownMinutes: number;
   active: boolean;
+  tableStamps: boolean;
 };
 
 /** A person with no card yet is shown an empty one, so the first stamp needs no setup. */
@@ -44,6 +47,7 @@ export function toStampCardDto(
     redeemedCount: current.redeemedCount,
     totalStamps: current.totalStamps,
     active: program.active,
+    tableStamps: program.tableStamps,
     canStamp: status.canStamp,
     canRedeem: status.canRedeem,
     retryAfterSeconds: status.retryAfterSeconds,
@@ -56,4 +60,5 @@ export const toStampProgramDto = (program: StampProgram): StampProgramDto => ({
   rewardName: program.rewardName,
   cooldownMinutes: program.cooldownMinutes,
   active: program.active,
+  tableStamps: program.tableStamps,
 });

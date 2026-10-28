@@ -20,6 +20,7 @@ export type SaveStampProgramInput = {
   rewardName: string;
   cooldownMinutes: number;
   active?: boolean;
+  tableStamps?: boolean;
 };
 
 /**

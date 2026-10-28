@@ -8,6 +8,7 @@ type StampProgramProps = {
   rewardName: string;
   cooldownMinutes: number;
   active: boolean;
+  tableStamps: boolean;
 };
 
 export type StampProgramInput = {
@@ -15,6 +16,8 @@ export type StampProgramInput = {
   rewardName: string;
   cooldownMinutes: number;
   active?: boolean;
+  /** Customers may stamp their own card by scanning the QR printed on the table. */
+  tableStamps?: boolean;
 };
 
 /** Bounds that keep a program sensible and the antifraud cooldown meaningful. */
@@ -29,6 +32,11 @@ export const STAMP_LIMITS = {
    */
   minCooldownMinutes: 5,
   maxCooldownMinutes: 1440,
+  /**
+   * A printed table QR never changes, so a photo of it works from anywhere. A
+   * longer minimum wait caps how fast such a photo can fill a card.
+   */
+  minTableCooldownMinutes: 60,
 } as const;
 
 /**
@@ -53,12 +61,16 @@ export class StampProgram extends ValueObject<StampProgramProps> {
     if (!Number.isInteger(cooldownMinutes) || cooldownMinutes < STAMP_LIMITS.minCooldownMinutes || cooldownMinutes > STAMP_LIMITS.maxCooldownMinutes) {
       return err(new InvalidStampProgramError(`Wait between stamps must be ${STAMP_LIMITS.minCooldownMinutes}-${STAMP_LIMITS.maxCooldownMinutes} minutes.`));
     }
-    return ok(new StampProgram({ requiredStamps, rewardName, cooldownMinutes, active: input.active ?? true }));
+    const tableStamps = input.tableStamps ?? false;
+    if (tableStamps && cooldownMinutes < STAMP_LIMITS.minTableCooldownMinutes) {
+      return err(new InvalidStampProgramError(`With table QR stamps the wait must be at least ${STAMP_LIMITS.minTableCooldownMinutes} minutes.`));
+    }
+    return ok(new StampProgram({ requiredStamps, rewardName, cooldownMinutes, active: input.active ?? true, tableStamps }));
   }
 
-  /** The program a business gets before it configures one. */
+  /** The program a business gets before it configures one. Table stamps start off. */
   static defaults(): StampProgram {
-    return new StampProgram({ requiredStamps: 10, rewardName: "Free item", cooldownMinutes: 240, active: true });
+    return new StampProgram({ requiredStamps: 10, rewardName: "Free item", cooldownMinutes: 240, active: true, tableStamps: false });
   }
 
   get requiredStamps(): number {
@@ -75,5 +87,9 @@ export class StampProgram extends ValueObject<StampProgramProps> {
 
   get active(): boolean {
     return this.props.active;
+  }
+
+  get tableStamps(): boolean {
+    return this.props.tableStamps;
   }
 }

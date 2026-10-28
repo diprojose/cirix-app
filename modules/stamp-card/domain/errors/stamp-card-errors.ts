@@ -71,6 +71,24 @@ export class ExpiredScanTokenError extends DomainError {
   }
 }
 
+/** The business has not turned on stamping with the table QR. */
+export class TableStampsDisabledError extends DomainError {
+  readonly code = "stamps/table-disabled";
+
+  constructor() {
+    super("This business does not give stamps from the table QR.");
+  }
+}
+
+/** The table QR's code is missing, wrong, or was replaced by the owner. */
+export class InvalidTableCodeError extends DomainError {
+  readonly code = "stamps/invalid-table-code";
+
+  constructor() {
+    super("This table code is no longer valid.");
+  }
+}
+
 /** Raised when a stored card holds impossible numbers and cannot be trusted. */
 export class CorruptStampCardError extends DomainError {
   readonly code = "stamps/corrupt-card";

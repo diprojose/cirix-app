@@ -22,12 +22,17 @@ export class StampCardId extends Identifier {
   }
 }
 
-/** The immutable record of one stamp: who earned it and which employee gave it. */
+/** How a stamp was given: an employee scanned the customer, or the customer scanned the table QR. */
+export type StampSource = "staff" | "table_qr";
+
+/** The immutable record of one stamp: who earned it and how it was given. */
 export type StampRecord = {
   id: string;
   businessId: string;
   userId: string;
-  staffUserId: string;
+  source: StampSource;
+  /** The employee who gave it; null when the customer scanned the table QR. */
+  staffUserId: string | null;
   at: string;
   /** Position of this stamp in the customer's whole history, starting at 1. */
   sequence: number;
@@ -134,8 +139,12 @@ export class StampCard extends AggregateRoot<StampCardProps, StampCardId> {
     };
   }
 
-  /** Adds one stamp, or explains why not. Never mutates this card. */
-  stamp(program: StampProgram, staffUserId: string, now: Date): Result<StampChange, DomainError> {
+  /**
+   * Adds one stamp, or explains why not. Never mutates this card. `staffUserId`
+   * is null when the customer stamped their own card with the table QR; the
+   * same cooldown and pending-reward rules apply either way.
+   */
+  stamp(program: StampProgram, staffUserId: string | null, now: Date): Result<StampChange, DomainError> {
     if (!program.active) return err(new ProgramInactiveError());
     if (this.isRewardReady(program)) return err(new RewardPendingError());
     const wait = this.secondsUntilNextStamp(program, now);
@@ -159,6 +168,7 @@ export class StampCard extends AggregateRoot<StampCardProps, StampCardId> {
         id: crypto.randomUUID(),
         businessId: this.props.businessId,
         userId: this.props.userId,
+        source: staffUserId === null ? "table_qr" : "staff",
         staffUserId,
         at,
         sequence: card.props.totalStamps,
