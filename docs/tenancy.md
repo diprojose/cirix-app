@@ -86,6 +86,8 @@ La dirección pública del negocio es `/b/<slug>`. El QR de mesa no se arma a ma
 
 - Todo dato nuevo de un negocio cuelga de `businesses/{id}/...` y su repositorio recibe `businessId` en cada método.
 - Una página nueva bajo `/biz/<slug>` hereda la membresía del layout, pero **debe** comprobar el permiso concreto que necesita (`requireBusinessAccess(slug, "permiso")`). Un permiso nuevo se declara en `member-role.ts` y se asigna por rol ahí mismo.
+- El panel tiene su menú en `app/biz/[slug]/layout.tsx` y un estado de carga en `loading.tsx`, para que cambiar de sección sea inmediato. Por eso una página que llama a `notFound()` (rol sin permiso, supermercado) responde **200** con la pantalla de "no encontrado" y `noindex`: así funciona el streaming de Next.js. La protección es que la página no envía datos; nunca dependas del código HTTP para ocultarlos. Quien no es miembro sí recibe 404, porque lo frena el layout.
+- Una pestaña nueva del menú se declara en el layout con el mismo permiso que comprueba su página.
 - Una API nueva va bajo `/api/member/` y empieza por `checkBusinessApiAccess`. Nunca leas el negocio de otra fuente que no sea el slug de la ruta.
 - Para registrar algo en la historia de un cliente usa `RecordCustomerEvent`; si no debe repetirse, pásale un `id` estable. Un tipo de evento nuevo se añade en `customer-event.ts`.
 - Si abres una ruta a otro tipo de cuenta, actualiza `requiresPlatformAccess` y sus pruebas, no solo el proxy.

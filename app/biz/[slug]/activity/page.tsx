@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LocalizedLink } from "@/components/localized-link";
-import { CONTAINER_READ } from "@/components/store/layout";
 import { requireBusinessAccess } from "@/lib/auth/business-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { makeListTeam } from "@/core/tenancy/infrastructure/di/tenancy-container";
@@ -59,11 +58,8 @@ export default async function ActivityPage({
   const formerMember = pick(locale, { es: "Ya no está en el equipo", en: "No longer on the team" });
 
   return (
-    <main className={`${CONTAINER_READ} flex min-h-dvh flex-1 flex-col gap-6 py-10`}>
+    <main className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <LocalizedLink href={`/biz/${access.business.slug}`} className="text-label text-accent underline underline-offset-4">
-          {pick(locale, { es: "← Volver", en: "← Back" })}
-        </LocalizedLink>
         <h1 className="text-display font-bold tracking-tight text-text">{pick(locale, { es: "Actividad", en: "Activity" })}</h1>
         <p className="text-label text-text-muted">
           {pick(locale, {

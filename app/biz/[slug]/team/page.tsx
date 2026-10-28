@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { LocalizedLink } from "@/components/localized-link";
 import { TeamManager } from "@/components/team/team-manager";
-import { COLUMN } from "@/components/store/layout";
 import { requireBusinessAccess } from "@/lib/auth/business-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { manageableRoles } from "@/core/tenancy/domain/value-objects/member-role";
@@ -22,11 +20,8 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
   if (!team.ok) notFound();
 
   return (
-    <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-5 py-8 md:max-w-xl`}>
+    <main className="flex flex-col gap-5 md:max-w-xl">
       <header className="flex flex-col gap-1">
-        <LocalizedLink href={`/biz/${access.business.slug}`} className="text-label text-accent underline underline-offset-4">
-          {pick(locale, { es: "← Volver", en: "← Back" })}
-        </LocalizedLink>
         <h1 className="text-display font-bold tracking-tight text-text">{pick(locale, { es: "Equipo", en: "Team" })}</h1>
         <p className="text-label text-text-muted">
           {pick(locale, {

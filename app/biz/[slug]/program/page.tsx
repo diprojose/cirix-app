@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { LocalizedLink } from "@/components/localized-link";
 import { ProgramForm } from "@/components/stamps/program-form";
-import { COLUMN } from "@/components/store/layout";
 import { requireBusinessAccess } from "@/lib/auth/business-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { makeGetStampProgram } from "@/modules/stamp-card/infrastructure/di/stamp-card-container";
@@ -23,11 +21,8 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
   if (!program.ok) notFound();
 
   return (
-    <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-5 py-8 md:max-w-md`}>
+    <main className="flex flex-col gap-5 md:max-w-md">
       <header className="flex flex-col gap-1">
-        <LocalizedLink href={`/biz/${access.business.slug}`} className="text-label text-accent underline underline-offset-4">
-          {pick(locale, { es: "← Volver", en: "← Back" })}
-        </LocalizedLink>
         <h1 className="text-display font-bold tracking-tight text-text">
           {pick(locale, { es: "Programa de sellos", en: "Stamp program" })}
         </h1>

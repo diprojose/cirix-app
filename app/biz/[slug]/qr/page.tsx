@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LocalizedLink } from "@/components/localized-link";
 import { TableQrPoster } from "@/components/stamps/table-qr-poster";
-import { COLUMN } from "@/components/store/layout";
 import { requireBusinessAccess } from "@/lib/auth/business-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { makeGetStampProgram, makeGetTableCode } from "@/modules/stamp-card/infrastructure/di/stamp-card-container";
@@ -26,11 +25,8 @@ export default async function TableQrPage({ params }: { params: Promise<{ slug: 
   if (!program.ok || !code.ok) notFound();
 
   return (
-    <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-5 py-8 md:max-w-md print:py-0`}>
+    <main className="flex flex-col gap-5 md:max-w-md">
       <header className="flex flex-col gap-1 print:hidden">
-        <LocalizedLink href={`/biz/${access.business.slug}`} className="text-label text-accent underline underline-offset-4">
-          {pick(locale, { es: "← Volver", en: "← Back" })}
-        </LocalizedLink>
         <h1 className="text-display font-bold tracking-tight text-text">{pick(locale, { es: "QR de mesa", en: "Table QR" })}</h1>
         <p className="text-label text-text-muted">
           {program.value.tableStamps
