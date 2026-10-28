@@ -5,6 +5,7 @@ import { requireBusinessAccess } from "@/lib/auth/business-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { roleCan } from "@/core/tenancy/domain/value-objects/member-role";
 import { makeListCustomers } from "@/modules/crm/infrastructure/di/crm-core-container";
+import { makeListCardProgress } from "@/modules/stamp-card/infrastructure/di/stamp-card-container";
 
 export const metadata: Metadata = {
   title: "Business",
@@ -16,7 +17,7 @@ const PAGE_SIZE = 50;
 const ACTION =
   "flex min-h-11 items-center justify-center rounded-pill px-5 py-2 text-label font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
 
-/** The business dashboard. For now: who joined, newest first. */
+/** The business dashboard: actions for the viewer's role, and who joined, newest first, with their card progress. */
 export default async function BusinessDashboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const locale = await getCurrentLocale();
@@ -28,6 +29,12 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
     ? await makeListCustomers().execute({ businessId: access.business.id, limit: PAGE_SIZE })
     : null;
   const rows = customers?.ok ? customers.value.customers : [];
+  const showsStamps = access.business.kind !== "supermarket";
+  const progress =
+    showsStamps && rows.length > 0
+      ? await makeListCardProgress().execute({ businessId: access.business.id, userIds: rows.map((row) => row.userId) })
+      : null;
+  const cards = progress?.ok ? progress.value : {};
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   return (
@@ -46,28 +53,36 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
         </p>
       </header>
 
-      {access.business.kind !== "supermarket" && (
-        <nav
-          aria-label={pick(locale, { es: "Acciones del negocio", en: "Business actions" })}
-          className="flex flex-wrap gap-2"
-        >
-          {roleCan(access.role, "visits:record") && (
-            <LocalizedLink href={`/biz/${access.business.slug}/scan`} className={`${ACTION} bg-accent-fill text-on-accent hover:bg-accent-fill-strong`}>
-              {pick(locale, { es: "Escanear cliente", en: "Scan customer" })}
-            </LocalizedLink>
-          )}
-          {roleCan(access.role, "program:manage") && (
-            <LocalizedLink href={`/biz/${access.business.slug}/program`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
-              {pick(locale, { es: "Programa de sellos", en: "Stamp program" })}
-            </LocalizedLink>
-          )}
-          {roleCan(access.role, "program:manage") && (
-            <LocalizedLink href={`/biz/${access.business.slug}/qr`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
-              {pick(locale, { es: "QR de mesa", en: "Table QR" })}
-            </LocalizedLink>
-          )}
-        </nav>
-      )}
+      <nav
+        aria-label={pick(locale, { es: "Acciones del negocio", en: "Business actions" })}
+        className="flex flex-wrap gap-2"
+      >
+        {showsStamps && roleCan(access.role, "visits:record") && (
+          <LocalizedLink href={`/biz/${access.business.slug}/scan`} className={`${ACTION} bg-accent-fill text-on-accent hover:bg-accent-fill-strong`}>
+            {pick(locale, { es: "Escanear cliente", en: "Scan customer" })}
+          </LocalizedLink>
+        )}
+        {showsStamps && roleCan(access.role, "program:manage") && (
+          <LocalizedLink href={`/biz/${access.business.slug}/program`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
+            {pick(locale, { es: "Programa de sellos", en: "Stamp program" })}
+          </LocalizedLink>
+        )}
+        {showsStamps && roleCan(access.role, "program:manage") && (
+          <LocalizedLink href={`/biz/${access.business.slug}/qr`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
+            {pick(locale, { es: "QR de mesa", en: "Table QR" })}
+          </LocalizedLink>
+        )}
+        {showsStamps && canReadCustomers && (
+          <LocalizedLink href={`/biz/${access.business.slug}/activity`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
+            {pick(locale, { es: "Actividad", en: "Activity" })}
+          </LocalizedLink>
+        )}
+        {roleCan(access.role, "members:manage") && (
+          <LocalizedLink href={`/biz/${access.business.slug}/team`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
+            {pick(locale, { es: "Equipo", en: "Team" })}
+          </LocalizedLink>
+        )}
+      </nav>
 
       {!canReadCustomers ? (
         <p className="text-body text-text-muted">
@@ -90,24 +105,60 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
             </p>
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-border">
-              <table className="w-full min-w-[32rem] border-collapse text-left text-label">
+              <table className="w-full min-w-[36rem] border-collapse text-left text-label">
                 <thead className="bg-surface text-text-muted">
                   <tr>
-                    <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Nombre", en: "Name" })}</th>
-                    <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Correo", en: "Email" })}</th>
+                    <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Cliente", en: "Customer" })}</th>
                     <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Teléfono", en: "Phone" })}</th>
+                    {showsStamps && (
+                      <>
+                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Sellos", en: "Stamps" })}</th>
+                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Último sello", en: "Last stamp" })}</th>
+                      </>
+                    )}
                     <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Desde", en: "Since" })}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((customer) => (
-                    <tr key={customer.userId} className="border-t border-border text-text">
-                      <td className="px-4 py-2">{customer.name}</td>
-                      <td className="break-all px-4 py-2">{customer.email}</td>
-                      <td className="px-4 py-2">{customer.phone ?? "—"}</td>
-                      <td className="whitespace-nowrap px-4 py-2">{date.format(new Date(customer.createdAt))}</td>
-                    </tr>
-                  ))}
+                  {rows.map((customer) => {
+                    const card = cards[customer.userId];
+                    return (
+                      <tr key={customer.userId} className="border-t border-border text-text">
+                        <td className="px-4 py-2">
+                          {customer.name}
+                          <span className="block break-all text-caption text-text-muted">{customer.email}</span>
+                        </td>
+                        <td className="px-4 py-2">{customer.phone ?? "—"}</td>
+                        {showsStamps && (
+                          <>
+                            <td className="whitespace-nowrap px-4 py-2 tabular-nums">
+                              {!card ? (
+                                "—"
+                              ) : card.rewardReady ? (
+                                <span className="rounded-pill bg-accent-soft px-2 py-0.5 font-medium text-accent-strong">
+                                  {pick(locale, { es: "Premio listo", en: "Reward ready" })}
+                                </span>
+                              ) : (
+                                `${card.stamps}/${card.required}`
+                              )}
+                              {card && card.redeemedCount > 0 && (
+                                <span className="block text-caption text-text-muted">
+                                  {pick(locale, {
+                                    es: `${card.redeemedCount} ${card.redeemedCount === 1 ? "premio canjeado" : "premios canjeados"}`,
+                                    en: `${card.redeemedCount} ${card.redeemedCount === 1 ? "reward redeemed" : "rewards redeemed"}`,
+                                  })}
+                                </span>
+                              )}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-2">
+                              {card?.lastStampAt ? date.format(new Date(card.lastStampAt)) : "—"}
+                            </td>
+                          </>
+                        )}
+                        <td className="whitespace-nowrap px-4 py-2">{date.format(new Date(customer.createdAt))}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
