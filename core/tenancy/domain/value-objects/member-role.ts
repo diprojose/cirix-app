@@ -38,6 +38,25 @@ const GRANTS: Record<BusinessRole, readonly BusinessPermission[]> = {
 export const roleCan = (role: BusinessRole, permission: BusinessPermission): boolean =>
   GRANTS[role].includes(permission);
 
+/**
+ * Roles each manager may grant or take away. An owner hires and lets go of
+ * staff, but only Cirix administrators change who owns a business: otherwise a
+ * co-owner, or an employee promoted by mistake, could lock the real owner out.
+ */
+const MANAGEABLE: Record<BusinessRole, readonly MemberRole[]> = {
+  owner: ["staff"],
+  staff: [],
+  platform_admin: ["owner", "staff"],
+};
+
+/** Whether `actor` may grant, change or remove the role `target`. */
+export const roleCanManage = (actor: BusinessRole, target: MemberRole): boolean =>
+  roleCan(actor, "members:manage") && MANAGEABLE[actor].includes(target);
+
+/** The roles `actor` may hand out, for the team form. */
+export const manageableRoles = (actor: BusinessRole): readonly MemberRole[] =>
+  roleCan(actor, "members:manage") ? MANAGEABLE[actor] : [];
+
 /** Type guard narrowing arbitrary text to a stored {@link MemberRole}. */
 export const isMemberRole = (value: string): value is MemberRole =>
   (MEMBER_ROLES as readonly string[]).includes(value);

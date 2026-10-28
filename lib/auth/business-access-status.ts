@@ -6,9 +6,17 @@
 export function statusForTenancyError(code: string): number {
   switch (code) {
     case "tenancy/not-found":
+    case "tenancy/member-not-found":
       return 404;
+    case "tenancy/invalid-membership":
+      return 400;
+    case "tenancy/last-owner":
+    case "tenancy/team-full":
+    case "tenancy/account-disabled":
+      return 409;
     case "tenancy/access-denied":
     case "tenancy/suspended":
+    case "tenancy/team-change-denied":
       return 403;
     default:
       return 403;

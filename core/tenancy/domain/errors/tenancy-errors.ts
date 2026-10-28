@@ -46,6 +46,51 @@ export class BusinessSuspendedError extends DomainError {
   }
 }
 
+/** The viewer's role may not grant, change or remove this role. */
+export class TeamChangeDeniedError extends DomainError {
+  readonly code = "tenancy/team-change-denied";
+
+  constructor() {
+    super("Your role cannot make this change to the team.");
+  }
+}
+
+/** The change would leave the business without an owner. */
+export class LastOwnerError extends DomainError {
+  readonly code = "tenancy/last-owner";
+
+  constructor() {
+    super("A business must keep at least one owner.");
+  }
+}
+
+/** The business reached the most people a team may have. */
+export class TeamFullError extends DomainError {
+  readonly code = "tenancy/team-full";
+
+  constructor(limit: number) {
+    super(`A team can have at most ${limit} people.`);
+  }
+}
+
+/** The person to change holds no role in the business. */
+export class MemberNotFoundError extends DomainError {
+  readonly code = "tenancy/member-not-found";
+
+  constructor() {
+    super("This person is not part of the team.");
+  }
+}
+
+/** The account behind the email was disabled by an administrator. */
+export class AccountDisabledError extends DomainError {
+  readonly code = "tenancy/account-disabled";
+
+  constructor() {
+    super("This account is disabled.");
+  }
+}
+
 /** Raised when a persisted business document fails domain validation on restore. */
 export class CorruptBusinessSnapshotError extends DomainError {
   readonly code = "tenancy/corrupt-snapshot";

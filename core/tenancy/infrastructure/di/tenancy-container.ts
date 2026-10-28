@@ -9,6 +9,9 @@ import { ListBusinessesByIds } from "../../application/use-cases/list-businesses
 import { AddMember } from "../../application/use-cases/add-member";
 import { ResolveBusinessAccess } from "../../application/use-cases/resolve-business-access";
 import { ListMyBusinesses } from "../../application/use-cases/list-my-businesses";
+import { AddTeamMember, ListTeam, RemoveTeamMember } from "../../application/use-cases/manage-team";
+import { FirebaseAccountDirectory } from "../firebase/firebase-account-directory";
+import { getAuditTrail } from "@/core/audit/infrastructure/di/audit-container";
 
 /*
  * Composition root for the tenancy module: the single place that knows the
@@ -47,3 +50,13 @@ export const makeResolveBusinessAccess = (): ResolveBusinessAccess =>
 
 /** Builds the "list my businesses" use case (where I hold a role). */
 export const makeListMyBusinesses = (): ListMyBusinesses => new ListMyBusinesses(businesses(), memberships());
+
+/** Builds the "list team" use case (business panel). */
+export const makeListTeam = (): ListTeam => new ListTeam(memberships());
+
+/** Builds the "add or change a team member" use case (owner or Cirix administrator). */
+export const makeAddTeamMember = (): AddTeamMember =>
+  new AddTeamMember(memberships(), new FirebaseAccountDirectory(), getAuditTrail());
+
+/** Builds the "remove a team member" use case (owner or Cirix administrator). */
+export const makeRemoveTeamMember = (): RemoveTeamMember => new RemoveTeamMember(memberships(), getAuditTrail());
