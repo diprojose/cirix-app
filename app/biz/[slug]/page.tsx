@@ -61,6 +61,11 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
               {pick(locale, { es: "Programa de sellos", en: "Stamp program" })}
             </LocalizedLink>
           )}
+          {roleCan(access.role, "program:manage") && (
+            <LocalizedLink href={`/biz/${access.business.slug}/qr`} className={`${ACTION} border border-border bg-surface text-text hover:bg-stone-100`}>
+              {pick(locale, { es: "QR de mesa", en: "Table QR" })}
+            </LocalizedLink>
+          )}
         </nav>
       )}
 

@@ -16,6 +16,8 @@ export function ProgramForm({ slug, initial }: { slug: string; initial: StampPro
   const [rewardName, setRewardName] = useState(initial.rewardName);
   const [cooldownMinutes, setCooldownMinutes] = useState(String(initial.cooldownMinutes));
   const [active, setActive] = useState(initial.active);
+  const [tableStamps, setTableStamps] = useState(initial.tableStamps);
+  const minCooldown = tableStamps ? STAMP_LIMITS.minTableCooldownMinutes : STAMP_LIMITS.minCooldownMinutes;
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
@@ -33,6 +35,7 @@ export function ProgramForm({ slug, initial }: { slug: string; initial: StampPro
           rewardName,
           cooldownMinutes: Number(cooldownMinutes),
           active,
+          tableStamps,
         }),
       });
       setMessage(
@@ -41,8 +44,8 @@ export function ProgramForm({ slug, initial }: { slug: string; initial: StampPro
           : {
               kind: "error",
               text: pick(locale, {
-                es: `Revisa los valores: sellos de ${STAMP_LIMITS.minStamps} a ${STAMP_LIMITS.maxStamps}, premio de 2 a 60 letras y espera de ${STAMP_LIMITS.minCooldownMinutes} a ${STAMP_LIMITS.maxCooldownMinutes} minutos.`,
-                en: `Check the values: ${STAMP_LIMITS.minStamps} to ${STAMP_LIMITS.maxStamps} stamps, a 2 to 60 character reward, and a wait of ${STAMP_LIMITS.minCooldownMinutes} to ${STAMP_LIMITS.maxCooldownMinutes} minutes.`,
+                es: `Revisa los valores: sellos de ${STAMP_LIMITS.minStamps} a ${STAMP_LIMITS.maxStamps}, premio de 2 a 60 letras y espera de ${minCooldown} a ${STAMP_LIMITS.maxCooldownMinutes} minutos.`,
+                en: `Check the values: ${STAMP_LIMITS.minStamps} to ${STAMP_LIMITS.maxStamps} stamps, a 2 to 60 character reward, and a wait of ${minCooldown} to ${STAMP_LIMITS.maxCooldownMinutes} minutes.`,
               }),
             }
       );
@@ -69,7 +72,7 @@ export function ProgramForm({ slug, initial }: { slug: string; initial: StampPro
       <label htmlFor="program-cooldown" className="text-label font-medium text-text">
         {pick(locale, { es: "Espera entre sellos (minutos)", en: "Wait between stamps (minutes)" })}
       </label>
-      <input id="program-cooldown" type="number" inputMode="numeric" min={STAMP_LIMITS.minCooldownMinutes} max={STAMP_LIMITS.maxCooldownMinutes} required
+      <input id="program-cooldown" type="number" inputMode="numeric" min={minCooldown} max={STAMP_LIMITS.maxCooldownMinutes} required
         value={cooldownMinutes} onChange={(event) => setCooldownMinutes(event.target.value)} disabled={saving} aria-describedby="program-cooldown-help" className={INPUT} />
       <p id="program-cooldown-help" className="text-caption text-text-muted">
         {pick(locale, {
@@ -82,6 +85,18 @@ export function ProgramForm({ slug, initial }: { slug: string; initial: StampPro
         <input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} disabled={saving} className="size-5" />
         {pick(locale, { es: "Programa activo", en: "Program active" })}
       </label>
+
+      <label className="flex min-h-11 items-center gap-3 text-label text-text">
+        <input type="checkbox" checked={tableStamps} onChange={(event) => setTableStamps(event.target.checked)} disabled={saving}
+          aria-describedby="program-table-help" className="size-5" />
+        {pick(locale, { es: "El cliente sella con el QR de la mesa", en: "Customers stamp with the table QR" })}
+      </label>
+      <p id="program-table-help" className="text-caption text-text-muted">
+        {pick(locale, {
+          es: `El cliente escanea el QR impreso y suma su sello sin pasar por caja. Es más cómodo pero menos seguro: una foto del QR sirve desde cualquier lugar. Por eso la espera mínima sube a ${STAMP_LIMITS.minTableCooldownMinutes} minutos, y si ves abuso puedes cambiar el código y reimprimir. El personal puede seguir sellando como siempre.`,
+          en: `Customers scan the printed QR and add their stamp without going to the counter. It's more convenient but less secure: a photo of the QR works from anywhere. That's why the minimum wait rises to ${STAMP_LIMITS.minTableCooldownMinutes} minutes, and if you see abuse you can change the code and reprint. Staff can keep stamping as usual.`,
+        })}
+      </p>
 
       {message && (
         <p role={message.kind === "error" ? "alert" : "status"} className="text-label text-text">

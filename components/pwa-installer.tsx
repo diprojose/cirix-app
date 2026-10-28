@@ -94,7 +94,7 @@ export function PwaInstaller() {
 
   if (installEvent) {
     return (
-      <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 md:bottom-6">
+      <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 md:bottom-6 print:hidden">
         <button
           type="button"
           onClick={async () => {
@@ -113,7 +113,7 @@ export function PwaInstaller() {
 
   if (isIOS) {
     return (
-      <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex w-[min(92vw,24rem)] -translate-x-1/2 items-center gap-2 md:bottom-6">
+      <div className="fixed bottom-[6.5rem] left-1/2 z-50 flex w-[min(92vw,24rem)] -translate-x-1/2 items-center gap-2 md:bottom-6 print:hidden">
         <p className="flex-1 rounded-lg bg-accent-fill px-4 py-2.5 text-center text-caption text-on-accent shadow-float">
           Para instalar: toca Compartir y luego «Agregar a la pantalla de inicio».
         </p>

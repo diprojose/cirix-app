@@ -14,6 +14,7 @@ const schema = z.object({
   rewardName: z.string().max(200),
   cooldownMinutes: z.number(),
   active: z.boolean().default(true),
+  tableStamps: z.boolean().default(false),
 });
 
 /** GET /api/member/biz/<slug>/program — the business's stamp rules (owner only). */

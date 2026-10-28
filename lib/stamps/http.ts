@@ -21,6 +21,7 @@ export function statusForStampError(code: string): number {
     case "stamps/reward-pending":
     case "stamps/no-reward":
     case "stamps/inactive":
+    case "stamps/table-disabled":
       return 409;
     case "stamps/misconfigured":
       return 503;

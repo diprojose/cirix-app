@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { pick } from "@/lib/locale";
 import type { StampCardDto } from "@/modules/stamp-card/application/dtos/stamp-card-dto";
@@ -10,45 +10,67 @@ import s from "./stamp-card.module.css";
 /** How often an open card checks for a new stamp, so the animation plays at the counter. */
 const POLL_MS = 5_000;
 
+/** Errors that another tap cannot fix, so the button is not offered again. */
+const FINAL_CLAIM_ERRORS = new Set(["stamps/too-soon", "stamps/reward-pending", "stamps/invalid-table-code", "stamps/table-disabled", "stamps/inactive"]);
+
+type ClaimState = { kind: "idle" | "loading" | "done" } | { kind: "error"; text: string; retry: boolean };
+
 /**
  * The customer's card: stamps, progress, the reward, and the personal QR. While
  * the page is open it checks for changes every few seconds, so when staff stamp
  * the card the new stamp lands on screen with an animation, and a completed
- * card celebrates.
+ * card celebrates. Opened from the table QR (`tableCode`), it also offers a
+ * button to stamp this visit.
  */
-export function StampCardView({ slug, businessName, initial }: { slug: string; businessName: string; initial: StampCardDto }) {
+export function StampCardView({
+  slug,
+  businessName,
+  initial,
+  tableCode = null,
+}: {
+  slug: string;
+  businessName: string;
+  initial: StampCardDto;
+  tableCode?: string | null;
+}) {
   const locale = useLocale();
   const [card, setCard] = useState(initial);
   const [popIndex, setPopIndex] = useState<number | null>(null);
   const [celebrating, setCelebrating] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
+  const [claim, setClaim] = useState<ClaimState>({ kind: "idle" });
   const previous = useRef(initial);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  /** Shows a newer card, animating whatever changed since the last one. */
+  const show = useCallback((next: StampCardDto) => {
+    const before = previous.current;
+    previous.current = next;
+    setCard(next);
+    if (next.totalStamps > before.totalStamps) {
+      setPopIndex(Math.max(0, next.stamps - 1));
+      timers.current.push(setTimeout(() => setPopIndex(null), 1500));
+      if (next.rewardReady && !before.rewardReady) {
+        setCelebrating(true);
+        timers.current.push(setTimeout(() => setCelebrating(false), 3600));
+      }
+    }
+    if (next.redeemedCount > before.redeemedCount) {
+      setRedeemed(true);
+      timers.current.push(setTimeout(() => setRedeemed(false), 6000));
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    const pending = timers.current;
 
     async function poll() {
       if (document.visibilityState !== "visible") return;
       try {
         const response = await fetch(`/api/member/businesses/${encodeURIComponent(slug)}/card`, { cache: "no-store" });
         if (!response.ok || !active) return;
-        const next = ((await response.json()) as { card: StampCardDto }).card;
-        const before = previous.current;
-        previous.current = next;
-        setCard(next);
-        if (next.totalStamps > before.totalStamps) {
-          setPopIndex(Math.max(0, next.stamps - 1));
-          timers.push(setTimeout(() => setPopIndex(null), 1500));
-          if (next.rewardReady && !before.rewardReady) {
-            setCelebrating(true);
-            timers.push(setTimeout(() => setCelebrating(false), 3600));
-          }
-        }
-        if (next.redeemedCount > before.redeemedCount) {
-          setRedeemed(true);
-          timers.push(setTimeout(() => setRedeemed(false), 6000));
-        }
+        show(((await response.json()) as { card: StampCardDto }).card);
       } catch {
         // A missed check is harmless: the next one catches up.
       }
@@ -59,12 +81,60 @@ export function StampCardView({ slug, businessName, initial }: { slug: string; b
     return () => {
       active = false;
       clearInterval(interval);
-      timers.forEach(clearTimeout);
+      pending.forEach(clearTimeout);
       document.removeEventListener("visibilitychange", poll);
     };
-  }, [slug]);
+  }, [slug, show]);
+
+  async function claimTableStamp() {
+    if (tableCode === null || claim.kind === "loading") return;
+    setClaim({ kind: "loading" });
+    try {
+      const response = await fetch(`/api/member/businesses/${encodeURIComponent(slug)}/table-stamp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: tableCode }),
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        card?: StampCardDto;
+        error?: { code?: string; retryAfterSeconds?: number };
+      };
+      if (response.ok && body.card) {
+        show(body.card);
+        setClaim({ kind: "done" });
+        // The code stays out of the address bar, so a reload does not offer the button again.
+        window.history.replaceState(null, "", window.location.pathname);
+        return;
+      }
+      const known = body.error?.code !== undefined && FINAL_CLAIM_ERRORS.has(body.error.code);
+      setClaim({ kind: "error", text: claimErrorText(body.error?.code, body.error?.retryAfterSeconds), retry: !known });
+    } catch {
+      setClaim({ kind: "error", text: pick(locale, { es: "Sin conexión. Intenta de nuevo.", en: "No connection. Please try again." }), retry: true });
+    }
+  }
+
+  function claimErrorText(code: string | undefined, retryAfterSeconds: number | undefined): string {
+    switch (code) {
+      case "stamps/too-soon":
+        return pick(locale, {
+          es: `Ya sumaste un sello hace poco. El próximo estará disponible en ${Math.ceil((retryAfterSeconds ?? 60) / 60)} min.`,
+          en: `You got a stamp recently. The next one will be available in ${Math.ceil((retryAfterSeconds ?? 60) / 60)} min.`,
+        });
+      case "stamps/reward-pending":
+        return pick(locale, { es: "Tu premio ya está listo: canjéalo antes de sumar más sellos.", en: "Your reward is ready: redeem it before collecting more stamps." });
+      case "stamps/invalid-table-code":
+        return pick(locale, { es: "Este QR ya no es válido. Pide al personal que selle tu visita.", en: "This QR is no longer valid. Ask the staff to stamp your visit." });
+      case "stamps/table-disabled":
+        return pick(locale, { es: "Aquí los sellos se dan en caja: muestra tu código al personal.", en: "Stamps are given at the counter here: show your code to the staff." });
+      case "stamps/inactive":
+        return pick(locale, { es: "El programa está en pausa por ahora.", en: "The program is paused for now." });
+      default:
+        return pick(locale, { es: "No pudimos sumar el sello. Intenta de nuevo.", en: "We couldn't add the stamp. Please try again." });
+    }
+  }
 
   const waitMinutes = Math.ceil(card.retryAfterSeconds / 60);
+  const offerTableStamp = tableCode !== null && claim.kind !== "done" && (card.canStamp || claim.kind === "error");
 
   return (
     <div className="flex flex-col gap-6">
@@ -75,6 +145,33 @@ export function StampCardView({ slug, businessName, initial }: { slug: string; b
           <strong className="font-medium text-text">{card.rewardName}</strong>
         </p>
       </header>
+
+      {offerTableStamp && (
+        <section aria-label={pick(locale, { es: "Sellar esta visita", en: "Stamp this visit" })} className="flex flex-col gap-2">
+          {(claim.kind !== "error" || claim.retry) && (
+            <button
+              type="button"
+              onClick={claimTableStamp}
+              disabled={claim.kind === "loading"}
+              className="min-h-11 w-full rounded-pill bg-accent-fill px-5 py-3 text-label font-medium text-on-accent transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
+            >
+              {claim.kind === "loading"
+                ? pick(locale, { es: "Sumando...", en: "Adding..." })
+                : pick(locale, { es: "Sumar el sello de esta visita", en: "Stamp this visit" })}
+            </button>
+          )}
+          {claim.kind === "error" && (
+            <p role="alert" className="rounded-2xl border border-border bg-surface px-4 py-3 text-center text-label text-text">
+              {claim.text}
+            </p>
+          )}
+        </section>
+      )}
+      {claim.kind === "done" && (
+        <p role="status" className="rounded-2xl bg-accent-soft px-4 py-3 text-center text-body font-medium text-accent-strong">
+          {pick(locale, { es: "¡Sello sumado! Gracias por tu visita.", en: "Stamp added! Thanks for your visit." })}
+        </p>
+      )}
 
       <section
         aria-label={pick(locale, { es: "Tu tarjeta de sellos", en: "Your stamp card" })}

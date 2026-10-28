@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { JoinForm } from "@/components/member/join-form";
 import { LocalizedLink } from "@/components/localized-link";
 import { COLUMN } from "@/components/store/layout";
 import { getMemberViewer } from "@/lib/auth/dal";
-import { getCurrentLocale, pick } from "@/lib/i18n";
+import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
+import { cardPath, readTableCodeParam } from "@/lib/stamps/table-qr";
 import { makeGetBusinessBySlug } from "@/core/tenancy/infrastructure/di/tenancy-container";
 import { makeListMyCustomerBusinesses } from "@/modules/crm/infrastructure/di/crm-core-container";
 
@@ -15,15 +16,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** The page a business QR code opens: sign up as a customer of that business. */
+/**
+ * The page a business QR code opens: sign up as a customer of that business. The
+ * table QR also carries the table code (`t`), which travels on to the card so a
+ * restaurant customer can stamp the visit right after joining.
+ */
 export default async function JoinBusinessPage({
   params,
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ source?: string | string[] }>;
+  searchParams: Promise<{ source?: string | string[]; t?: string | string[] }>;
 }) {
-  const [{ slug }, { source }, locale, viewer] = await Promise.all([
+  const [{ slug }, { source, t }, locale, viewer] = await Promise.all([
     params,
     searchParams,
     getCurrentLocale(),
@@ -39,8 +44,11 @@ export default async function JoinBusinessPage({
       ? await makeListMyCustomerBusinesses().execute(viewer.uid)
       : null;
   const alreadyMember = joined?.ok === true && joined.value.includes(business.value.id);
+  const hasCard = business.value.kind !== "supermarket";
   // Restaurants land on their stamp card after joining; others on the account page.
-  const nextPath = business.value.kind === "supermarket" ? "/me" : `/me/cards/${business.value.slug}`;
+  const nextPath = hasCard ? cardPath(business.value.slug, readTableCodeParam(t)) : "/me";
+  // A returning customer who scans the table goes straight to the card.
+  if (alreadyMember && hasCard) redirect(await localizeForCurrentRequest(nextPath));
   // Only the QR flow is distinguished; anything else counts as a plain web signup.
   const signupSource = (Array.isArray(source) ? source[0] : source) === "table_qr" ? "table_qr" : "web";
 
