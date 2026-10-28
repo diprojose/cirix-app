@@ -26,7 +26,7 @@ Fases (0 y 1 completadas; las demás pendientes):
 | Fase | Contenido | Estado |
 |---|---|---|
 | 0. Cimientos | `core/tenancy` (negocios, roles), `modules/crm` (clientes y eventos), sesión `member`, registro por QR, `/me`, panel `/biz/[slug]`, script de negocios | **Hecha** |
-| 1. Restaurantes | QR personal rotativo y firmado, pantalla de escaneo con confirmación, tarjeta de sellos animada, programa configurable, espera antifraude y registro por empleado; QR de mesa imprimible que registra y, si el dueño lo activa, sella la visita (`docs/stamp-card.md`) | **Hecha** |
+| 1. Restaurantes | QR personal rotativo y firmado, pantalla de escaneo con confirmación, tarjeta de sellos animada, programa configurable, espera antifraude y registro por empleado; QR de mesa imprimible que registra y, si el dueño lo activa, sella la visita; progreso de sellos en la lista de clientes, reporte de actividad por empleado y por origen, y gestión del personal desde el panel (`docs/stamp-card.md`, `docs/tenancy.md`) | **Hecha** |
 | 2. Supermercado A | Puntos, bono de bienvenida, catálogo de premios, canje con código, captura manual de recibos | Pendiente |
 | 3. Supermercado B | Lectura gratuita de recibos con cola de revisión, campañas dinámicas | Pendiente |
 | 4. CRM y reputación | Seguimiento automático post-compra, encuesta, enlace de Google para todos, tickets | Pendiente |
@@ -91,9 +91,9 @@ El proyecto Firebase de desarrollo (`cirixadv-cae9c`) está **sin plan Blaze**. 
 
 | Módulo | Qué hace | Rutas principales | Externos |
 |---|---|---|---|
-| `core/tenancy` | **Multi-negocio**: negocios (tenants), roles por negocio (dueño, personal) y la puerta de autorización | `/biz/[slug]`, `/api/member/biz/*` | — |
+| `core/tenancy` | **Multi-negocio**: negocios (tenants), roles por negocio (dueño, personal) y la puerta de autorización | `/biz/[slug]`, `/biz/[slug]/team`, `/api/member/biz/*` | — |
 | `crm` | **Núcleo CRM propio**: clientes por negocio y su línea de tiempo de eventos. Es el sistema de registro; Zoho es opcional | `/b/[slug]`, `/me`, `/api/member/*` | — |
-| `stamp-card` | **Tarjeta de sellos** para restaurantes: QR personal rotativo y firmado, escaneo del personal, premio y reinicio | `/me/cards/[slug]`, `/biz/[slug]/scan`, `/biz/[slug]/program`, `/biz/[slug]/qr`, `/api/member/*` | — |
+| `stamp-card` | **Tarjeta de sellos** para restaurantes: QR personal rotativo y firmado, escaneo del personal, premio y reinicio | `/me/cards/[slug]`, `/biz/[slug]/scan`, `/biz/[slug]/program`, `/biz/[slug]/qr`, `/biz/[slug]/activity`, `/api/member/*` | — |
 | `zoho/crm` | Integración opcional con Zoho: dashboard (leads, prospects, customers, subscribers, KPIs) y captura de leads | `/zoho/*`, `/api/zoho/*`, `/api/contact` | Zoho |
 | `pixels` | Pixel Hub: registro de sitios, colector con consentimiento, SDK `public/pixel.js` | `/pixels`, `/api/pixels/*` | — |
 | `reviews` | Campañas, invitaciones con token, QR, KPIs y lectura de reseñas de Google | `/reviews`, `/make-a-review`, `/api/reviews/*` | Google Business |
@@ -152,7 +152,7 @@ El producto aprobado (ver "Alcance") es **un solo sistema para varios negocios**
 - **Cualquier `*Repository` de datos de negocio recibe `businessId` explícito.** Los clientes viven en `businesses/{id}/customers/{uid}`, de modo que una consulta solo puede ver un negocio.
 - **Códigos de escaneo:** el QR del cliente lleva un código firmado (HMAC) que vence a los 90 s y nombra a su negocio; un código de otro negocio se rechaza como falso. La espera mínima entre sellos (5 min) debe seguir siendo mayor que la vida del código: es lo que impide sumar un sello con una captura o un doble escaneo.
 - **QR de mesa:** es fijo e impreso, así que una foto suya sirve desde cualquier lugar; esto es un riesgo aceptado por el cliente. Por eso está apagado por defecto, exige una espera de al menos 60 min, el dueño puede cambiar su código (los impresos dejan de sellar) y cada sello guarda su origen (`source: "table_qr"`, sin empleado). El canje del premio sigue siendo presencial: siempre lo hace el personal escaneando el QR personal del cliente.
-- Crear negocios y personal: `node scripts/manage-business.mjs` (ver "Comandos"). Aún no hay UI para eso.
+- Crear negocios y nombrar dueños: `node scripts/manage-business.mjs` (ver "Comandos"). El personal lo agrega y quita el dueño en `/biz/<slug>/team`; un dueño **no** puede crear, degradar ni quitar dueños (`roleCanManage` en `member-role.ts`), y un negocio nunca queda sin dueño.
 
 ## Acceso y seguridad
 

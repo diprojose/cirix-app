@@ -46,10 +46,23 @@ Hay **dos barreras** que deben coincidir: `proxy.ts` y el layout raíz. Ambas de
 | `POST /api/member/businesses/<slug>/join` | Cuenta verificada | Registra al cliente. Idempotente: `201` si lo crea, `200` si ya existía. |
 | `GET /api/member/me/cards` | Cuenta verificada | Negocios donde soy cliente. Siempre de la propia sesión. |
 | `GET /api/member/biz/<slug>/customers` | `customers:read` | Clientes del negocio, más recientes primero (`limit`, `before`). |
+| `/biz/<slug>/team` | `members:manage` | El equipo: agregar personas por correo y quitarlas. |
+| `GET` / `POST` / `DELETE /api/member/biz/<slug>/team` | `members:manage` | Lista el equipo; `{ email, role }` da o cambia un rol; `{ userId }` lo quita. |
+
+## Equipo
+
+El dueño administra su personal desde `/biz/<slug>/team` (enlace "Equipo" en el panel):
+
+- **Agregar:** escribe el correo con el que la persona va a entrar (Google o enlace). Si esa cuenta aún no existe, se reserva una sin contraseña; la persona la reclama al iniciar sesión con ese correo, y nadie más puede hacerlo. Repetir el alta con el mismo rol no cambia nada.
+- **Quitar:** la persona pierde el acceso en su siguiente petición, porque la membresía se consulta en cada una.
+- **Quién puede qué:** el dueño agrega y quita **personal**. Crear, degradar o quitar **dueños** queda para los administradores de Cirix (en el panel o con el script), para que un socio o un empleado ascendido por error no pueda dejar fuera al dueño. Nunca se puede dejar un negocio sin dueño. Un equipo tiene como máximo 50 personas.
+- Cada cambio queda en `audit_log` (`tenancy.member_granted`, `tenancy.member_removed`) con quién lo hizo y el rol anterior.
+
+Errores (`error.code`): `tenancy/team-change-denied` (403), `tenancy/last-owner` (409), `tenancy/team-full` (409), `tenancy/account-disabled` (409), `tenancy/member-not-found` (404), `tenancy/invalid-membership` (400).
 
 ## Operación
 
-Aún no hay interfaz para crear negocios; se hace con un script de administrador (escribe en el Firebase de `.env.local`):
+Aún no hay interfaz para crear negocios ni nombrar dueños; se hace con un script de administrador (escribe en el Firebase de `.env.local`):
 
 ```bash
 # Crear un negocio y su dueño (la cuenta se reconoce al iniciar sesión con ese correo)
@@ -79,7 +92,7 @@ La dirección pública del negocio es `/b/<slug>`. El QR de mesa no se arma a ma
 
 ## Límites conocidos
 
-- No hay interfaz para administrar negocios ni equipos; se usa el script.
+- No hay interfaz para crear negocios ni cambiar dueños; se usa el script. El personal sí se administra desde el panel.
 - La lista de clientes muestra los 50 más recientes (la API pagina con `before`; la página aún no).
 - El teléfono es un dato de contacto sin verificar. La identidad la prueba el correo verificado.
 - Las políticas TTL y los índices compuestos de otras colecciones requieren plan de pago de Firebase; este módulo no los necesita.

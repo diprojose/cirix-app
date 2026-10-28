@@ -82,6 +82,7 @@ Los cambios aplican a los sellos siguientes. Una tarjeta en curso conserva lo qu
 | `/biz/<slug>/scan` | Dueño y personal (`visits:record`) | Pantalla de mostrador: cámara, confirmación, entrada manual. |
 | `/biz/<slug>/program` | Dueño (`program:manage`) | Reglas del programa. |
 | `/biz/<slug>/qr` | Dueño (`program:manage`) | QR de mesa para imprimir o descargar, y botón para cambiar su código. |
+| `/biz/<slug>/activity?days=30` | Dueño (`customers:read`) | Periodo de 7, 30 (por defecto) o 90 días. Sellos y premios por empleado, personal frente a QR de mesa, y los clientes que más sellan con el QR de mesa. |
 | `POST /api/member/businesses/<slug>/table-stamp` | El cliente | `{ code }`: sella su propia tarjeta con el código de la mesa. |
 | `POST /api/member/biz/<slug>/table-code` | `program:manage` | Emite un código de mesa nuevo. |
 | `GET /api/member/businesses/<slug>/card` | El cliente | Su tarjeta (para el refresco automático). |
@@ -105,23 +106,27 @@ businesses/{businessId}/customers/{userId}/stamps/{stampId}      un registro inm
 businesses/{businessId}/customers/{userId}/redemptions/{id}      un registro inmutable por premio entregado
 businesses/{businessId}/settings/stamp_program                   las reglas del negocio
 businesses/{businessId}/settings/table_code                      el código del QR de mesa (se crea al abrir /biz/<slug>/qr)
+businesses/{businessId}/stamp_activity/{YYYY-MM-DD}              totales de ese día (UTC) para el reporte de actividad
 ```
 
 Cada registro de sello guarda `source` (`staff` o `table_qr`) y `staffUserId` (nulo en los de mesa). Los programas guardados antes de existir el modo de mesa no tienen `tableStamps` y se leen como apagado.
+
+El reporte de actividad no recorre los sellos uno por uno: cada sello y cada canje suman, **en la misma transacción**, a los totales del día (`staffStamps` y `redemptions` por empleado, `tableStamps` y `tableStampsByCustomer`). Un mes de reporte cuesta unas 30 lecturas, sin importar cuánto se mueva el negocio, y no hace falta ningún índice. Los días van en UTC, así que un sello de noche en América puede caer en el día siguiente; en periodos de 7 a 90 días no cambia la lectura. Los sellos dados antes de existir el reporte no aparecen en él.
+
+La lista de clientes del panel muestra el progreso de cada uno (sellos sobre la meta, premio listo, premios canjeados y último sello) con una sola lectura en lote de las tarjetas de esa página.
 
 La tarjeta se cambia **solo** dentro de una transacción (`StampCardRepository.transact`): se lee, se decide con lógica pura del dominio y se guarda todo junto. Cada sello y canje también se anota en la línea de tiempo del CRM (`stamp_added`, `reward_unlocked`, `reward_redeemed`) con un id estable; si esa anotación falla, el sello se conserva (la tarjeta es la fuente de verdad).
 
 ## Cómo probarlo
 
 - **Rápidas** (`npm test`): la máquina de estados, el firmador, los casos de uso con concurrencia y que el código **se pueda leer como QR** con la librería de escaneo.
-- **Contra Firestore real:** `FIRESTORE_INTEGRATION=1 npx vitest run test/firestore-stamp-card.integration.test.ts`. Demuestra que 8 escaneos simultáneos suman un solo sello y que 5 canjes simultáneos entregan un solo premio.
-- **A mano:** crea un negocio `restaurant` con `scripts/manage-business.mjs`, regístrate por `/b/<slug>`, añade a otra cuenta como `staff` y escanea desde el celular. La cámara necesita HTTPS (o `localhost`); sin ella, usa "Ingresar código a mano".
+- **Contra Firestore real:** `FIRESTORE_INTEGRATION=1 npx vitest run test/firestore-stamp-card.integration.test.ts`. Demuestra que 8 escaneos simultáneos suman un solo sello, que 5 canjes simultáneos entregan un solo premio y que los totales diarios no pierden sellos cuando llegan varios a la vez.
+- **A mano:** crea un negocio `restaurant` con `scripts/manage-business.mjs`, regístrate por `/b/<slug>`, añade a otra cuenta como personal desde `/biz/<slug>/team` y escanea desde el celular. La cámara necesita HTTPS (o `localhost`); sin ella, usa "Ingresar código a mano".
 
 ## Límites conocidos
 
 - **La cámara no se probó en un teléfono.** El lector usa el detector nativo (Chrome en Android) o `jsqr` (Safari en iPhone). Hay que validarlo en dispositivos reales antes de un piloto.
-- **Un empleado deshonesto puede sellar sin compra.** El diseño lo hace visible (cada sello nombra al empleado) pero aún no hay un reporte ni alertas de patrones por empleado.
-- **El sello con QR de mesa se puede usar desde fuera del local** con una foto del QR (ver arriba). Aún no hay un reporte que muestre qué clientes suman muchos sellos de mesa; el dato ya se guarda.
+- **Un empleado deshonesto puede sellar sin compra.** El reporte de actividad muestra cuántos sellos dio cada empleado, pero no hay alertas automáticas: el dueño tiene que mirarlo.
+- **El sello con QR de mesa se puede usar desde fuera del local** con una foto del QR (ver arriba). El reporte de actividad lista a los 10 clientes que más sellan con el QR de mesa; no marca a nadie como sospechoso por su cuenta.
 - **No hay pase para Apple Wallet ni Google Wallet.** La tarjeta es una página web (PWA). Los pases requieren cuentas de desarrollador (Apple es de pago).
 - **El refresco de la tarjeta es por consulta cada 5 s**, no en tiempo real; con el límite diario gratuito de Firestore conviene vigilar el consumo si hay muchos clientes con la tarjeta abierta.
-- La lista de clientes del panel aún no muestra el progreso de sellos de cada uno.
