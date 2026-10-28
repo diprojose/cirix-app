@@ -61,7 +61,7 @@ node scripts/manage-business.mjs add-member --slug cafe-luna --email persona@cor
 node scripts/manage-business.mjs list
 ```
 
-La dirección pública del negocio es `/b/<slug>`; para el QR de mesa usa `/b/<slug>?source=table_qr`. El `slug` tiene 3 a 40 caracteres (minúsculas, dígitos y guiones sueltos) y no puede ser una palabra reservada (`admin`, `api`, `login`…). Es único y se reserva de forma atómica.
+La dirección pública del negocio es `/b/<slug>`. El QR de mesa no se arma a mano: el dueño lo imprime desde `/biz/<slug>/qr` (ver [tarjeta de sellos](stamp-card.md#sello-con-el-qr-de-mesa)). El `slug` tiene 3 a 40 caracteres (minúsculas, dígitos y guiones sueltos) y no puede ser una palabra reservada (`admin`, `api`, `login`…). Es único y se reserva de forma atómica.
 
 ## Cómo probarlo
 

@@ -11,6 +11,33 @@ Programa de visitas para restaurantes, cafeterías y negocios que no sean superm
 5. **Al completar la tarjeta** se muestra una celebración y un aviso de "Premio listo". Mientras el premio espera, no se añaden más sellos.
 6. **Al canjear**, la tarjeta vuelve a cero y el siguiente ciclo comienza en la próxima visita.
 
+## Sello con el QR de mesa
+
+El cliente pidió que el comensal pueda sellar su visita escaneando el QR impreso en la mesa, sin pasar por caja. Es opcional y está **apagado por defecto**; el dueño lo activa en `/biz/<slug>/program`.
+
+1. **El dueño imprime el QR** en `/biz/<slug>/qr` (o descarga la imagen). El QR lleva a `/b/<slug>?source=table_qr&t=<código>`.
+2. **La primera vez**, quien lo escanea inicia sesión, se registra y cae en su tarjeta con el código.
+3. **Las siguientes veces** va directo a su tarjeta.
+4. La tarjeta muestra **"Sumar el sello de esta visita"**. El sello se da al tocar el botón, nunca al abrir la página, y el código se borra de la barra de direcciones.
+5. **El premio se canjea como siempre**: el personal escanea el QR personal del cliente. Esa entrega presencial es el límite real del abuso.
+
+Con el modo apagado, el mismo QR sirve solo para registrarse, y los sellos los da el personal.
+
+### Lo que este modo no puede evitar
+
+Un QR impreso no cambia, así que **una foto suya sirve desde cualquier lugar**: alguien puede sumar sellos desde su casa o compartir la foto. Ninguna regla del servidor distingue a quien está sentado en la mesa de quien tiene la foto. El cliente conoce y acepta este riesgo. Las defensas lo acotan, no lo eliminan:
+
+| Defensa | Efecto |
+| --- | --- |
+| Espera mínima de **60 min** con este modo (en vez de 5) | Una foto suma como máximo un sello por hora y por persona. Cuatro horas (240 min) es lo recomendado. |
+| La espera es la misma para los dos caminos | Un sello de mesa y uno del personal en la misma visita no se suman: el segundo se rechaza. |
+| **Cambiar código** en `/biz/<slug>/qr` | Los QR impresos con el código anterior dejan de sellar al instante (siguen sirviendo para registrarse). Hay que reimprimirlos. |
+| Cada sello guarda su origen | `source: "table_qr"` y `staffUserId: null`, frente a `"staff"` con el empleado. Permite ver luego qué parte de los sellos vino de la mesa. |
+| Canje presencial | Juntar sellos desde casa no sirve de nada sin ir al local a canjear. |
+| Interruptor del dueño | Si hay abuso, se apaga y todo vuelve a pasar por el personal. |
+
+El código de mesa son 16 caracteres aleatorios (96 bits) guardados en Firestore, independientes de `STAMP_QR_SECRET`: rotar ese secreto no invalida los QR impresos.
+
 ## Reglas antifraude
 
 | Amenaza | Cómo se frena |
@@ -43,6 +70,7 @@ El dueño ajusta las reglas en `/biz/<slug>/program`:
 | Premio | 2 a 60 caracteres | "Free item" |
 | Espera entre sellos | 5 a 1440 min | 240 |
 | Programa activo | sí / no | sí |
+| El cliente sella con el QR de la mesa | sí / no (con "sí", la espera mínima es 60 min) | no |
 
 Los cambios aplican a los sellos siguientes. Una tarjeta en curso conserva lo que juntó; si el dueño baja la meta por debajo de los sellos ya juntados, esa tarjeta cuenta como completa.
 
@@ -53,6 +81,9 @@ Los cambios aplican a los sellos siguientes. Una tarjeta en curso conserva lo qu
 | `/me/cards/<slug>` | El cliente | Su tarjeta, el premio, el QR y las animaciones. |
 | `/biz/<slug>/scan` | Dueño y personal (`visits:record`) | Pantalla de mostrador: cámara, confirmación, entrada manual. |
 | `/biz/<slug>/program` | Dueño (`program:manage`) | Reglas del programa. |
+| `/biz/<slug>/qr` | Dueño (`program:manage`) | QR de mesa para imprimir o descargar, y botón para cambiar su código. |
+| `POST /api/member/businesses/<slug>/table-stamp` | El cliente | `{ code }`: sella su propia tarjeta con el código de la mesa. |
+| `POST /api/member/biz/<slug>/table-code` | `program:manage` | Emite un código de mesa nuevo. |
 | `GET /api/member/businesses/<slug>/card` | El cliente | Su tarjeta (para el refresco automático). |
 | `GET /api/member/businesses/<slug>/qr` | El cliente | Un código nuevo para su QR. |
 | `POST /api/member/biz/<slug>/scan/preview` | `visits:record` | Muestra primer nombre y estado; no cambia nada. |
@@ -62,7 +93,7 @@ Los cambios aplican a los sellos siguientes. Una tarjeta en curso conserva lo qu
 
 Un supermercado responde **404** a todas, como si la función no existiera.
 
-Errores de escaneo (`error.code`): `stamps/invalid-token`, `stamps/expired-token`, `stamps/not-a-customer` (404), `stamps/too-soon` (409, con `retryAfterSeconds`), `stamps/reward-pending` (409), `stamps/no-reward` (409), `stamps/inactive` (409).
+Errores de escaneo (`error.code`): `stamps/invalid-token`, `stamps/expired-token`, `stamps/not-a-customer` (404), `stamps/too-soon` (409, con `retryAfterSeconds`), `stamps/reward-pending` (409), `stamps/no-reward` (409), `stamps/inactive` (409). Del QR de mesa: `stamps/table-disabled` (409, el dueño no lo activó) y `stamps/invalid-table-code` (400, código equivocado, de otro negocio o reemplazado).
 
 ## Datos
 
@@ -73,7 +104,10 @@ businesses/{businessId}/customers/{userId}/programs/stamps       la tarjeta (est
 businesses/{businessId}/customers/{userId}/stamps/{stampId}      un registro inmutable por sello (empleado, fecha, número)
 businesses/{businessId}/customers/{userId}/redemptions/{id}      un registro inmutable por premio entregado
 businesses/{businessId}/settings/stamp_program                   las reglas del negocio
+businesses/{businessId}/settings/table_code                      el código del QR de mesa (se crea al abrir /biz/<slug>/qr)
 ```
+
+Cada registro de sello guarda `source` (`staff` o `table_qr`) y `staffUserId` (nulo en los de mesa). Los programas guardados antes de existir el modo de mesa no tienen `tableStamps` y se leen como apagado.
 
 La tarjeta se cambia **solo** dentro de una transacción (`StampCardRepository.transact`): se lee, se decide con lógica pura del dominio y se guarda todo junto. Cada sello y canje también se anota en la línea de tiempo del CRM (`stamp_added`, `reward_unlocked`, `reward_redeemed`) con un id estable; si esa anotación falla, el sello se conserva (la tarjeta es la fuente de verdad).
 
@@ -87,6 +121,7 @@ La tarjeta se cambia **solo** dentro de una transacción (`StampCardRepository.t
 
 - **La cámara no se probó en un teléfono.** El lector usa el detector nativo (Chrome en Android) o `jsqr` (Safari en iPhone). Hay que validarlo en dispositivos reales antes de un piloto.
 - **Un empleado deshonesto puede sellar sin compra.** El diseño lo hace visible (cada sello nombra al empleado) pero aún no hay un reporte ni alertas de patrones por empleado.
+- **El sello con QR de mesa se puede usar desde fuera del local** con una foto del QR (ver arriba). Aún no hay un reporte que muestre qué clientes suman muchos sellos de mesa; el dato ya se guarda.
 - **No hay pase para Apple Wallet ni Google Wallet.** La tarjeta es una página web (PWA). Los pases requieren cuentas de desarrollador (Apple es de pago).
 - **El refresco de la tarjeta es por consulta cada 5 s**, no en tiempo real; con el límite diario gratuito de Firestore conviene vigilar el consumo si hay muchos clientes con la tarjeta abierta.
 - La lista de clientes del panel aún no muestra el progreso de sellos de cada uno.
