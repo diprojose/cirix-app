@@ -1,8 +1,9 @@
-import type { Firestore } from "firebase-admin/firestore";
+import { FieldPath, FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import { StampCard } from "../../domain/entities/stamp-card";
 import type { CardWrite, StampCardRepository } from "../../domain/ports/stamp-card-repository";
+import { activityDay, type DailyStampActivity, type StampActivityReader } from "../../domain/ports/stamp-activity";
 import type { StampProgramRepository } from "../../domain/ports/stamp-program-repository";
 import type { TableCode, TableCodeRepository } from "../../domain/ports/table-code-repository";
 import { StampProgram } from "../../domain/value-objects/stamp-program";
@@ -18,6 +19,7 @@ import { newTableCode } from "../crypto/table-code";
  *   businesses/{businessId}/customers/{userId}/redemptions/{id}       one immutable record per reward
  *   businesses/{businessId}/settings/stamp_program                    the business's rules
  *   businesses/{businessId}/settings/table_code                       the code inside the table QR
+ *   businesses/{businessId}/stamp_activity/{YYYY-MM-DD}               that UTC day's totals, for owner reports
  */
 type CardDocument = {
   businessId: string;
@@ -43,8 +45,14 @@ type ProgramDocument = {
 /** Firestore's gRPC status for a create() that found the document already there. */
 const ALREADY_EXISTS = 6;
 
+/** Missing counters were simply never incremented. */
+type ActivityDocument = Partial<Omit<DailyStampActivity, "day">>;
+
 const customerRef = (firestore: Firestore, businessId: string, userId: string) =>
   firestore.collection("businesses").doc(businessId).collection("customers").doc(userId);
+
+const activityCollection = (firestore: Firestore, businessId: string) =>
+  firestore.collection("businesses").doc(businessId).collection("stamp_activity");
 
 function restoreCard(data: CardDocument): StampCard {
   const result = StampCard.restore(data);
@@ -63,6 +71,23 @@ export class FirestoreStampCardRepository implements StampCardRepository {
   async find(businessId: string, userId: string): Promise<StampCard | null> {
     const snapshot = await this.cardRef(businessId, userId).get();
     return snapshot.exists ? restoreCard(snapshot.data() as CardDocument) : null;
+  }
+
+  private activityRef(businessId: string, at: string) {
+    return activityCollection(this.firestore, businessId).doc(activityDay(at));
+  }
+
+  async findMany(businessId: string, userIds: readonly string[]): Promise<Map<string, StampCard>> {
+    const cards = new Map<string, StampCard>();
+    if (userIds.length === 0) return cards;
+    const snapshots = await this.firestore.getAll(...userIds.map((userId) => this.cardRef(businessId, userId)));
+    for (const snapshot of snapshots) {
+      if (snapshot.exists) {
+        const card = restoreCard(snapshot.data() as CardDocument);
+        cards.set(card.userId, card);
+      }
+    }
+    return cards;
   }
 
   async transact<T extends CardWrite>(
@@ -98,14 +123,46 @@ export class FirestoreStampCardRepository implements StampCardRepository {
           at: stamp.at,
           sequence: stamp.sequence,
         });
+        const counts =
+          stamp.staffUserId === null
+            ? { tableStamps: FieldValue.increment(1), tableStampsByCustomer: { [userId]: FieldValue.increment(1) } }
+            : { staffStamps: { [stamp.staffUserId]: FieldValue.increment(1) } };
+        transaction.set(this.activityRef(businessId, stamp.at), counts, { merge: true });
       }
       if (redemption) {
         transaction.create(customer.collection("redemptions").doc(redemption.id), {
           staffUserId: redemption.staffUserId,
           at: redemption.at,
         });
+        transaction.set(
+          this.activityRef(businessId, redemption.at),
+          { redemptions: { [redemption.staffUserId]: FieldValue.increment(1) } },
+          { merge: true }
+        );
       }
       return result;
+    });
+  }
+}
+
+/** Firestore adapter for {@link StampActivityReader}. A range on the document id needs no index. */
+export class FirestoreStampActivityReader implements StampActivityReader {
+  constructor(private readonly firestore: Firestore) {}
+
+  async days(businessId: string, fromDay: string, toDay: string): Promise<DailyStampActivity[]> {
+    const snapshot = await activityCollection(this.firestore, businessId)
+      .where(FieldPath.documentId(), ">=", fromDay)
+      .where(FieldPath.documentId(), "<=", toDay)
+      .get();
+    return snapshot.docs.map((doc) => {
+      const data = doc.data() as ActivityDocument;
+      return {
+        day: doc.id,
+        staffStamps: data.staffStamps ?? {},
+        tableStamps: data.tableStamps ?? 0,
+        redemptions: data.redemptions ?? {},
+        tableStampsByCustomer: data.tableStampsByCustomer ?? {},
+      };
     });
   }
 }

@@ -23,6 +23,7 @@ import { adminFirestore } from "@/shared/infrastructure/firebase-admin";
 import { StampCard } from "@/modules/stamp-card/domain/entities/stamp-card";
 import { StampProgram } from "@/modules/stamp-card/domain/value-objects/stamp-program";
 import {
+  FirestoreStampActivityReader,
   FirestoreStampCardRepository,
   FirestoreStampProgramRepository,
   FirestoreTableCodeRepository,
@@ -148,5 +149,39 @@ describe.skipIf(!enabled)("Stamp card on real Firestore", { timeout: 60_000 }, (
     const rotated = await codes.rotate(businessId);
     expect(rotated.code).not.toBe(first[0].code);
     expect((await codes.current(businessId)).code).toBe(rotated.code);
+  });
+
+  it("counts every stamp and reward in the daily totals, even when many land at once", async () => {
+    // A day no other test touches, so its totals are only these.
+    const day = new Date("2026-04-15T10:00:00.000Z");
+    const later = new Date("2026-04-16T23:59:00.000Z");
+    const customers = Array.from({ length: 8 }, (_, index) => `busy-${index}`);
+    const results = await Promise.all([
+      ...customers.map((userId, index) => stamp(userId, day, index % 2 === 0 ? "staff-a" : "staff-b")),
+      cards.transact(businessId, "walk-in", (current) => (current ?? StampCard.empty(businessId, "walk-in", day)).stamp(program, null, day)),
+    ]);
+    expect(results.every((result) => result.ok)).toBe(true);
+    await cards.transact(businessId, "walk-in", (current) => current!.stamp(program, null, later));
+    // busy-0 completes its card on the 16th, so a reward can be handed over.
+    await stamp("busy-0", new Date("2026-04-16T12:10:00.000Z"), "staff-a");
+    await stamp("busy-0", new Date("2026-04-16T12:20:00.000Z"), "staff-a");
+    expect((await redeem("busy-0", later, "staff-b")).ok).toBe(true);
+    // A refused stamp counts nothing.
+    expect((await stamp("busy-1", day)).ok).toBe(false);
+
+    const reader = new FirestoreStampActivityReader(firestore);
+    const days = await reader.days(businessId, "2026-04-15", "2026-04-16");
+    expect(days).toEqual([
+      { day: "2026-04-15", staffStamps: { "staff-a": 4, "staff-b": 4 }, tableStamps: 1, redemptions: {}, tableStampsByCustomer: { "walk-in": 1 } },
+      { day: "2026-04-16", staffStamps: { "staff-a": 2 }, tableStamps: 1, redemptions: { "staff-b": 1 }, tableStampsByCustomer: { "walk-in": 1 } },
+    ]);
+    expect(await reader.days(businessId, "2026-04-17", "2026-04-30")).toEqual([]);
+  });
+
+  it("reads several customers' cards at once and skips people without one", async () => {
+    const found = await cards.findMany(businessId, ["busy-0", "busy-3", "nobody"]);
+    expect([...found.keys()].sort()).toEqual(["busy-0", "busy-3"]);
+    expect(found.get("busy-3")?.stamps).toBe(1);
+    expect((await cards.findMany(businessId, [])).size).toBe(0);
   });
 });

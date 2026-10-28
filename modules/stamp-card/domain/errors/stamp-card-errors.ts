@@ -89,6 +89,15 @@ export class InvalidTableCodeError extends DomainError {
   }
 }
 
+/** The activity report was asked for a period it does not offer. */
+export class InvalidReportRangeError extends DomainError {
+  readonly code = "stamps/invalid-range";
+
+  constructor(days: number) {
+    super(`Activity is not reported over ${days} days.`);
+  }
+}
+
 /** Raised when a stored card holds impossible numbers and cannot be trusted. */
 export class CorruptStampCardError extends DomainError {
   readonly code = "stamps/corrupt-card";

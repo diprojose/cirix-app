@@ -5,7 +5,9 @@ import type { ScanTokenSigner } from "../../domain/ports/scan-token-signer";
 import type { CustomerDirectory } from "../../domain/ports/customer-directory";
 import type { CustomerActivityLog } from "../../domain/ports/customer-activity-log";
 import type { TableCodeRepository } from "../../domain/ports/table-code-repository";
+import type { StampActivityReader } from "../../domain/ports/stamp-activity";
 import {
+  FirestoreStampActivityReader,
   FirestoreStampCardRepository,
   FirestoreStampProgramRepository,
   FirestoreTableCodeRepository,
@@ -20,6 +22,7 @@ import { RedeemReward } from "../../application/use-cases/redeem-reward";
 import { GetStampProgram, SaveStampProgram } from "../../application/use-cases/stamp-program-use-cases";
 import { ClaimTableStamp } from "../../application/use-cases/claim-table-stamp";
 import { GetTableCode, RotateTableCode } from "../../application/use-cases/table-code-use-cases";
+import { GetStampActivity, ListCardProgress } from "../../application/use-cases/owner-reports";
 
 /*
  * Composition root for the stamp card module: the only place that knows the
@@ -36,6 +39,7 @@ let signer: ScanTokenSigner | null = null;
 let directory: CustomerDirectory | null = null;
 let activity: CustomerActivityLog | null = null;
 let tableCodes: TableCodeRepository | null = null;
+let activityReader: StampActivityReader | null = null;
 
 const cardRepository = () => (cards ??= new FirestoreStampCardRepository(adminFirestore()));
 const programRepository = () => (programs ??= new FirestoreStampProgramRepository(adminFirestore()));
@@ -43,6 +47,7 @@ const tokenSigner = () => (signer ??= new HmacScanTokenSigner(process.env.STAMP_
 const customerDirectory = () => (directory ??= new CrmCustomerDirectory());
 const activityLog = () => (activity ??= new CrmActivityLog());
 const tableCodeRepository = () => (tableCodes ??= new FirestoreTableCodeRepository(adminFirestore()));
+const stampActivity = () => (activityReader ??= new FirestoreStampActivityReader(adminFirestore()));
 
 /** Builds the "get my stamp card" use case. */
 export const makeGetStampCard = (): GetStampCard =>
@@ -78,3 +83,9 @@ export const makeGetTableCode = (): GetTableCode => new GetTableCode(tableCodeRe
 
 /** Builds the "replace table code" use case (owner, after a QR photo leaks). */
 export const makeRotateTableCode = (): RotateTableCode => new RotateTableCode(tableCodeRepository());
+
+/** Builds the "card progress" use case (owner's customer list). */
+export const makeListCardProgress = (): ListCardProgress => new ListCardProgress(cardRepository(), programRepository());
+
+/** Builds the "stamp activity" report (owner: by employee, by source, table QR heavy users). */
+export const makeGetStampActivity = (): GetStampActivity => new GetStampActivity(stampActivity());
