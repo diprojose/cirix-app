@@ -13,6 +13,10 @@ export class InMemoryBusinessRepository implements BusinessRepository {
     return this.items.get(id.value) ?? null;
   }
 
+  async idForSlug(slug: string): Promise<string | null> {
+    return (await this.findBySlug(slug))?.id.value ?? null;
+  }
+
   async findBySlug(slug: string): Promise<Business | null> {
     return [...this.items.values()].find((business) => business.slug.value === slug) ?? null;
   }

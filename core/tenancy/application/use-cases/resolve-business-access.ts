@@ -14,6 +14,7 @@ import {
   type BusinessRole,
 } from "../../domain/value-objects/member-role";
 import { toBusinessDto, type BusinessAccessDto } from "../dtos/business-dto";
+import { BusinessId } from "../../domain/value-objects/business-id";
 
 export type ResolveBusinessAccessInput = {
   slug: string;
@@ -39,16 +40,18 @@ export class ResolveBusinessAccess
   ) {}
 
   async execute(input: ResolveBusinessAccessInput): Promise<Result<BusinessAccessDto, DomainError>> {
-    const business = await this.businesses.findBySlug(input.slug.trim().toLowerCase());
-    if (business === null) return err(new BusinessNotFoundError(input.slug));
+    const slug = input.slug.trim().toLowerCase();
+    const id = await this.businesses.idForSlug(slug);
+    if (id === null) return err(new BusinessNotFoundError(input.slug));
 
-    let role: BusinessRole | null = null;
-    if (input.platformAdmin) {
-      role = "platform_admin";
-    } else {
-      const membership = await this.memberships.find(business.id.value, input.userId);
-      role = membership?.role ?? null;
-    }
+    // Both reads in one round trip: this gate runs on every business page and API call.
+    const [business, membership] = await Promise.all([
+      this.businesses.findById(BusinessId.from(id)),
+      input.platformAdmin ? Promise.resolve(null) : this.memberships.find(id, input.userId),
+    ]);
+    if (business === null || business.slug.value !== slug) return err(new BusinessNotFoundError(input.slug));
+
+    const role: BusinessRole | null = input.platformAdmin ? "platform_admin" : membership?.role ?? null;
     if (role === null) return err(new BusinessAccessDeniedError());
 
     // Administrators can still inspect a suspended business; everyone else cannot.

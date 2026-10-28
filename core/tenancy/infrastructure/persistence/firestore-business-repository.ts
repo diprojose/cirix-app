@@ -9,6 +9,9 @@ const BUSINESSES = "businesses";
 /** One document per reserved slug, keyed by the slug itself: makes it unique. */
 const SLUGS = "business_slugs";
 
+/** How long a slug to id answer is reused. */
+const SLUG_CACHE_MS = 10 * 60_000;
+
 type BusinessDocument = {
   slug: string;
   name: string;
@@ -25,7 +28,20 @@ type BusinessDocument = {
  * equality queries are used, which need no composite index.
  */
 export class FirestoreBusinessRepository implements BusinessRepository {
+  /** Slug to id answers already read. Only found slugs are kept, so a new business is seen at once. */
+  private readonly slugIds = new Map<string, { id: string; expiresAt: number }>();
+
   constructor(private readonly firestore: Firestore) {}
+
+  async idForSlug(slug: string): Promise<string | null> {
+    const cached = this.slugIds.get(slug);
+    if (cached && cached.expiresAt > Date.now()) return cached.id;
+    const snapshot = await this.firestore.collection(SLUGS).doc(slug).get();
+    const id = snapshot.exists ? (snapshot.data() as { businessId?: string }).businessId ?? null : null;
+    if (id === null) this.slugIds.delete(slug);
+    else this.slugIds.set(slug, { id, expiresAt: Date.now() + SLUG_CACHE_MS });
+    return id;
+  }
 
   async findById(id: BusinessId): Promise<Business | null> {
     const snapshot = await this.firestore.collection(BUSINESSES).doc(id.value).get();

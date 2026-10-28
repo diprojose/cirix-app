@@ -96,7 +96,21 @@ describe("administrative admission", () => {
     const account = await provider.verifySession("old-operator-cookie");
     expect(account?.canOperateStore()).toBe(false);
     expect(account?.canPlaceOrders()).toBe(true);
-    expect(auth.verifySessionCookie).toHaveBeenCalledWith("old-operator-cookie", true);
+    // The signature is checked locally; revocation is checked against the user record read once.
+    expect(auth.verifySessionCookie).toHaveBeenCalledWith("old-operator-cookie", false);
+    expect(auth.getUser).toHaveBeenCalledTimes(1);
+  });
+  it("rejects a session from a sign-in older than the last revocation", async () => {
+    const signedIn = Math.floor(Date.now() / 1000) - 3600;
+    auth.verifySessionCookie.mockResolvedValue({ ...token(), auth_time: signedIn });
+    auth.getUser.mockResolvedValue({ ...user, tokensValidAfterTime: new Date((signedIn + 60) * 1000).toUTCString() });
+    expect(await provider.verifySession("revoked-cookie")).toBeNull();
+    auth.getUser.mockResolvedValue({ ...user, tokensValidAfterTime: new Date((signedIn - 60) * 1000).toUTCString() });
+    expect(await provider.verifySession("still-valid-cookie")).not.toBeNull();
+  });
+  it("rejects a forged or expired session cookie", async () => {
+    auth.verifySessionCookie.mockRejectedValue(new Error("invalid signature"));
+    expect(await provider.verifySession("forged-cookie")).toBeNull();
   });
   it("fails closed when the identity service is unavailable or the user is deleted", async () => {
     auth.getUser.mockRejectedValue(new Error("not found or unavailable"));

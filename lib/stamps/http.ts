@@ -78,6 +78,13 @@ export async function resolveStampBusiness(
   return { ok: true, business: business.value };
 }
 
+/**
+ * For handlers that already passed the business gate, which resolved the
+ * business: answers 404 for a supermarket without reading it again.
+ */
+export const stampsUnavailable = (business: BusinessDto): Response | null =>
+  business.kind === "supermarket" ? json({ ok: false, error: { code: "stamps/not-available" } }, 404) : null;
+
 /** Same-origin check for state-changing requests. */
 export const isSameOrigin = (request: Request): boolean =>
   request.headers.get("origin") === new URL(request.url).origin;

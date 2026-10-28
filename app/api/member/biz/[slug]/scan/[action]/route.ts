@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { checkBusinessApiAccess } from "@/lib/auth/business-access";
-import { guardStampErrors, isSameOrigin, json, resolveStampBusiness, stampError } from "@/lib/stamps/http";
+import { guardStampErrors, isSameOrigin, json, stampsUnavailable, stampError } from "@/lib/stamps/http";
 import {
   makePreviewScan,
   makeRecordStamp,
@@ -30,8 +30,8 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
 
   const gate = await checkBusinessApiAccess(slug, "visits:record");
   if (!gate.ok) return gate.response;
-  const business = await resolveStampBusiness(slug);
-  if (!business.ok) return business.response;
+  const unavailable = stampsUnavailable(gate.access.business);
+  if (unavailable) return unavailable;
 
   const text = await request.text();
   if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) {

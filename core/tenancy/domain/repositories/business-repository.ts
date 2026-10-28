@@ -9,6 +9,13 @@ import type { BusinessId } from "../value-objects/business-id";
 export interface BusinessRepository {
   findById(id: BusinessId): Promise<Business | null>;
 
+  /**
+   * The id behind a normalized slug, or null. A slug never moves to another
+   * business, so adapters may remember the answer; the business itself must
+   * still be read fresh (its status can change).
+   */
+  idForSlug(slug: string): Promise<string | null>;
+
   /** Looks a business up by its normalized slug. */
   findBySlug(slug: string): Promise<Business | null>;
 

@@ -11,6 +11,15 @@ import { hasPlatformAccess } from "./platform-access";
 import { PlatformAccessDeniedError } from "../../domain/errors/iam-errors";
 
 /**
+ * Same rule the Admin SDK applies with `checkRevoked`: a session from a sign-in
+ * older than the last revocation (logout everywhere, password change) is void.
+ */
+export function isRevoked(authTimeSeconds: number, tokensValidAfterTime: string | undefined): boolean {
+  if (!tokensValidAfterTime) return false;
+  return authTimeSeconds * 1000 < new Date(tokensValidAfterTime).getTime();
+}
+
+/**
  * Firebase-backed adapter implementing {@link IdentityProvider}. It is the only
  * place that talks to the Admin Auth SDK: it mints and verifies session cookies
  * and resolves users by email. Swapping identity providers means replacing this
@@ -25,10 +34,12 @@ export class FirebaseIdentityProvider implements IdentityProvider {
 
   async verifySession(sessionCookie: string): Promise<UserAccount | null> {
     try {
-      // `true` checks the token has not been revoked (logout, disabled user).
-      const decoded = await adminAuth().verifySessionCookie(sessionCookie, true);
+      // The signature is checked locally. Revocation needs the user record, which
+      // is read once here instead of also inside verifySessionCookie(…, true).
+      const decoded = await adminAuth().verifySessionCookie(sessionCookie, false);
       const user = await adminAuth().getUser(decoded.uid);
       if (user.disabled || !user.email || !user.emailVerified) return null;
+      if (isRevoked(decoded.auth_time, user.tokensValidAfterTime)) return null;
       if (this.audience === "platform" && !hasPlatformAccess(user)) return null;
       // Read current admission and role, never stale claims in a 14-day cookie.
       return toUserAccount({
