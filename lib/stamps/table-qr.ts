@@ -13,6 +13,24 @@ export function readTableCodeParam(value: string | string[] | undefined): string
 export const cardPath = (slug: string, tableCode: string | null): string =>
   tableCode === null ? `/me/cards/${slug}` : `/me/cards/${slug}?t=${encodeURIComponent(tableCode)}`;
 
+/**
+ * The table code inside a scanned table QR of this business, or null when the
+ * text is anything else: another site, another business, or no code.
+ */
+export function readScannedTableQr(text: string, slug: string, origin: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch {
+    return null;
+  }
+  if (url.origin !== origin) return null;
+  // The path may carry a locale prefix, e.g. /es/b/cafe-luna.
+  const match = /^(?:\/[a-z]{2})?\/b\/([^/]+)\/?$/.exec(url.pathname);
+  if (match === null || decodeURIComponent(match[1]) !== slug) return null;
+  return readTableCodeParam(url.searchParams.get("t") ?? undefined);
+}
+
 /** The path printed inside the table QR: signup for newcomers, the card (and stamp) for everyone. */
 export const tableQrPath = (slug: string, tableCode: string): string =>
   `/b/${slug}?source=table_qr&t=${encodeURIComponent(tableCode)}`;

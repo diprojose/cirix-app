@@ -17,7 +17,7 @@ import { GetTableCode, RotateTableCode } from "@/modules/stamp-card/application/
 import { RecordStamp } from "@/modules/stamp-card/application/use-cases/record-stamp";
 import { GetStampCard } from "@/modules/stamp-card/application/use-cases/get-stamp-card";
 import { SaveStampProgram } from "@/modules/stamp-card/application/use-cases/stamp-program-use-cases";
-import { cardPath, readTableCodeParam, tableQrPath } from "@/lib/stamps/table-qr";
+import { cardPath, readScannedTableQr, readTableCodeParam, tableQrPath } from "@/lib/stamps/table-qr";
 import { statusForStampError } from "@/lib/stamps/http";
 import { isMemberPage, requiresPlatformAccess } from "@/lib/auth/route-access";
 
@@ -220,6 +220,16 @@ describe("table QR addresses", () => {
     expect(tableQrPath("cafe-luna", "abc")).toBe("/b/cafe-luna?source=table_qr&t=abc");
     expect(cardPath("cafe-luna", "abc")).toBe("/me/cards/cafe-luna?t=abc");
     expect(cardPath("cafe-luna", null)).toBe("/me/cards/cafe-luna");
+  });
+
+  it("read the code from a scanned table QR of this business only", () => {
+    const origin = "https://cirix.example";
+    expect(readScannedTableQr(`${origin}/b/cafe-luna?source=table_qr&t=abc`, "cafe-luna", origin)).toBe("abc");
+    expect(readScannedTableQr(`${origin}/es/b/cafe-luna?t=abc`, "cafe-luna", origin)).toBe("abc");
+    expect(readScannedTableQr(`${origin}/b/otro-cafe?t=abc`, "cafe-luna", origin)).toBeNull();
+    expect(readScannedTableQr("https://evil.example/b/cafe-luna?t=abc", "cafe-luna", origin)).toBeNull();
+    expect(readScannedTableQr(`${origin}/b/cafe-luna`, "cafe-luna", origin)).toBeNull();
+    expect(readScannedTableQr("not a url", "cafe-luna", origin)).toBeNull();
   });
 
   it("put the printable QR page behind the business membership, not the platform", () => {

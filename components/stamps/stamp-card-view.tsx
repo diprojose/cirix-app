@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { pick } from "@/lib/locale";
+import { readScannedTableQr } from "@/lib/stamps/table-qr";
 import type { StampCardDto } from "@/modules/stamp-card/application/dtos/stamp-card-dto";
+import { QrScanner } from "./qr-scanner";
 import { RotatingQr } from "./rotating-qr";
 import s from "./stamp-card.module.css";
 
@@ -20,7 +22,9 @@ type ClaimState = { kind: "idle" | "loading" | "done" } | { kind: "error"; text:
  * the page is open it checks for changes every few seconds, so when staff stamp
  * the card the new stamp lands on screen with an animation, and a completed
  * card celebrates. Opened from the table QR (`tableCode`), it also offers a
- * button to stamp this visit.
+ * button to stamp this visit. Where the business gives stamps at the table, the
+ * customer scans the table QR from here, and their own code only shows to
+ * redeem a reward.
  */
 export function StampCardView({
   slug,
@@ -39,6 +43,8 @@ export function StampCardView({
   const [celebrating, setCelebrating] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
   const [claim, setClaim] = useState<ClaimState>({ kind: "idle" });
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
   const previous = useRef(initial);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -86,14 +92,14 @@ export function StampCardView({
     };
   }, [slug, show]);
 
-  async function claimTableStamp() {
-    if (tableCode === null || claim.kind === "loading") return;
+  async function claimTableStamp(code: string | null = tableCode) {
+    if (code === null || claim.kind === "loading") return;
     setClaim({ kind: "loading" });
     try {
       const response = await fetch(`/api/member/businesses/${encodeURIComponent(slug)}/table-stamp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: tableCode }),
+        body: JSON.stringify({ code }),
       });
       const body = (await response.json().catch(() => ({}))) as {
         card?: StampCardDto;
@@ -111,6 +117,17 @@ export function StampCardView({
     } catch {
       setClaim({ kind: "error", text: pick(locale, { es: "Sin conexión. Intenta de nuevo.", en: "No connection. Please try again." }), retry: true });
     }
+  }
+
+  function onScan(text: string) {
+    setScanning(false);
+    const code = readScannedTableQr(text, slug, window.location.origin);
+    if (code === null) {
+      setScanError(pick(locale, { es: "Ese no es el QR de la mesa de este local. Intenta de nuevo.", en: "That isn't this place's table QR. Try again." }));
+      return;
+    }
+    setScanError(null);
+    void claimTableStamp(code);
   }
 
   function claimErrorText(code: string | undefined, retryAfterSeconds: number | undefined): string {
@@ -135,6 +152,9 @@ export function StampCardView({
 
   const waitMinutes = Math.ceil(card.retryAfterSeconds / 60);
   const offerTableStamp = tableCode !== null && claim.kind !== "done" && (card.canStamp || claim.kind === "error");
+  // At a table-stamp business the customer scans; their own code is only for redeeming.
+  const scanAtTable = card.tableStamps && card.active && !card.rewardReady;
+  const offerScan = scanAtTable && tableCode === null && claim.kind !== "done";
 
   return (
     <div className="flex flex-col gap-6">
@@ -151,7 +171,7 @@ export function StampCardView({
           {(claim.kind !== "error" || claim.retry) && (
             <button
               type="button"
-              onClick={claimTableStamp}
+              onClick={() => void claimTableStamp()}
               disabled={claim.kind === "loading"}
               className="min-h-11 w-full rounded-pill bg-accent-fill px-5 py-3 text-label font-medium text-on-accent transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
             >
@@ -165,6 +185,28 @@ export function StampCardView({
               {claim.text}
             </p>
           )}
+        </section>
+      )}
+      {offerScan && (
+        <section aria-label={pick(locale, { es: "Escanear el QR de la mesa", en: "Scan the table QR" })} className="flex flex-col gap-3">
+          {scanning ? (
+            <>
+              <QrScanner active={scanning} onDetect={onScan}
+                label={pick(locale, { es: "Cámara para escanear el QR de la mesa", en: "Camera to scan the table QR" })} />
+              <button type="button" onClick={() => setScanning(false)} className="min-h-11 w-full rounded-pill border border-border bg-surface px-5 py-3 text-label font-medium text-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+                {pick(locale, { es: "Cancelar", en: "Cancel" })}
+              </button>
+            </>
+          ) : (
+            <button type="button" disabled={claim.kind === "loading"} className="min-h-11 w-full rounded-pill bg-accent-fill px-5 py-3 text-label font-medium text-on-accent transition-colors hover:bg-accent-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
+              onClick={() => { setScanError(null); setClaim({ kind: "idle" }); setScanning(true); }}>
+              {claim.kind === "loading"
+                ? pick(locale, { es: "Sumando...", en: "Adding..." })
+                : pick(locale, { es: "Escanear el QR de la mesa", en: "Scan the table QR" })}
+            </button>
+          )}
+          {scanError && <p role="alert" className="rounded-2xl border border-border bg-surface px-4 py-3 text-center text-label text-text">{scanError}</p>}
+          {claim.kind === "error" && <p role="alert" className="rounded-2xl border border-border bg-surface px-4 py-3 text-center text-label text-text">{claim.text}</p>}
         </section>
       )}
       {claim.kind === "done" && (
@@ -238,14 +280,16 @@ export function StampCardView({
         )}
       </section>
 
-      <section aria-label={pick(locale, { es: "Tu código", en: "Your code" })} className="flex flex-col items-center gap-3">
-        <h2 className="text-body font-medium text-text">
-          {card.rewardReady
-            ? pick(locale, { es: "Muéstralo para canjear tu premio", en: "Show it to redeem your reward" })
-            : pick(locale, { es: "Muéstralo en caja para sellar tu visita", en: "Show it at the counter to stamp your visit" })}
-        </h2>
-        <RotatingQr slug={slug} />
-      </section>
+      {!scanAtTable && (
+        <section aria-label={pick(locale, { es: "Tu código", en: "Your code" })} className="flex flex-col items-center gap-3">
+          <h2 className="text-body font-medium text-text">
+            {card.rewardReady
+              ? pick(locale, { es: "Muéstralo para canjear tu premio", en: "Show it to redeem your reward" })
+              : pick(locale, { es: "Muéstralo en caja para sellar tu visita", en: "Show it at the counter to stamp your visit" })}
+          </h2>
+          <RotatingQr slug={slug} />
+        </section>
+      )}
     </div>
   );
 }

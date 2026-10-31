@@ -44,6 +44,16 @@ export function TableQrPoster({
     };
   }, [slug, code]);
 
+  // Lets the owner try the scan from a computer, e.g. in a private window signed in as a customer.
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${tableQrPath(slug, code)}`);
+      setMessage({ kind: "ok", text: pick(locale, { es: "Enlace copiado. Ábrelo en una ventana de incógnito con una cuenta de cliente.", en: "Link copied. Open it in a private window with a customer account." }) });
+    } catch {
+      setMessage({ kind: "error", text: pick(locale, { es: "No se pudo copiar el enlace.", en: "The link could not be copied." }) });
+    }
+  }
+
   async function rotate() {
     const confirmed = window.confirm(
       pick(locale, {
@@ -104,6 +114,10 @@ export function TableQrPoster({
             {pick(locale, { es: "Descargar imagen", en: "Download image" })}
           </a>
         )}
+        <button type="button" onClick={copyLink}
+          className={`${BUTTON} border border-border bg-surface text-text hover:bg-stone-100`}>
+          {pick(locale, { es: "Copiar enlace", en: "Copy link" })}
+        </button>
         <button type="button" onClick={rotate} disabled={rotating}
           className={`${BUTTON} border border-border bg-surface text-text hover:bg-stone-100`}>
           {rotating ? pick(locale, { es: "Cambiando…", en: "Changing…" }) : pick(locale, { es: "Cambiar código", en: "Change code" })}

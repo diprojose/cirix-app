@@ -18,7 +18,15 @@ type DetectorConstructor = new (options: { formats: string[] }) => NativeDetecto
  *
  * `onDetect` fires once per `active` period; set `active` back to true to scan again.
  */
-export function QrScanner({ active, onDetect }: { active: boolean; onDetect: (text: string) => void }) {
+export function QrScanner({
+  active,
+  onDetect,
+  label,
+}: {
+  active: boolean;
+  onDetect: (text: string) => void;
+  label?: string;
+}) {
   const locale = useLocale();
   const video = useRef<HTMLVideoElement>(null);
   const [problem, setProblem] = useState<"unsupported" | "denied" | null>(null);
@@ -115,7 +123,7 @@ export function QrScanner({ active, onDetect }: { active: boolean; onDetect: (te
         ref={video}
         muted
         playsInline
-        aria-label={pick(locale, { es: "Cámara para escanear el QR del cliente", en: "Camera to scan the customer's QR" })}
+        aria-label={label ?? pick(locale, { es: "Cámara para escanear el QR del cliente", en: "Camera to scan the customer's QR" })}
         className="size-full object-cover"
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-8 rounded-2xl border-2 border-white/80" />
