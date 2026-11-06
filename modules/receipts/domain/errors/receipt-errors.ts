@@ -101,3 +101,77 @@ export class ReceiptTooManyAttemptsError extends DomainError {
 export class CorruptPointsAccountError extends DomainError {
   readonly code = "receipts/corrupt-points";
 }
+
+/** A catalog prize out of range. */
+export class InvalidRewardError extends DomainError {
+  readonly code = "rewards/invalid";
+}
+
+/** The prize does not exist, or is no longer offered. */
+export class RewardNotFoundError extends DomainError {
+  readonly code = "rewards/not-found";
+
+  constructor() {
+    super("This reward is not available.");
+  }
+}
+
+/** The catalog reached its size limit. */
+export class RewardCatalogFullError extends DomainError {
+  readonly code = "rewards/catalog-full";
+
+  constructor(limit: number) {
+    super(`A catalog can have up to ${limit} rewards.`);
+  }
+}
+
+/** The balance does not cover the prize. */
+export class NotEnoughPointsError extends DomainError {
+  readonly code = "rewards/not-enough-points";
+
+  constructor() {
+    super("There aren't enough points for this reward.");
+  }
+}
+
+/** What was scanned or typed is not a redemption code at all. */
+export class InvalidRedemptionCodeError extends DomainError {
+  readonly code = "rewards/invalid-code";
+
+  constructor() {
+    super("This isn't a reward code.");
+  }
+}
+
+/** The code is well formed, but this business never issued it to this person. */
+export class RedemptionNotFoundError extends DomainError {
+  readonly code = "rewards/code-not-found";
+
+  constructor() {
+    super("This reward code does not exist at this business.");
+  }
+}
+
+export class RedemptionDeliveredError extends DomainError {
+  readonly code = "rewards/already-delivered";
+
+  constructor() {
+    super("This reward was already handed over.");
+  }
+}
+
+export class RedemptionCancelledError extends DomainError {
+  readonly code = "rewards/cancelled";
+
+  constructor() {
+    super("This reward code was cancelled.");
+  }
+}
+
+export class RedemptionExpiredError extends DomainError {
+  readonly code = "rewards/expired";
+
+  constructor() {
+    super("This reward code expired and the points went back.");
+  }
+}

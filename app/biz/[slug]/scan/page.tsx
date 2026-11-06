@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { RedemptionScanClient } from "@/components/receipts/redemption-scan-client";
 import { ScanClient } from "@/components/stamps/scan-client";
 import { requireBusinessAccess } from "@/lib/auth/business-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
@@ -10,23 +10,26 @@ export const metadata: Metadata = {
 };
 
 /**
- * The counter screen where staff scan a customer's QR to stamp their visit or
- * hand over a reward. Needs the `visits:record` permission: owners and staff.
+ * The counter screen. In a restaurant, staff scan a customer's QR to stamp their
+ * visit or hand over a reward; in a supermarket, a prize code to hand over the
+ * prize. Needs the `visits:record` permission: owners and staff.
  */
 export default async function ScanPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const locale = await getCurrentLocale();
   const { access } = await requireBusinessAccess(slug, "visits:record");
-  if (access.business.kind === "supermarket") notFound();
+  const supermarket = access.business.kind === "supermarket";
 
   return (
     <main className="flex flex-col gap-5 md:max-w-md">
       <header className="flex flex-col gap-1">
         <h1 className="text-display font-bold tracking-tight text-text">
-          {pick(locale, { es: "Escanear cliente", en: "Scan customer" })}
+          {supermarket
+            ? pick(locale, { es: "Entregar premio", en: "Hand over a reward" })
+            : pick(locale, { es: "Escanear cliente", en: "Scan customer" })}
         </h1>
       </header>
-      <ScanClient slug={access.business.slug} />
+      {supermarket ? <RedemptionScanClient slug={access.business.slug} /> : <ScanClient slug={access.business.slug} />}
     </main>
   );
 }

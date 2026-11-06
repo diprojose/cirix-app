@@ -1,7 +1,18 @@
 import type { Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import type { PointsAccount, PointsChange, PointsEntry } from "../../domain/entities/points-account";
-import type { PointsRepository, ReceiptLedger, ReceiptRecord, ReceiptSettingsRepository } from "../../domain/ports/receipt-ports";
+import { ok } from "@/shared/domain/result";
+import type { Redemption } from "../../domain/entities/redemption";
+import type { Reward } from "../../domain/entities/reward";
+import type {
+  PointsRepository,
+  ReceiptLedger,
+  ReceiptRecord,
+  ReceiptSettingsRepository,
+  RedemptionChange,
+  RedemptionRepository,
+  RewardCatalog,
+} from "../../domain/ports/receipt-ports";
 import { ReceiptSettings } from "../../domain/value-objects/receipt-settings";
 
 /** Process-local adapter for tests. */
@@ -48,6 +59,85 @@ export class InMemoryReceiptLedger implements ReceiptLedger {
       .filter((record) => record.businessId === businessId)
       .sort((a, b) => b.at.localeCompare(a.at))
       .slice(0, limit);
+  }
+}
+
+/** Process-local adapter for tests. */
+export class InMemoryRewardCatalog implements RewardCatalog {
+  private readonly rewards = new Map<string, Reward>();
+
+  async list(businessId: string): Promise<Reward[]> {
+    return [...this.rewards.values()].filter((reward) => reward.businessId === businessId).sort((a, b) => a.points - b.points);
+  }
+
+  async find(businessId: string, rewardId: string): Promise<Reward | null> {
+    return this.rewards.get(`${businessId}_${rewardId}`) ?? null;
+  }
+
+  async save(reward: Reward): Promise<void> {
+    this.rewards.set(`${reward.businessId}_${reward.id}`, reward);
+  }
+
+  async delete(businessId: string, rewardId: string): Promise<void> {
+    this.rewards.delete(`${businessId}_${rewardId}`);
+  }
+}
+
+/** Process-local adapter for tests, sharing its balances with an in-memory points repository. */
+export class InMemoryRedemptionRepository implements RedemptionRepository {
+  readonly items = new Map<string, Redemption>();
+
+  constructor(private readonly points: InMemoryPointsRepository) {}
+
+  private key = (businessId: string, code: string) => `${businessId}_${code}`;
+
+  private applyPoints(businessId: string, userId: string, change: PointsChange | null): Promise<unknown> {
+    return change ? this.points.transact(businessId, userId, () => ok(change)) : Promise.resolve();
+  }
+
+  async find(businessId: string, code: string): Promise<Redemption | null> {
+    return this.items.get(this.key(businessId, code)) ?? null;
+  }
+
+  private ofBusiness(businessId: string): Redemption[] {
+    return [...this.items.entries()]
+      .filter(([key]) => key.startsWith(`${businessId}_`))
+      .map(([, redemption]) => redemption)
+      .sort((a, b) => b.toSnapshot().createdAt.localeCompare(a.toSnapshot().createdAt));
+  }
+
+  async listForCustomer(businessId: string, userId: string): Promise<Redemption[]> {
+    return this.ofBusiness(businessId).filter((redemption) => redemption.userId === userId);
+  }
+
+  async recent(businessId: string, limit: number): Promise<Redemption[]> {
+    return this.ofBusiness(businessId).slice(0, limit);
+  }
+
+  async open(
+    businessId: string,
+    userId: string,
+    decide: (account: PointsAccount | null) => Result<{ redemption: Redemption; points: PointsChange }, DomainError>
+  ): Promise<Result<Redemption, DomainError>> {
+    const result = decide(await this.points.find(businessId, userId));
+    if (!result.ok) return result;
+    await this.applyPoints(businessId, userId, result.value.points);
+    this.items.set(this.key(businessId, result.value.redemption.code), result.value.redemption);
+    return ok(result.value.redemption);
+  }
+
+  async settle(
+    businessId: string,
+    code: string,
+    decide: (redemption: Redemption | null, account: PointsAccount | null) => Result<RedemptionChange, DomainError>
+  ): Promise<Result<Redemption, DomainError>> {
+    const current = await this.find(businessId, code);
+    const result = decide(current, current ? await this.points.find(businessId, current.userId) : null);
+    if (!result.ok) return result;
+    const { redemption, points } = result.value;
+    await this.applyPoints(businessId, redemption.userId, points);
+    this.items.set(this.key(businessId, code), redemption);
+    return ok(redemption);
   }
 }
 

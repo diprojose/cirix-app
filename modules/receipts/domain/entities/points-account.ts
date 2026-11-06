@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
-import { CorruptPointsAccountError, ReceiptDailyLimitError } from "../errors/receipt-errors";
+import { CorruptPointsAccountError, NotEnoughPointsError, ReceiptDailyLimitError } from "../errors/receipt-errors";
 
 export type PointsAccountSnapshot = {
   businessId: string;
@@ -22,8 +22,11 @@ export type PointsEntry = {
   userId: string;
   delta: number;
   balance: number;
-  reason: "receipt";
-  receiptId: string;
+  reason: "receipt" | "redemption" | "refund";
+  /** Set when a receipt earned the points. */
+  receiptId?: string;
+  /** Set when a prize code spent or returned them. */
+  redemptionCode?: string;
   at: string;
 };
 
@@ -93,6 +96,35 @@ export class PointsAccount {
         at,
       },
     });
+  }
+
+  /** Points leave the balance for a prize. What was earned stays on record. */
+  spend(points: number, redemptionCode: string, now: Date): Result<PointsChange, DomainError> {
+    if (points > this.props.balance) return err(new NotEnoughPointsError());
+    return ok(this.moved(-points, "redemption", redemptionCode, now));
+  }
+
+  /** A prize that was never handed over gives its points back. */
+  refund(points: number, redemptionCode: string, now: Date): PointsChange {
+    return this.moved(points, "refund", redemptionCode, now);
+  }
+
+  private moved(delta: number, reason: "redemption" | "refund", redemptionCode: string, now: Date): PointsChange {
+    const at = now.toISOString();
+    const account = new PointsAccount({ ...this.props, balance: this.props.balance + delta, updatedAt: at });
+    return {
+      account,
+      entry: {
+        id: crypto.randomUUID(),
+        businessId: this.props.businessId,
+        userId: this.props.userId,
+        delta,
+        balance: account.balance,
+        reason,
+        redemptionCode,
+        at,
+      },
+    };
   }
 
   toSnapshot(): PointsAccountSnapshot {

@@ -33,5 +33,5 @@ export type ScanReceiptDto = {
 export type PointsSummaryDto = {
   balance: number;
   totalEarned: number;
-  entries: { id: string; delta: number; balance: number; at: string }[];
+  entries: { id: string; delta: number; balance: number; reason: "receipt" | "redemption" | "refund"; at: string }[];
 };

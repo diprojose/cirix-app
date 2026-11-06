@@ -7,7 +7,12 @@ import { getMemberViewer } from "@/lib/auth/dal";
 import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
 import { makeGetBusinessBySlug } from "@/core/tenancy/infrastructure/di/tenancy-container";
 import { makeGetCustomer } from "@/modules/crm/infrastructure/di/crm-core-container";
-import { makeGetPointsSummary, makeGetReceiptSettings } from "@/modules/receipts/infrastructure/di/receipts-container";
+import {
+  makeGetPointsSummary,
+  makeGetReceiptSettings,
+  makeListMyRedemptions,
+  makeListRewards,
+} from "@/modules/receipts/infrastructure/di/receipts-container";
 
 export const metadata: Metadata = {
   title: "My points",
@@ -29,11 +34,14 @@ export default async function PointsPage({ params }: { params: Promise<{ slug: s
   // Not registered yet: send the person to the signup for this business.
   if (!customer.ok) redirect(await localizeForCurrentRequest(`/b/${business.value.slug}`));
 
-  const [summary, settings] = await Promise.all([
+  // First, because it returns the points of expired codes: the balance below must include them.
+  const redemptions = await makeListMyRedemptions().execute({ businessId: business.value.id, userId: viewer.uid });
+  const [summary, settings, rewards] = await Promise.all([
     makeGetPointsSummary().execute({ businessId: business.value.id, userId: viewer.uid }),
     makeGetReceiptSettings().execute(business.value.id),
+    makeListRewards().execute({ businessId: business.value.id, activeOnly: true }),
   ]);
-  if (!summary.ok || !settings.ok) notFound();
+  if (!summary.ok || !settings.ok || !rewards.ok || !redemptions.ok) notFound();
 
   return (
     <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-6 py-8 md:max-w-md`}>
@@ -46,6 +54,8 @@ export default async function PointsPage({ params }: { params: Promise<{ slug: s
         pointsPerDollar={settings.value.pointsPerDollar}
         receipts={settings.value.enabled}
         summary={summary.value}
+        rewards={rewards.value}
+        redemptions={redemptions.value}
       />
     </main>
   );

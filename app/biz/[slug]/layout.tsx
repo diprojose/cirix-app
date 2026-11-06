@@ -31,7 +31,8 @@ export default async function BusinessLayout({
   // Mirrors the permission each page checks; hiding a tab is a convenience, never the protection.
   const items: BusinessNavItem[] = [
     { href: home, label: pick(locale, { es: "Inicio", en: "Home" }) },
-    ...(stamps && roleCan(role, "visits:record") ? [{ href: `${home}/scan`, label: pick(locale, { es: "Escanear", en: "Scan" }) }] : []),
+    ...(roleCan(role, "visits:record") ? [{ href: `${home}/scan`, label: pick(locale, { es: "Escanear", en: "Scan" }) }] : []),
+    ...(!stamps && roleCan(role, "program:manage") ? [{ href: `${home}/rewards`, label: pick(locale, { es: "Premios", en: "Rewards" }) }] : []),
     ...(stamps && roleCan(role, "customers:read") ? [{ href: `${home}/activity`, label: pick(locale, { es: "Actividad", en: "Activity" }) }] : []),
     ...(stamps && roleCan(role, "program:manage")
       ? [

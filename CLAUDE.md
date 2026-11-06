@@ -28,7 +28,7 @@ Fases (0 y 1 completadas; las demás pendientes):
 | 0. Cimientos | `core/tenancy` (negocios, roles), `modules/crm` (clientes y eventos), sesión `member`, registro por QR, `/me`, panel `/biz/[slug]`, script de negocios | **Hecha** |
 | 1. Restaurantes | QR personal rotativo y firmado, pantalla de escaneo con confirmación, tarjeta de sellos animada, programa configurable, espera antifraude y registro por empleado; QR de mesa imprimible que registra y, si el dueño lo activa, sella la visita; progreso de sellos en la lista de clientes, reporte de actividad por empleado y por origen, y gestión del personal desde el panel (`docs/stamp-card.md`, `docs/tenancy.md`) | **Hecha** |
 | Recibos | Escaneo de recibos con OCR gratuito en el servidor: un sello en restaurantes, puntos según el total en supermercados, con antifraude y tablero del dueño (`docs/receipts.md`) | **Hecha** |
-| 2. Supermercado A | Bono de bienvenida, catálogo de premios, canje con código | Pendiente |
+| 2. Supermercado A | Catálogo de premios y canje con código único (`docs/receipts.md`) hechos; falta el bono de bienvenida | En curso |
 | 3. Supermercado B | Cola de revisión de recibos, campañas dinámicas | Pendiente |
 | 4. CRM y reputación | Seguimiento automático post-compra, encuesta, enlace de Google para todos, tickets | Pendiente |
 | 5. Chatbot | Versión por reglas por negocio, widget web, captura de prospectos | Pendiente |
@@ -95,7 +95,7 @@ El proyecto Firebase de desarrollo (`cirixadv-cae9c`) está **sin plan Blaze**. 
 | `core/tenancy` | **Multi-negocio**: negocios (tenants), roles por negocio (dueño, personal) y la puerta de autorización | `/biz/[slug]`, `/biz/[slug]/team`, `/api/member/biz/*` | — |
 | `crm` | **Núcleo CRM propio**: clientes por negocio y su línea de tiempo de eventos. Es el sistema de registro; Zoho es opcional | `/b/[slug]`, `/me`, `/api/member/*` | — |
 | `stamp-card` | **Tarjeta de sellos** para restaurantes: QR personal rotativo y firmado, escaneo del personal, premio y reinicio | `/me/cards/[slug]`, `/biz/[slug]/scan`, `/biz/[slug]/program`, `/biz/[slug]/qr`, `/biz/[slug]/activity`, `/api/member/*` | — |
-| `receipts` | **Escaneo de recibos**: OCR gratuito detrás del puerto `ReceiptReader`, verificación, uso único, y puntos de supermercado | `/me/points/[slug]`, `/biz/[slug]/receipts`, `/api/member/businesses/[slug]/receipts`, `/api/member/biz/[slug]/receipts` | — |
+| `receipts` | **Escaneo de recibos y puntos de supermercado**: OCR gratuito detrás del puerto `ReceiptReader`, verificación, uso único, catálogo de premios y canje con código | `/me/points/[slug]`, `/biz/[slug]/receipts`, `/biz/[slug]/rewards`, `/biz/[slug]/scan`, `/api/member/businesses/[slug]/{receipts,redemptions}`, `/api/member/biz/[slug]/{receipts,rewards,redemptions}` | — |
 | `zoho/crm` | Integración opcional con Zoho: dashboard (leads, prospects, customers, subscribers, KPIs) y captura de leads | `/zoho/*`, `/api/zoho/*`, `/api/contact` | Zoho |
 | `pixels` | Pixel Hub: registro de sitios, colector con consentimiento, SDK `public/pixel.js` | `/pixels`, `/api/pixels/*` | — |
 | `reviews` | Campañas, invitaciones con token, QR, KPIs y lectura de reseñas de Google | `/reviews`, `/make-a-review`, `/api/reviews/*` | Google Business |

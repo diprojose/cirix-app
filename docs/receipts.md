@@ -62,6 +62,32 @@ businesses/{businessId}/customers/{userId}/points_ledger/{id}    un registro inm
 
 Todo se lee con índices automáticos de un solo campo; no hace falta ningún índice compuesto ni facturación.
 
+## Catálogo y canje de puntos (supermercados)
+
+El dueño arma su catálogo en `/biz/<slug>/rewards`: nombre, descripción opcional, puntos que cuesta y si está visible. El cliente lo ve en `/me/points/<slug>`, con una barra de avance por premio.
+
+1. **El cliente elige un premio.** En una sola transacción se descuentan los puntos y se crea un código de 8 caracteres, sin letras ni números confundibles. El código vence a los 30 días (`REDEMPTION_DAYS`).
+2. **Lo muestra en caja**, como QR o leyéndolo. La pantalla comprueba cada 5 s si ya se entregó.
+3. **El personal lo escanea** en `/biz/<slug>/scan`, ve el nombre del cliente y el premio, y toca **Confirmar entrega**. El personal no elige cuántos puntos descontar: ya salieron al crear el código.
+4. **Si el cliente cancela o el código vence**, los puntos vuelven a su saldo.
+
+| Amenaza | Cómo se frena |
+| --- | --- |
+| Canjear más de lo que hay, con varias solicitudes a la vez | El saldo y el código cambian en la misma transacción. |
+| Entregar dos veces el mismo código, o que dos cajeros lo escaneen a la vez | El estado cambia en una transacción; el segundo recibe "ya se entregó". |
+| Cancelar justo cuando se entrega, para quedarse con premio y puntos | Misma transacción: gana solo una de las dos acciones. |
+| Cobrar el premio desde casa | Solo quien tiene el permiso `visits:record` en ese negocio puede entregar. |
+| Usar un código en otro negocio | Se busca dentro del negocio; afuera "no existe". |
+| Cancelar el código de otro cliente | El código ajeno responde igual que uno inexistente. |
+| Cambiar el precio después de canjear | El código guarda el nombre y los puntos del momento en que se creó. |
+
+**Sin tareas programadas:** el plan gratuito no las permite, así que los puntos de un código vencido vuelven cuando el cliente abre su página o cuando el personal intenta entregarlo. El reporte del dueño ya lo muestra como vencido antes de eso.
+
+```
+businesses/{businessId}/rewards/{rewardId}      el catálogo
+businesses/{businessId}/redemptions/{code}      un documento por canje
+```
+
 ## Cambiar de lector
 
 El lector está detrás del puerto `ReceiptReader`: recibe la imagen y devuelve texto. Para pasar a un servicio de IA con visión, basta otra implementación de ese puerto en `modules/receipts/infrastructure/` y cambiarla en `receipts-container.ts`.
@@ -79,6 +105,6 @@ Por ahora solo se usa el idioma inglés, que lee bien cifras y etiquetas de reci
 
 ## Pendiente
 
-- **Catálogo de premios y canje de puntos.** Hoy los puntos se acumulan y se ven; todavía no se gastan.
+- **Revertir una entrega hecha por error.** Una vez confirmada, los puntos no vuelven; hará falta el ajuste manual de puntos.
 - **Anular un recibo** desde el panel, si el dueño detecta uno falso.
 - **Probar con más fotos reales de teléfono.** Se probó con un recibo real y con versiones degradadas por software, no con una muestra amplia.

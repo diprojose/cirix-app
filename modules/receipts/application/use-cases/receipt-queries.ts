@@ -44,7 +44,7 @@ export class GetPointsSummary implements UseCase<{ businessId: string; userId: s
     return ok({
       balance: account?.balance ?? 0,
       totalEarned: account?.totalEarned ?? 0,
-      entries: entries.map(({ id, delta, balance, at }) => ({ id, delta, balance, at })),
+      entries: entries.map(({ id, delta, balance, reason, at }) => ({ id, delta, balance, reason, at })),
     });
   }
 }

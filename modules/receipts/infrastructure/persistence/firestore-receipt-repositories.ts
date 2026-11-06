@@ -4,7 +4,18 @@ import type { Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import { PointsAccount, type PointsAccountSnapshot, type PointsChange, type PointsEntry } from "../../domain/entities/points-account";
 import { CorruptPointsAccountError } from "../../domain/errors/receipt-errors";
-import type { PointsRepository, ReceiptLedger, ReceiptRecord, ReceiptSettingsRepository } from "../../domain/ports/receipt-ports";
+import { ok } from "@/shared/domain/result";
+import { Redemption, type RedemptionSnapshot } from "../../domain/entities/redemption";
+import type { Reward } from "../../domain/entities/reward";
+import type {
+  PointsRepository,
+  ReceiptLedger,
+  ReceiptRecord,
+  ReceiptSettingsRepository,
+  RedemptionChange,
+  RedemptionRepository,
+  RewardCatalog,
+} from "../../domain/ports/receipt-ports";
 import { ReceiptSettings, type ReceiptSettingsInput } from "../../domain/value-objects/receipt-settings";
 
 /*
@@ -16,6 +27,8 @@ import { ReceiptSettings, type ReceiptSettingsInput } from "../../domain/value-o
  *   businesses/{businessId}/customers/{userId}/programs/points       the balance
  *   businesses/{businessId}/customers/{userId}/programs/receipt_use  reading attempts of that day
  *   businesses/{businessId}/customers/{userId}/points_ledger/{id}    one immutable record per change
+ *   businesses/{businessId}/rewards/{rewardId}                       the prize catalog
+ *   businesses/{businessId}/redemptions/{code}                       one prize code per redemption
  */
 
 /** Firestore's gRPC status for a create() that found the document already there. */
@@ -105,6 +118,108 @@ function restoreAccount(data: PointsAccountSnapshot): PointsAccount {
   const account = PointsAccount.restore(data);
   if (!account.ok) throw new CorruptPointsAccountError(`Points ${data.businessId}/${data.userId}: ${account.error.message}`);
   return account.value;
+}
+
+export class FirestoreRewardCatalog implements RewardCatalog {
+  constructor(private readonly firestore: Firestore) {}
+
+  private collection(businessId: string) {
+    return businessRef(this.firestore, businessId).collection("rewards");
+  }
+
+  async list(businessId: string): Promise<Reward[]> {
+    const snapshot = await this.collection(businessId).orderBy("points").get();
+    return snapshot.docs.map((doc) => doc.data() as Reward);
+  }
+
+  async find(businessId: string, rewardId: string): Promise<Reward | null> {
+    const snapshot = await this.collection(businessId).doc(rewardId).get();
+    return snapshot.exists ? (snapshot.data() as Reward) : null;
+  }
+
+  async save(reward: Reward): Promise<void> {
+    await this.collection(reward.businessId).doc(reward.id).set(reward);
+  }
+
+  async delete(businessId: string, rewardId: string): Promise<void> {
+    await this.collection(businessId).doc(rewardId).delete();
+  }
+}
+
+export class FirestoreRedemptionRepository implements RedemptionRepository {
+  constructor(private readonly firestore: Firestore) {}
+
+  private collection(businessId: string) {
+    return businessRef(this.firestore, businessId).collection("redemptions");
+  }
+
+  private account(businessId: string, userId: string) {
+    return customerRef(this.firestore, businessId, userId).collection("programs").doc("points");
+  }
+
+  private ledger(businessId: string, userId: string, entryId: string) {
+    return customerRef(this.firestore, businessId, userId).collection("points_ledger").doc(entryId);
+  }
+
+  async find(businessId: string, code: string): Promise<Redemption | null> {
+    const snapshot = await this.collection(businessId).doc(code).get();
+    return snapshot.exists ? Redemption.restore(snapshot.data() as RedemptionSnapshot) : null;
+  }
+
+  async listForCustomer(businessId: string, userId: string): Promise<Redemption[]> {
+    // Sorted here: filtering and sorting in the query would need a composite index, which needs billing.
+    const snapshot = await this.collection(businessId).where("userId", "==", userId).get();
+    return snapshot.docs
+      .map((doc) => doc.data() as RedemptionSnapshot)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .map((data) => Redemption.restore(data));
+  }
+
+  async recent(businessId: string, limit: number): Promise<Redemption[]> {
+    const snapshot = await this.collection(businessId).orderBy("createdAt", "desc").limit(limit).get();
+    return snapshot.docs.map((doc) => Redemption.restore(doc.data() as RedemptionSnapshot));
+  }
+
+  async open(
+    businessId: string,
+    userId: string,
+    decide: (account: PointsAccount | null) => Result<{ redemption: Redemption; points: PointsChange }, DomainError>
+  ): Promise<Result<Redemption, DomainError>> {
+    const accountRef = this.account(businessId, userId);
+    return this.firestore.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(accountRef);
+      const result = decide(snapshot.exists ? restoreAccount(snapshot.data() as PointsAccountSnapshot) : null);
+      if (!result.ok) return result;
+      const { redemption, points } = result.value;
+      transaction.set(accountRef, points.account.toSnapshot());
+      transaction.create(this.ledger(businessId, userId, points.entry.id), points.entry);
+      transaction.create(this.collection(businessId).doc(redemption.code), redemption.toSnapshot());
+      return ok(redemption);
+    });
+  }
+
+  async settle(
+    businessId: string,
+    code: string,
+    decide: (redemption: Redemption | null, account: PointsAccount | null) => Result<RedemptionChange, DomainError>
+  ): Promise<Result<Redemption, DomainError>> {
+    const ref = this.collection(businessId).doc(code);
+    return this.firestore.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      const current = snapshot.exists ? Redemption.restore(snapshot.data() as RedemptionSnapshot) : null;
+      const accountRef = current ? this.account(businessId, current.userId) : null;
+      const accountSnapshot = accountRef ? await transaction.get(accountRef) : null;
+      const result = decide(current, accountSnapshot?.exists ? restoreAccount(accountSnapshot.data() as PointsAccountSnapshot) : null);
+      if (!result.ok) return result;
+      const { redemption, points } = result.value;
+      transaction.set(ref, redemption.toSnapshot());
+      if (points && accountRef) {
+        transaction.set(accountRef, points.account.toSnapshot());
+        transaction.create(this.ledger(businessId, redemption.userId, points.entry.id), points.entry);
+      }
+      return ok(redemption);
+    });
+  }
 }
 
 export class FirestorePointsRepository implements PointsRepository {

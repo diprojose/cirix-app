@@ -12,14 +12,36 @@ export function statusForReceiptError(code: string): number {
       return 429;
     case "receipts/invalid-image":
     case "receipts/invalid-settings":
+    case "rewards/invalid":
+    case "rewards/invalid-code":
       return 400;
+    case "rewards/not-found":
+    case "rewards/code-not-found":
+      return 404;
     case "receipts/corrupt-points":
     case "stamps/corrupt-card":
       return 500;
     default:
-      return code.startsWith("receipts/") || code.startsWith("stamps/") ? 409 : 400;
+      return code.startsWith("receipts/") || code.startsWith("stamps/") || code.startsWith("rewards/") ? 409 : 400;
   }
 }
+
+/** Reads a small JSON body, answering for the usual ways it can be wrong. */
+export async function readJsonBody(request: Request, maxBytes: number): Promise<{ ok: true; body: unknown } | { ok: false; response: Response }> {
+  const text = await request.text();
+  if (new TextEncoder().encode(text).length > maxBytes) {
+    return { ok: false, response: json({ ok: false, error: { code: "request/too-large" } }, 413) };
+  }
+  try {
+    return { ok: true, body: JSON.parse(text) };
+  } catch {
+    return { ok: false, response: json({ ok: false, error: { code: "request/invalid-json" } }, 400) };
+  }
+}
+
+/** Catalogs and prize codes belong to supermarkets; elsewhere the feature does not exist. */
+export const rewardsUnavailable = (business: { kind: string }): Response | null =>
+  business.kind === "supermarket" ? null : json({ ok: false, error: { code: "rewards/not-available" } }, 404);
 
 /** A failure as a response, with whatever the screen needs to explain it. */
 export function receiptError(error: DomainError): Response {

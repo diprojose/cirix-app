@@ -1,6 +1,8 @@
 import type { Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import type { PointsAccount, PointsChange, PointsEntry } from "../entities/points-account";
+import type { Redemption } from "../entities/redemption";
+import type { Reward } from "../entities/reward";
 import type { ReceiptSettings } from "../value-objects/receipt-settings";
 
 /**
@@ -77,4 +79,49 @@ export interface ReceiptCustomers {
 /** Best-effort copy on the customer's timeline. */
 export interface ReceiptActivityLog {
   pointsEarned(input: { businessId: string; userId: string; eventId: string; points: number; balance: number; receiptId: string }): Promise<void>;
+}
+
+export interface RewardCatalog {
+  /** All the prizes of a business, cheapest first. */
+  list(businessId: string): Promise<Reward[]>;
+  find(businessId: string, rewardId: string): Promise<Reward | null>;
+  save(reward: Reward): Promise<void>;
+  delete(businessId: string, rewardId: string): Promise<void>;
+}
+
+/** A change to a redemption, and to the balance when points move with it. */
+export type RedemptionChange = { redemption: Redemption; points: PointsChange | null };
+
+/**
+ * Prize codes. Both writes run in one transaction with the customer's balance:
+ * points can neither leave without a code, nor return twice.
+ */
+export interface RedemptionRepository {
+  find(businessId: string, code: string): Promise<Redemption | null>;
+  /** One person's redemptions, newest first. */
+  listForCustomer(businessId: string, userId: string): Promise<Redemption[]>;
+  /** The newest redemptions of a business. */
+  recent(businessId: string, limit: number): Promise<Redemption[]>;
+  /** Atomically reads the balance and stores the new code `decide` produced. */
+  open(
+    businessId: string,
+    userId: string,
+    decide: (account: PointsAccount | null) => Result<{ redemption: Redemption; points: PointsChange }, DomainError>
+  ): Promise<Result<Redemption, DomainError>>;
+  /** Atomically reads a code and its owner's balance, and stores the outcome of `decide`. */
+  settle(
+    businessId: string,
+    code: string,
+    decide: (redemption: Redemption | null, account: PointsAccount | null) => Result<RedemptionChange, DomainError>
+  ): Promise<Result<Redemption, DomainError>>;
+}
+
+/** How staff greet the person in front of them, without browsing customer data. */
+export interface CustomerNames {
+  firstName(businessId: string, userId: string): Promise<string | null>;
+}
+
+/** Best-effort copy on the customer's timeline. */
+export interface RedemptionActivityLog {
+  rewardRedeemed(input: { businessId: string; userId: string; eventId: string; rewardName: string; points: number }): Promise<void>;
 }

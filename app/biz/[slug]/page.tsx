@@ -42,10 +42,15 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
     <main className="flex flex-col gap-6">
       {!canReadCustomers ? (
         <p className="text-body text-text-muted">
-          {pick(locale, {
-            es: "Tu rol valida visitas de clientes: escanea su código QR para sellar su tarjeta.",
-            en: "Your role validates customer visits: scan their QR code to stamp their card.",
-          })}
+          {showsStamps
+            ? pick(locale, {
+                es: "Tu rol valida visitas de clientes: escanea su código QR para sellar su tarjeta.",
+                en: "Your role validates customer visits: scan their QR code to stamp their card.",
+              })
+            : pick(locale, {
+                es: "Tu rol entrega premios: en Escanear, lee el código de premio del cliente y confirma la entrega.",
+                en: "Your role hands over rewards: in Scan, read the customer's reward code and confirm the handover.",
+              })}
         </p>
       ) : (
         <section aria-labelledby="customers-title" className="flex flex-col gap-3">
