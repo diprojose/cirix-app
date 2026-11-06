@@ -2,28 +2,25 @@ import type { MetadataRoute } from "next";
 import { DEFAULT_LOCALE, pick } from "@/lib/i18n";
 
 /**
- * Web App Manifest for the Cirix platform shell. Branded storefronts expose
- * their own manifest from the dynamic demo route.
+ * Web App Manifest of the customer app. Branded storefronts expose their own
+ * manifest from the dynamic demo route.
  *
- * Enables install prompts on Android (via `beforeinstallprompt`) and standalone
- * launch on iOS/Android once the app is added to the home screen. Next.js serves
- * this at `/manifest.webmanifest` and injects the `<link rel="manifest">` tag
- * automatically.
+ * An installed app opens on the person's own area: their cards and points, or the
+ * login that leads back there. `/me` carries no language, so the proxy sends each
+ * phone to its own, and the scope covers both languages and the login.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: pick(DEFAULT_LOCALE, {
-      es: "Cirix Tech Platform - tu supermercado",
-      en: "Cirix Tech Platform - your grocery store",
-    }),
-    short_name: "Cirix Tech Platform",
+    id: "/me",
+    name: "Cirix",
+    short_name: "Cirix",
     description: pick(DEFAULT_LOCALE, {
-      es: "Supermercado a domicilio: pide tu mercado y acumula saldo con cada compra.",
-      en: "Delivery grocery store: place your order and earn wallet credit with every purchase.",
+      es: "Tus tarjetas de sellos y tus puntos, en un solo lugar.",
+      en: "Your stamp cards and points, all in one place.",
     }),
     lang: DEFAULT_LOCALE,
-    start_url: `/${DEFAULT_LOCALE}/loyalty`,
-    scope: `/${DEFAULT_LOCALE}`,
+    start_url: "/me",
+    scope: "/",
     display: "standalone",
     orientation: "portrait",
     background_color: "#051934",

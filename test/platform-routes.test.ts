@@ -52,7 +52,7 @@ describe("private platform routes", () => {
     expect((await proxy(request("/api/reviews/events", { method: "POST" }))).status).toBe(200);
     expect(execute).not.toHaveBeenCalled();
   });
-  it.each(["/es", "/en", "/es/login", "/en/login", "/brand/logo-white.svg", "/favicon.ico", "/pixel.js"])("keeps the landing, login and public assets reachable: %s", async (path) => {
+  it.each(["/es", "/en", "/es/login", "/en/login", "/es/privacy", "/en/privacy", "/brand/logo-white.svg", "/favicon.ico", "/pixel.js"])("keeps the landing, login and public assets reachable: %s", async (path) => {
     expect((await proxy(request(path))).status).toBe(200);
     expect(execute).not.toHaveBeenCalled();
   });

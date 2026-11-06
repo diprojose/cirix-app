@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { LocalizedLink } from "@/components/localized-link";
 import { useLocale } from "@/components/locale-provider";
 import { localizeHref, pick } from "@/lib/locale";
 
@@ -100,6 +101,17 @@ export function JoinForm({ slug, source, next }: { slug: string; source: "table_
           ? pick(locale, { es: "Registrando...", en: "Signing you up..." })
           : pick(locale, { es: "Unirme", en: "Join" })}
       </button>
+
+      <p className="text-caption text-text-muted">
+        {pick(locale, {
+          es: "Este negocio y Cirix guardan tu nombre, tu correo y tu teléfono para manejar tu programa. ",
+          en: "This business and Cirix keep your name, email and phone to run your program. ",
+        })}
+        {/* A new tab, so reading it does not lose what was typed. */}
+        <LocalizedLink href="/privacy" target="_blank" className="text-accent underline underline-offset-4">
+          {pick(locale, { es: "Política de privacidad", en: "Privacy policy" })}
+        </LocalizedLink>
+      </p>
     </form>
   );
 }

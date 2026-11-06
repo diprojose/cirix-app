@@ -104,8 +104,11 @@ export default async function MePage() {
         </section>
       )}
 
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-3">
         <SignOutButton />
+        <LocalizedLink href="/privacy" className="text-caption text-text-muted underline underline-offset-4">
+          {pick(locale, { es: "Política de privacidad", en: "Privacy policy" })}
+        </LocalizedLink>
       </div>
     </main>
   );

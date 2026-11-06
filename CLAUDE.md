@@ -158,7 +158,7 @@ El producto aprobado (ver "Alcance") es **un solo sistema para varios negocios**
 
 ## Acceso y seguridad
 
-`proxy.ts` deniega por defecto. Públicos: `/`, `/login`, assets listados en `lib/auth/route-access.ts` y los endpoints de servicio (`/api/contact`, `/api/pixels/collect`, `/api/reviews/events`, `/api/auth/session`, webhooks de Twilio y Resend, cron). Todo lo demás exige sesión.
+`proxy.ts` deniega por defecto. Públicos: `/`, `/login`, `/privacy`, assets listados en `lib/auth/route-access.ts` y los endpoints de servicio (`/api/contact`, `/api/pixels/collect`, `/api/reviews/events`, `/api/auth/session`, webhooks de Twilio y Resend, cron). Todo lo demás exige sesión.
 
 - Hay tres tipos de sesión (`lib/auth/audience.ts`): `platform` (cuenta habilitada con `platformAccess`; el operador agrega `operator`), `reviews` (cuenta verificada, solo `/make-a-review` y `/review`) y `member` (cuenta verificada para `/me`, `/b/*`, `/biz/*` y `/api/member/*`, autorizada por negocio). El login elige el tipo según la ruta de destino (`from`).
 - Hay **dos barreras** de acceso que deben coincidir: `proxy.ts` y el layout raíz (`requiresPlatformAccess` en `lib/auth/route-access.ts`). Al abrir una ruta a otro tipo de cuenta, cambia esa función, no solo el proxy; las pruebas de `member-routes.test.ts` comprueban que concuerden.

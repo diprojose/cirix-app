@@ -1,5 +1,5 @@
 /* Restricted platform: never store or replay private HTML, RSC, API or demo responses. */
-const CACHE_NAME = "cirix-public-assets-v7";
+const CACHE_NAME = "cirix-public-assets-v8";
 const PRECACHE_URLS = ["/brand/favicon.svg", "/manifest.webmanifest"];
 
 function isCacheableStaticAsset(pathname) {

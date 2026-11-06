@@ -7,7 +7,7 @@ const PUBLIC_ASSETS = new Set([
 
 /** Exact public pages; nested module routes remain private by default. */
 export function isPublicPage(pathname: string): boolean {
-  return pathname === "/" || pathname === "/login";
+  return pathname === "/" || pathname === "/login" || pathname === "/privacy";
 }
 
 /** These exact pages accept any verified Firebase account, without module access. */
