@@ -14,6 +14,7 @@ export const CUSTOMER_EVENT_TYPES = [
   "stamp_added",
   "reward_unlocked",
   "reward_redeemed",
+  "points_earned",
 ] as const;
 
 export type CustomerEventType = (typeof CUSTOMER_EVENT_TYPES)[number];

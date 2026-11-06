@@ -124,9 +124,11 @@ export class FirestoreStampCardRepository implements StampCardRepository {
           sequence: stamp.sequence,
         });
         const counts =
-          stamp.staffUserId === null
-            ? { tableStamps: FieldValue.increment(1), tableStampsByCustomer: { [userId]: FieldValue.increment(1) } }
-            : { staffStamps: { [stamp.staffUserId]: FieldValue.increment(1) } };
+          stamp.staffUserId !== null
+            ? { staffStamps: { [stamp.staffUserId]: FieldValue.increment(1) } }
+            : stamp.source === "receipt"
+              ? { receiptStamps: FieldValue.increment(1) }
+              : { tableStamps: FieldValue.increment(1), tableStampsByCustomer: { [userId]: FieldValue.increment(1) } };
         transaction.set(this.activityRef(businessId, stamp.at), counts, { merge: true });
       }
       if (redemption) {
@@ -160,6 +162,7 @@ export class FirestoreStampActivityReader implements StampActivityReader {
         day: doc.id,
         staffStamps: data.staffStamps ?? {},
         tableStamps: data.tableStamps ?? 0,
+        receiptStamps: data.receiptStamps ?? 0,
         redemptions: data.redemptions ?? {},
         tableStampsByCustomer: data.tableStampsByCustomer ?? {},
       };

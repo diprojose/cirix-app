@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Tesseract runs in a worker thread that loads its own files from disk, so it cannot be bundled.
+  serverExternalPackages: ["tesseract.js", "tesseract.js-core", "sharp"],
+  outputFileTracingIncludes: {
+    "/api/member/businesses/*/receipts": [
+      "./node_modules/tesseract.js/src/**/*",
+      "./node_modules/tesseract.js/package.json",
+      "./node_modules/tesseract.js-core/tesseract-core*lstm.wasm*",
+      "./node_modules/tesseract.js-core/package.json",
+      "./node_modules/@tesseract.js-data/eng/4.0.0_best_int/**/*",
+      "./node_modules/{bmp-js,is-url,node-fetch,regenerator-runtime,wasm-feature-detect,zlibjs,whatwg-url,tr46,webidl-conversions}/**/*",
+    ],
+  },
   images: {
     // Operators may point product images at external hosts (or Firebase
     // Storage later); the optimizer only ever fetches over https.

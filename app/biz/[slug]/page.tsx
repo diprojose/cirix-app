@@ -4,6 +4,7 @@ import { getCurrentLocale, pick } from "@/lib/i18n";
 import { roleCan } from "@/core/tenancy/domain/value-objects/member-role";
 import { makeListCustomers } from "@/modules/crm/infrastructure/di/crm-core-container";
 import { makeListCardProgress } from "@/modules/stamp-card/infrastructure/di/stamp-card-container";
+import { makeListPointsBalances } from "@/modules/receipts/infrastructure/di/receipts-container";
 
 export const metadata: Metadata = {
   title: "Business",
@@ -30,6 +31,11 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
       ? await makeListCardProgress().execute({ businessId: access.business.id, userIds: rows.map((row) => row.userId) })
       : null;
   const cards = progress?.ok ? progress.value : {};
+  const balances =
+    !showsStamps && rows.length > 0
+      ? await makeListPointsBalances().execute({ businessId: access.business.id, userIds: rows.map((row) => row.userId) })
+      : null;
+  const points = balances?.ok ? balances.value : {};
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   return (
@@ -64,6 +70,12 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
                       <>
                         <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Sellos", en: "Stamps" })}</th>
                         <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Último sello", en: "Last stamp" })}</th>
+                      </>
+                    )}
+                    {!showsStamps && (
+                      <>
+                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Puntos", en: "Points" })}</th>
+                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Último recibo", en: "Last receipt" })}</th>
                       </>
                     )}
                     <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Desde", en: "Since" })}</th>
@@ -102,6 +114,14 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
                             </td>
                             <td className="whitespace-nowrap px-4 py-2">
                               {card?.lastStampAt ? date.format(new Date(card.lastStampAt)) : "—"}
+                            </td>
+                          </>
+                        )}
+                        {!showsStamps && (
+                          <>
+                            <td className="whitespace-nowrap px-4 py-2 tabular-nums">{points[customer.userId]?.balance ?? 0}</td>
+                            <td className="whitespace-nowrap px-4 py-2">
+                              {points[customer.userId]?.lastEarnedAt ? date.format(new Date(points[customer.userId].lastEarnedAt as string)) : "—"}
                             </td>
                           </>
                         )}

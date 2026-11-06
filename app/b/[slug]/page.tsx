@@ -44,11 +44,11 @@ export default async function JoinBusinessPage({
       ? await makeListMyCustomerBusinesses().execute(viewer.uid)
       : null;
   const alreadyMember = joined?.ok === true && joined.value.includes(business.value.id);
-  const hasCard = business.value.kind !== "supermarket";
-  // Restaurants land on their stamp card after joining; others on the account page.
-  const nextPath = hasCard ? cardPath(business.value.slug, readTableCodeParam(t)) : "/me";
-  // A returning customer who scans the table goes straight to the card.
-  if (alreadyMember && hasCard) redirect(await localizeForCurrentRequest(nextPath));
+  // Restaurants land on their stamp card after joining; supermarkets on their points.
+  const nextPath =
+    business.value.kind === "supermarket" ? `/me/points/${business.value.slug}` : cardPath(business.value.slug, readTableCodeParam(t));
+  // A returning customer who scans the QR goes straight there.
+  if (alreadyMember) redirect(await localizeForCurrentRequest(nextPath));
   // Only the QR flow is distinguished; anything else counts as a plain web signup.
   const signupSource = (Array.isArray(source) ? source[0] : source) === "table_qr" ? "table_qr" : "web";
 

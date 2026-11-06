@@ -71,6 +71,7 @@ export type StampActivityDto = {
   toDay: string;
   totalStamps: number;
   tableStamps: number;
+  receiptStamps: number;
   staffStamps: number;
   redemptions: number;
   /** One row per employee who stamped or redeemed, busiest first. */
@@ -103,8 +104,10 @@ export class GetStampActivity implements UseCase<GetStampActivityInput, StampAct
       return entry;
     };
     let tableStamps = 0;
+    let receiptStamps = 0;
     for (const day of days) {
       tableStamps += day.tableStamps;
+      receiptStamps += day.receiptStamps;
       for (const [userId, count] of Object.entries(day.staffStamps)) row(userId).stamps += count;
       for (const [userId, count] of Object.entries(day.redemptions)) row(userId).redemptions += count;
       for (const [userId, count] of Object.entries(day.tableStampsByCustomer)) {
@@ -124,8 +127,9 @@ export class GetStampActivity implements UseCase<GetStampActivityInput, StampAct
     return ok({
       fromDay,
       toDay,
-      totalStamps: staffStamps + tableStamps,
+      totalStamps: staffStamps + tableStamps + receiptStamps,
       tableStamps,
+      receiptStamps,
       staffStamps,
       redemptions: byStaff.reduce((sum, entry) => sum + entry.redemptions, 0),
       byStaff,

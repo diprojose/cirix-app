@@ -21,6 +21,7 @@ import { RecordStamp } from "../../application/use-cases/record-stamp";
 import { RedeemReward } from "../../application/use-cases/redeem-reward";
 import { GetStampProgram, SaveStampProgram } from "../../application/use-cases/stamp-program-use-cases";
 import { ClaimTableStamp } from "../../application/use-cases/claim-table-stamp";
+import { GrantReceiptStamp } from "../../application/use-cases/grant-receipt-stamp";
 import { GetTableCode, RotateTableCode } from "../../application/use-cases/table-code-use-cases";
 import { GetStampActivity, ListCardProgress } from "../../application/use-cases/owner-reports";
 
@@ -77,6 +78,10 @@ export const makeSaveStampProgram = (): SaveStampProgram => new SaveStampProgram
 /** Builds the "stamp my card with the table QR" use case (customer action; needs no signing secret). */
 export const makeClaimTableStamp = (): ClaimTableStamp =>
   new ClaimTableStamp(tableCodeRepository(), customerDirectory(), cardRepository(), programRepository(), activityLog());
+
+/** Builds the "stamp for a verified receipt" use case, called by the receipts module. */
+export const makeGrantReceiptStamp = (): GrantReceiptStamp =>
+  new GrantReceiptStamp(cardRepository(), programRepository(), activityLog());
 
 /** Builds the "get table code" use case (owner, to print the table QR). */
 export const makeGetTableCode = (): GetTableCode => new GetTableCode(tableCodeRepository());

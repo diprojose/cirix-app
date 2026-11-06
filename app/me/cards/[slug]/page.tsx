@@ -8,6 +8,7 @@ import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
 import { cardPath, readTableCodeParam, tableQrPath } from "@/lib/stamps/table-qr";
 import { makeGetBusinessBySlug } from "@/core/tenancy/infrastructure/di/tenancy-container";
 import { makeGetStampCard } from "@/modules/stamp-card/infrastructure/di/stamp-card-container";
+import { makeGetReceiptSettings } from "@/modules/receipts/infrastructure/di/receipts-container";
 
 export const metadata: Metadata = {
   title: "My card",
@@ -35,7 +36,10 @@ export default async function StampCardPage({
   // Supermarkets earn points, not stamps; for them there is no stamp card.
   if (!business.ok || business.value.kind === "supermarket") notFound();
 
-  const card = await makeGetStampCard().execute({ businessId: business.value.id, userId: viewer.uid });
+  const [card, receipts] = await Promise.all([
+    makeGetStampCard().execute({ businessId: business.value.id, userId: viewer.uid }),
+    makeGetReceiptSettings().execute(business.value.id),
+  ]);
   if (!card.ok) {
     // Not registered yet: send the person to the signup for this business, keeping the table code.
     if (card.error.code === "stamps/not-a-customer") {
@@ -54,6 +58,7 @@ export default async function StampCardPage({
         businessName={business.value.name}
         initial={card.value}
         tableCode={card.value.tableStamps ? tableCode : null}
+        receipts={receipts.ok && receipts.value.enabled}
       />
     </main>
   );

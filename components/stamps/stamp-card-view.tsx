@@ -5,6 +5,7 @@ import { useLocale } from "@/components/locale-provider";
 import { pick } from "@/lib/locale";
 import { readScannedTableQr } from "@/lib/stamps/table-qr";
 import type { StampCardDto } from "@/modules/stamp-card/application/dtos/stamp-card-dto";
+import { ReceiptScanner } from "@/components/receipts/receipt-scanner";
 import { QrScanner } from "./qr-scanner";
 import { RotatingQr } from "./rotating-qr";
 import s from "./stamp-card.module.css";
@@ -23,19 +24,22 @@ type ClaimState = { kind: "idle" | "loading" | "done" } | { kind: "error"; text:
  * the card the new stamp lands on screen with an animation, and a completed
  * card celebrates. Opened from the table QR (`tableCode`), it also offers a
  * button to stamp this visit. Where the business gives stamps at the table, the
- * customer scans the table QR from here, and their own code only shows to
- * redeem a reward.
+ * customer scans the table QR from here, and where it accepts receipts they
+ * photograph theirs. In both cases their own code only shows to redeem a reward.
  */
 export function StampCardView({
   slug,
   businessName,
   initial,
   tableCode = null,
+  receipts = false,
 }: {
   slug: string;
   businessName: string;
   initial: StampCardDto;
   tableCode?: string | null;
+  /** The business earns stamps from receipts. */
+  receipts?: boolean;
 }) {
   const locale = useLocale();
   const [card, setCard] = useState(initial);
@@ -67,30 +71,30 @@ export function StampCardView({
     }
   }, []);
 
+  const refresh = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/member/businesses/${encodeURIComponent(slug)}/card`, { cache: "no-store" });
+      if (response.ok) show(((await response.json()) as { card: StampCardDto }).card);
+    } catch {
+      // A missed check is harmless: the next one catches up.
+    }
+  }, [slug, show]);
+
   useEffect(() => {
-    let active = true;
     const pending = timers.current;
 
     async function poll() {
-      if (document.visibilityState !== "visible") return;
-      try {
-        const response = await fetch(`/api/member/businesses/${encodeURIComponent(slug)}/card`, { cache: "no-store" });
-        if (!response.ok || !active) return;
-        show(((await response.json()) as { card: StampCardDto }).card);
-      } catch {
-        // A missed check is harmless: the next one catches up.
-      }
+      if (document.visibilityState === "visible") await refresh();
     }
 
     const interval = setInterval(poll, POLL_MS);
     document.addEventListener("visibilitychange", poll);
     return () => {
-      active = false;
       clearInterval(interval);
       pending.forEach(clearTimeout);
       document.removeEventListener("visibilitychange", poll);
     };
-  }, [slug, show]);
+  }, [refresh]);
 
   async function claimTableStamp(code: string | null = tableCode) {
     if (code === null || claim.kind === "loading") return;
@@ -153,8 +157,8 @@ export function StampCardView({
   const waitMinutes = Math.ceil(card.retryAfterSeconds / 60);
   const offerTableStamp = tableCode !== null && claim.kind !== "done" && (card.canStamp || claim.kind === "error");
   // At a table-stamp business the customer scans; their own code is only for redeeming.
-  const scanAtTable = card.tableStamps && card.active && !card.rewardReady;
-  const offerScan = scanAtTable && tableCode === null && claim.kind !== "done";
+  const selfService = (card.tableStamps || receipts) && card.active && !card.rewardReady;
+  const offerScan = card.tableStamps && selfService && tableCode === null && claim.kind !== "done";
 
   return (
     <div className="flex flex-col gap-6">
@@ -186,6 +190,9 @@ export function StampCardView({
             </p>
           )}
         </section>
+      )}
+      {receipts && card.active && !card.rewardReady && (
+        <ReceiptScanner slug={slug} onScanned={refresh} />
       )}
       {offerScan && (
         <section aria-label={pick(locale, { es: "Escanear el QR de la mesa", en: "Scan the table QR" })} className="flex flex-col gap-3">
@@ -280,7 +287,7 @@ export function StampCardView({
         )}
       </section>
 
-      {!scanAtTable && (
+      {!selfService && (
         <section aria-label={pick(locale, { es: "Tu código", en: "Your code" })} className="flex flex-col items-center gap-3">
           <h2 className="text-body font-medium text-text">
             {card.rewardReady

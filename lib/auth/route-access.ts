@@ -23,7 +23,7 @@ export function isReviewPage(pathname: string): boolean {
  * - /biz/<slug>[/...]: the business dashboard; its layout enforces membership.
  */
 export function isMemberPage(pathname: string): boolean {
-  return /^\/me(?:\/cards\/[a-z0-9-]+)?\/?$/i.test(pathname) ||
+  return /^\/me(?:\/(?:cards|points)\/[a-z0-9-]+)?\/?$/i.test(pathname) ||
     /^\/b\/[a-z0-9-]+\/?$/i.test(pathname) ||
     /^\/biz\/[a-z0-9-]+(?:\/.*)?$/i.test(pathname);
 }

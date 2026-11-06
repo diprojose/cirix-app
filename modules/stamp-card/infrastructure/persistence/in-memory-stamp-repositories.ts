@@ -18,7 +18,7 @@ export class InMemoryStampActivity implements StampActivityReader {
     const key = `${businessId}_${activityDay(at)}`;
     let day = this.totals.get(key);
     if (!day) {
-      day = { day: activityDay(at), staffStamps: {}, tableStamps: 0, redemptions: {}, tableStampsByCustomer: {} };
+      day = { day: activityDay(at), staffStamps: {}, tableStamps: 0, receiptStamps: 0, redemptions: {}, tableStampsByCustomer: {} };
       this.totals.set(key, day);
     }
     return day;
@@ -26,7 +26,9 @@ export class InMemoryStampActivity implements StampActivityReader {
 
   countStamp(stamp: StampRecord): void {
     const day = this.day(stamp.businessId, stamp.at);
-    if (stamp.staffUserId === null) {
+    if (stamp.source === "receipt") {
+      day.receiptStamps += 1;
+    } else if (stamp.staffUserId === null) {
       day.tableStamps += 1;
       day.tableStampsByCustomer[stamp.userId] = (day.tableStampsByCustomer[stamp.userId] ?? 0) + 1;
     } else {

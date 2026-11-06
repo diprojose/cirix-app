@@ -99,6 +99,10 @@ export default async function ActivityPage({
           </span>
         </div>
         <div className={TILE}>
+          <span className="text-caption text-text-muted">{pick(locale, { es: "Con recibo", en: "With a receipt" })}</span>
+          <span className="text-title font-bold text-text">{number.format(activity.receiptStamps)}</span>
+        </div>
+        <div className={TILE}>
           <span className="text-caption text-text-muted">{pick(locale, { es: "Premios entregados", en: "Rewards handed over" })}</span>
           <span className="text-title font-bold text-text">{number.format(activity.redemptions)}</span>
         </div>

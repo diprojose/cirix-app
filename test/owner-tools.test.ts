@@ -99,6 +99,7 @@ describe("stamp activity report", () => {
       toDay: "2026-03-10",
       totalStamps: 8,
       tableStamps: 2,
+      receiptStamps: 0,
       staffStamps: 6,
       redemptions: 1,
       byStaff: [

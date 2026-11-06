@@ -62,12 +62,12 @@ export default async function MePage() {
             {cardBusinesses.map((business) => (
               <li key={business.id}>
                 {business.kind === "supermarket" ? (
-                  <div className={CARD}>
+                  <LocalizedLink href={`/me/points/${business.slug}`} className={LINK_CARD}>
                     <span className="text-body font-medium text-text">{business.name}</span>
                     <span className="text-caption text-text-muted">
-                      {pick(locale, { es: "Tu tarjeta estará disponible pronto.", en: "Your card will be available soon." })}
+                      {pick(locale, { es: "Ver mis puntos", en: "View my points" })}
                     </span>
-                  </div>
+                  </LocalizedLink>
                 ) : (
                   <LocalizedLink href={`/me/cards/${business.slug}`} className={LINK_CARD}>
                     <span className="text-body font-medium text-text">{business.name}</span>

@@ -10,6 +10,8 @@ export type DailyStampActivity = {
   staffStamps: Record<string, number>;
   /** Stamps customers gave themselves with the table QR. */
   tableStamps: number;
+  /** Stamps customers earned by sending a receipt. */
+  receiptStamps: number;
   /** Rewards handed over by each employee, by user id. */
   redemptions: Record<string, number>;
   /** Table QR stamps per customer, by user id: who leans on the table QR most. */

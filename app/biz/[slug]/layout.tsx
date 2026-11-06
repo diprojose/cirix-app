@@ -39,6 +39,7 @@ export default async function BusinessLayout({
           { href: `${home}/qr`, label: pick(locale, { es: "QR de mesa", en: "Table QR" }) },
         ]
       : []),
+    ...(roleCan(role, "program:manage") ? [{ href: `${home}/receipts`, label: pick(locale, { es: "Recibos", en: "Receipts" }) }] : []),
     ...(roleCan(role, "members:manage") ? [{ href: `${home}/team`, label: pick(locale, { es: "Equipo", en: "Team" }) }] : []),
   ];
 

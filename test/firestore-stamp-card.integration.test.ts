@@ -172,8 +172,8 @@ describe.skipIf(!enabled)("Stamp card on real Firestore", { timeout: 60_000 }, (
     const reader = new FirestoreStampActivityReader(firestore);
     const days = await reader.days(businessId, "2026-04-15", "2026-04-16");
     expect(days).toEqual([
-      { day: "2026-04-15", staffStamps: { "staff-a": 4, "staff-b": 4 }, tableStamps: 1, redemptions: {}, tableStampsByCustomer: { "walk-in": 1 } },
-      { day: "2026-04-16", staffStamps: { "staff-a": 2 }, tableStamps: 1, redemptions: { "staff-b": 1 }, tableStampsByCustomer: { "walk-in": 1 } },
+      { day: "2026-04-15", staffStamps: { "staff-a": 4, "staff-b": 4 }, tableStamps: 1, receiptStamps: 0, redemptions: {}, tableStampsByCustomer: { "walk-in": 1 } },
+      { day: "2026-04-16", staffStamps: { "staff-a": 2 }, tableStamps: 1, receiptStamps: 0, redemptions: { "staff-b": 1 }, tableStampsByCustomer: { "walk-in": 1 } },
     ]);
     expect(await reader.days(businessId, "2026-04-17", "2026-04-30")).toEqual([]);
   });

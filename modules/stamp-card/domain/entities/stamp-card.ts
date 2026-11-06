@@ -22,8 +22,8 @@ export class StampCardId extends Identifier {
   }
 }
 
-/** How a stamp was given: an employee scanned the customer, or the customer scanned the table QR. */
-export type StampSource = "staff" | "table_qr";
+/** How a stamp was given: an employee scanned the customer, the customer scanned the table QR, or sent a receipt. */
+export type StampSource = "staff" | "table_qr" | "receipt";
 
 /** The immutable record of one stamp: who earned it and how it was given. */
 export type StampRecord = {
@@ -31,7 +31,7 @@ export type StampRecord = {
   businessId: string;
   userId: string;
   source: StampSource;
-  /** The employee who gave it; null when the customer scanned the table QR. */
+  /** The employee who gave it; null when the customer stamped their own card. */
   staffUserId: string | null;
   at: string;
   /** Position of this stamp in the customer's whole history, starting at 1. */
@@ -141,10 +141,15 @@ export class StampCard extends AggregateRoot<StampCardProps, StampCardId> {
 
   /**
    * Adds one stamp, or explains why not. Never mutates this card. `staffUserId`
-   * is null when the customer stamped their own card with the table QR; the
-   * same cooldown and pending-reward rules apply either way.
+   * is null when the customer stamped their own card, and `selfSource` says how;
+   * the same cooldown and pending-reward rules apply either way.
    */
-  stamp(program: StampProgram, staffUserId: string | null, now: Date): Result<StampChange, DomainError> {
+  stamp(
+    program: StampProgram,
+    staffUserId: string | null,
+    now: Date,
+    selfSource: Exclude<StampSource, "staff"> = "table_qr"
+  ): Result<StampChange, DomainError> {
     if (!program.active) return err(new ProgramInactiveError());
     if (this.isRewardReady(program)) return err(new RewardPendingError());
     const wait = this.secondsUntilNextStamp(program, now);
@@ -168,7 +173,7 @@ export class StampCard extends AggregateRoot<StampCardProps, StampCardId> {
         id: crypto.randomUUID(),
         businessId: this.props.businessId,
         userId: this.props.userId,
-        source: staffUserId === null ? "table_qr" : "staff",
+        source: staffUserId === null ? selfSource : "staff",
         staffUserId,
         at,
         sequence: card.props.totalStamps,
