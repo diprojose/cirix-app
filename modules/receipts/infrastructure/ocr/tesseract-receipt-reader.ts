@@ -22,6 +22,8 @@ function startWorker(): Promise<Worker> {
     langPath: path.join(process.cwd(), "node_modules/@tesseract.js-data/eng/4.0.0_best_int"),
     cacheMethod: "none",
     gzip: true,
+    // Without a handler the engine rethrows its failures outside any promise, which kills the server process.
+    errorHandler: () => undefined,
   }).catch((error: unknown) => {
     worker = null;
     throw error;

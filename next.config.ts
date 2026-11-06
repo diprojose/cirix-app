@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     "/api/member/businesses/*/receipts": [
       "./node_modules/tesseract.js/src/**/*",
       "./node_modules/tesseract.js/package.json",
-      "./node_modules/tesseract.js-core/tesseract-core*lstm.wasm*",
+      "./node_modules/tesseract.js-core/tesseract-core*",
       "./node_modules/tesseract.js-core/package.json",
       "./node_modules/@tesseract.js-data/eng/4.0.0_best_int/**/*",
       "./node_modules/{bmp-js,is-url,node-fetch,regenerator-runtime,wasm-feature-detect,zlibjs,whatwg-url,tr46,webidl-conversions}/**/*",
