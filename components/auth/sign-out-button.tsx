@@ -17,8 +17,11 @@ import {
 
 export function SignOutButton({
   className,
+  redirectTo,
 }: {
   className?: string;
+  /** Where to land afterwards. By default, the public home page. */
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -36,7 +39,7 @@ export function SignOutButton({
         await signOut(auth).catch(() => {});
       }
       router.replace(
-        localizeHref(locale, basePath ? brandHref("/loyalty", basePath) : "/")
+        localizeHref(locale, redirectTo ?? (basePath ? brandHref("/loyalty", basePath) : "/"))
       );
       router.refresh();
     } catch {

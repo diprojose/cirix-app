@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { ok } from "@/shared/domain/result";
 import { guestViewer } from "@/core/iam/application/dtos/viewer-dto";
-import { isMemberApi, isMemberPage, requiresPlatformAccess } from "@/lib/auth/route-access";
+import { isMemberApi, isMemberPage, MEMBER_LOGIN_PATH, requiresPlatformAccess } from "@/lib/auth/route-access";
 import { parseAudience } from "@/lib/auth/audience";
 import { statusForTenancyError } from "@/lib/auth/business-access-status";
 
@@ -163,5 +163,13 @@ describe("tenancy error statuses", () => {
     expect(statusForTenancyError("tenancy/access-denied")).toBe(403);
     expect(statusForTenancyError("tenancy/suspended")).toBe(403);
     expect(statusForTenancyError("something/new")).toBe(403);
+  });
+});
+
+describe("signing back in after signing out", () => {
+  it("goes to the login for customers and owners, not the administrators' one", () => {
+    const destination = new URL(MEMBER_LOGIN_PATH, "https://cirix.example");
+    expect(destination.pathname).toBe("/login");
+    expect(isMemberPage(destination.searchParams.get("from")!)).toBe(true);
   });
 });

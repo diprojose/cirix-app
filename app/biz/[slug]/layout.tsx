@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import { BusinessNav, type BusinessNavItem } from "@/components/biz/business-nav";
 import { LocalizedLink } from "@/components/localized-link";
 import { CONTAINER_READ } from "@/components/store/layout";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { requireBusinessAccess } from "@/lib/auth/business-access";
+import { MEMBER_LOGIN_PATH } from "@/lib/auth/route-access";
 import { getCurrentLocale, pick } from "@/lib/i18n";
 import { roleCan } from "@/core/tenancy/domain/value-objects/member-role";
 
@@ -57,9 +59,15 @@ export default async function BusinessLayout({
                 : pick(locale, { es: "Administrador de Cirix", en: "Cirix administrator" })}
           </span>
         </div>
-        <LocalizedLink href="/me" className="text-label text-accent underline underline-offset-4">
-          {pick(locale, { es: "Mi cuenta", en: "My account" })}
-        </LocalizedLink>
+        <div className="flex items-center gap-3">
+          <LocalizedLink href="/me" className="text-label text-accent underline underline-offset-4">
+            {pick(locale, { es: "Mi cuenta", en: "My account" })}
+          </LocalizedLink>
+          <SignOutButton
+            redirectTo={MEMBER_LOGIN_PATH}
+            className="min-h-11 rounded-pill border border-border bg-surface px-3 py-2 text-label font-medium text-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60"
+          />
+        </div>
       </header>
       <BusinessNav home={home} items={items} />
       {children}

@@ -37,6 +37,12 @@ export function requiresPlatformAccess(pathname: string): boolean {
   return !isPublicPage(pathname) && !isReviewPage(pathname) && !isMemberPage(pathname);
 }
 
+/**
+ * Where someone signs back in to the customer and business areas. A login with no
+ * destination is the administrators' one, which refuses customers and owners.
+ */
+export const MEMBER_LOGIN_PATH = "/login?from=/me";
+
 /** Member-area APIs; each handler authorizes against one specific business. */
 export function isMemberApi(pathname: string): boolean {
   return pathname.startsWith("/api/member/");

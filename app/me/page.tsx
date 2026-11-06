@@ -4,6 +4,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LocalizedLink } from "@/components/localized-link";
 import { COLUMN } from "@/components/store/layout";
 import { getMemberViewer } from "@/lib/auth/dal";
+import { MEMBER_LOGIN_PATH } from "@/lib/auth/route-access";
 import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
 import {
   makeListBusinessesByIds,
@@ -17,6 +18,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+const SIGN_OUT_BUTTON =
+  "min-h-11 shrink-0 rounded-pill border border-border bg-surface px-4 py-2 text-label font-medium text-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-60";
 const CARD = "flex min-h-11 flex-col gap-1 rounded-2xl border border-border bg-surface px-4 py-3";
 const LINK_CARD = `${CARD} transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent`;
 
@@ -40,9 +43,12 @@ export default async function MePage() {
   return (
     <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-8 py-10 md:max-w-md`}>
       <header className="flex flex-col gap-1">
-        <h1 className="text-display font-bold tracking-tight text-text">
-          {pick(locale, { es: "Mi cuenta", en: "My account" })}
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-display font-bold tracking-tight text-text">
+            {pick(locale, { es: "Mi cuenta", en: "My account" })}
+          </h1>
+          <SignOutButton redirectTo={MEMBER_LOGIN_PATH} className={SIGN_OUT_BUTTON} />
+        </div>
         <p className="break-all text-body text-text-muted">{viewer.email}</p>
       </header>
 
@@ -105,7 +111,6 @@ export default async function MePage() {
       )}
 
       <div className="flex flex-col items-center gap-3">
-        <SignOutButton />
         <LocalizedLink href="/privacy" className="text-caption text-text-muted underline underline-offset-4">
           {pick(locale, { es: "Política de privacidad", en: "Privacy policy" })}
         </LocalizedLink>
