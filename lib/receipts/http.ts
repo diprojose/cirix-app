@@ -51,7 +51,7 @@ export function receiptError(error: DomainError): Response {
       error: {
         code: error.code,
         message: error.message,
-        ...(error instanceof ReceiptUnreadableError ? { missing: error.missing } : {}),
+        ...(error instanceof ReceiptUnreadableError ? { missing: error.missing, ...(error.read ? { read: error.read } : {}) } : {}),
         ...(error instanceof ReceiptOutOfDateError ? { maxAgeDays: error.maxAgeDays } : {}),
         ...(error instanceof StampTooSoonError ? { retryAfterSeconds: error.retryAfterSeconds } : {}),
       },

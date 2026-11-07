@@ -4,17 +4,60 @@ import { useRef, useState, type ChangeEvent } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { pick, type Locale } from "@/lib/locale";
 import type { ScanReceiptDto } from "@/modules/receipts/application/dtos/receipt-dtos";
+import type { ReceiptReading } from "@/modules/receipts/domain/services/verify-receipt";
 
 /** A phone photo shrunk to this still reads well, and uploads in a moment on a mobile connection. */
 const MAX_SIDE = 2400;
 const JPEG_QUALITY = 0.9;
 
-type ScanError = { code?: string; missing?: string[]; maxAgeDays?: number; retryAfterSeconds?: number };
+type ScanError = { code?: string; missing?: string[]; maxAgeDays?: number; retryAfterSeconds?: number; read?: ReceiptReading };
 type State =
   | { kind: "idle" }
   | { kind: "reading" }
   | { kind: "done"; result: ScanReceiptDto }
-  | { kind: "error"; text: string };
+  | { kind: "error"; text: string; read?: ReceiptReading };
+
+/** Demo mode: what came off the photo, field by field, so a sales demo can show the reading itself. */
+function ReadingCard({ read }: { read: ReceiptReading }) {
+  const locale = useLocale();
+  const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" });
+  const notRead = pick(locale, { es: "No se leyó", en: "Not read" });
+  const rows: [string, string | null][] = [
+    [pick(locale, { es: "Comercio", en: "Store" }), read.store],
+    [pick(locale, { es: "Total", en: "Total" }), read.totalCents === null ? null : money.format(read.totalCents / 100)],
+    [pick(locale, { es: "Fecha", en: "Date" }), read.date === null ? null : date.format(new Date(read.date))],
+    [pick(locale, { es: "Hora", en: "Time" }), read.time],
+    [pick(locale, { es: "N.º de transacción", en: "Transaction no." }), read.transactionId],
+    [pick(locale, { es: "Autorización", en: "Authorization" }), read.authCode],
+    [pick(locale, { es: "Merchant ID", en: "Merchant ID" }), read.merchantId],
+  ];
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left">
+      <h3 className="text-label font-medium text-text">{pick(locale, { es: "Datos leídos del recibo", en: "Data read from the receipt" })}</h3>
+      <dl className="flex flex-col gap-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-baseline justify-between gap-4 text-label">
+            <dt className="shrink-0 text-text-muted">{label}</dt>
+            <dd className={`min-w-0 break-words text-right ${value === null ? "text-text-muted" : "font-medium text-text"}`}>{value ?? notRead}</dd>
+          </div>
+        ))}
+      </dl>
+      {read.lines.length > 0 && (
+        <details className="text-caption text-text-muted">
+          <summary className="cursor-pointer underline underline-offset-4">{pick(locale, { es: "Ver todo el texto leído", en: "See all the text read" })}</summary>
+          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono">{read.lines.join("\n")}</pre>
+        </details>
+      )}
+      <p className="text-caption text-text-muted">
+        {pick(locale, {
+          es: "Modo demo: se acepta cualquier recibo, sin revisar tienda, fecha ni repetidos.",
+          en: "Demo mode: any receipt is accepted, without checking the store, date or repeats.",
+        })}
+      </p>
+    </section>
+  );
+}
 
 /** Sends a smaller JPEG with the photo's rotation already applied; the original if the browser cannot. */
 async function shrink(file: File): Promise<Blob> {
@@ -109,10 +152,10 @@ export function ReceiptScanner({ slug, onScanned }: { slug: string; onScanned?: 
       });
       const body = (await response.json().catch(() => ({}))) as Partial<ScanReceiptDto> & { error?: ScanError };
       if (response.ok && body.reward && body.totalCents !== undefined && body.date) {
-        setState({ kind: "done", result: { totalCents: body.totalCents, date: body.date, reward: body.reward } });
+        setState({ kind: "done", result: { totalCents: body.totalCents, date: body.date, reward: body.reward, read: body.read } });
         onScanned?.();
       } else {
-        setState({ kind: "error", text: errorText(locale, body.error) });
+        setState({ kind: "error", text: errorText(locale, body.error), read: body.error?.read });
       }
     } catch {
       setState({ kind: "error", text: pick(locale, { es: "Sin conexión. Intenta de nuevo.", en: "No connection. Please try again." }) });
@@ -151,9 +194,12 @@ export function ReceiptScanner({ slug, onScanned }: { slug: string; onScanned?: 
           {state.text}
         </p>
       )}
+      {state.kind === "error" && state.read && <ReadingCard read={state.read} />}
       {state.kind === "done" && (
         <p role="status" className="rounded-2xl bg-accent-soft px-4 py-3 text-center text-body font-medium text-accent-strong">
-          {state.result.reward.kind === "points"
+          {state.result.reward.kind === "none"
+            ? errorText(locale, { code: state.result.reward.code, retryAfterSeconds: state.result.reward.retryAfterSeconds ?? undefined })
+            : state.result.reward.kind === "points"
             ? pick(locale, {
                 es: `¡Listo! Recibo de ${money.format(state.result.totalCents / 100)}: ganaste ${state.result.reward.earned} puntos.`,
                 en: `Done! ${money.format(state.result.totalCents / 100)} receipt: you earned ${state.result.reward.earned} points.`,
@@ -164,6 +210,7 @@ export function ReceiptScanner({ slug, onScanned }: { slug: string; onScanned?: 
               })}
         </p>
       )}
+      {state.kind === "done" && state.result.read && <ReadingCard read={state.result.read} />}
     </section>
   );
 }

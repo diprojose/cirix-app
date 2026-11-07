@@ -54,6 +54,14 @@ export default async function ReceiptsPage({ params }: { params: Promise<{ slug:
                 })}
           </p>
         </header>
+        {settings.value.demoMode && (
+          <p role="status" className="rounded-2xl bg-accent-soft px-4 py-3 text-label font-medium text-accent-strong">
+            {pick(locale, {
+              es: "Modo demo activo: se acepta cualquier recibo y las reglas de abajo no se aplican. Solo Cirix puede apagarlo.",
+              en: "Demo mode is on: any receipt is accepted and the rules below don't apply. Only Cirix can turn it off.",
+            })}
+          </p>
+        )}
         <ReceiptSettingsForm slug={business.slug} businessName={business.name} earnsPoints={earnsPoints} initial={settings.value} />
       </section>
 

@@ -132,6 +132,12 @@ function readTotal(lines: string[]): { totalCents: number | null; totalConfirmed
   return { totalCents, totalConfirmed: seen >= 2 || adds };
 }
 
+/** The largest amount printed anywhere, for when no line was read as the total. */
+export function largestAmount(lines: readonly string[]): number | null {
+  const amounts = lines.flatMap(amountsIn);
+  return amounts.length > 0 ? Math.max(...amounts) : null;
+}
+
 export function parseReceipt(text: string): ParsedReceipt {
   const lines = text
     .split(/\r?\n/)

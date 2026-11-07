@@ -16,6 +16,12 @@ type ReceiptSettingsProps = {
   pointsPerDollar: number;
   /** Supermarkets: receipts one customer can use per day. Restaurants use the card's wait instead. */
   dailyLimit: number;
+  /**
+   * Sales demos only: any receipt counts, as often as wanted, and the customer sees
+   * what was read. Every check against fraud is off, so only a Cirix administrator
+   * can set it (scripts/manage-business.mjs); the owner's form never touches it.
+   */
+  demoMode?: boolean;
 };
 
 export type ReceiptSettingsInput = ReceiptSettingsProps;
@@ -65,7 +71,7 @@ export class ReceiptSettings extends ValueObject<ReceiptSettingsProps> {
     if (!inRange(input.dailyLimit, limits.minDailyLimit, limits.maxDailyLimit)) {
       return err(new InvalidReceiptSettingsError(`Daily limit must be ${limits.minDailyLimit}-${limits.maxDailyLimit}.`));
     }
-    return ok(new ReceiptSettings({ ...input, storeNames, merchantIds }));
+    return ok(new ReceiptSettings({ ...input, storeNames, merchantIds, demoMode: input.demoMode === true }));
   }
 
   static defaults(): ReceiptSettings {
@@ -107,6 +113,10 @@ export class ReceiptSettings extends ValueObject<ReceiptSettingsProps> {
 
   get pointsPerDollar(): number {
     return this.props.pointsPerDollar;
+  }
+
+  get demoMode(): boolean {
+    return this.props.demoMode === true;
   }
 
   get dailyLimit(): number {

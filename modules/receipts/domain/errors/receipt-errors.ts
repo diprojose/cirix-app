@@ -38,7 +38,8 @@ export type ReceiptField = "total" | "date" | "id";
 export class ReceiptUnreadableError extends DomainError {
   readonly code = "receipts/unreadable";
 
-  constructor(readonly missing: readonly ReceiptField[]) {
+  /** `read` is what did come through, shown in demo mode. */
+  constructor(readonly missing: readonly ReceiptField[], readonly read?: unknown) {
     super(`Could not read from the receipt: ${missing.join(", ")}.`);
   }
 }

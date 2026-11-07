@@ -19,7 +19,9 @@ export class SaveReceiptSettings implements UseCase<ReceiptSettingsInput & { bus
   constructor(private readonly settings: ReceiptSettingsRepository) {}
 
   async execute({ businessId, ...input }: ReceiptSettingsInput & { businessId: string }): Promise<Result<ReceiptSettingsDto, DomainError>> {
-    const settings = ReceiptSettings.create(input);
+    // Demo mode is not the owner's to change: whatever arrives here, the stored value stays.
+    const { demoMode } = await this.settings.get(businessId);
+    const settings = ReceiptSettings.create({ ...input, demoMode });
     if (!settings.ok) return settings;
     await this.settings.save(businessId, settings.value);
     return ok(toReceiptSettingsDto(settings.value));

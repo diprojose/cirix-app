@@ -16,6 +16,7 @@ import { randomUUID } from "node:crypto";
 const USAGE = `Usage:
   node scripts/manage-business.mjs create --name "Cafe Luna" --slug cafe-luna --kind restaurant --owner owner@example.com --confirm
   node scripts/manage-business.mjs add-member --slug cafe-luna --email person@example.com --role staff|owner --confirm
+  node scripts/manage-business.mjs receipt-demo --slug cafe-luna --on|--off --confirm
   node scripts/manage-business.mjs list
 
 Kinds: supermarket | restaurant | other.  Roles: owner | staff.
@@ -47,7 +48,7 @@ if (!command || args.includes("--help")) {
   console.log(USAGE);
   process.exit(0);
 }
-if (!["create", "add-member", "list"].includes(command)) fail(`Unknown command "${command}".`);
+if (!["create", "add-member", "receipt-demo", "list"].includes(command)) fail(`Unknown command "${command}".`);
 if (command !== "list" && !args.includes("--confirm")) fail("Add --confirm to write to Firebase.");
 
 function validSlug(raw) {
@@ -136,6 +137,22 @@ if (command === "create") {
   });
   if (owner) await saveMembership(businessId, await userByEmail(owner), owner, "owner");
   console.log(`Created "${name}" at /b/${slug} (${businessId})${owner ? `; owner: ${owner}` : ""}.`);
+}
+
+if (command === "receipt-demo") {
+  // Sales demos only: any receipt counts and every check against fraud is off. See docs/receipts.md.
+  const slug = validSlug(option("slug"));
+  const on = args.includes("--on");
+  if (!slug) fail("--slug is invalid.");
+  if (on === args.includes("--off")) fail("Say either --on or --off.");
+  const business = await businessBySlug(slug);
+  if (!business) throw new Error(`No business has the address "${slug}".`);
+  const ref = business.ref.collection("settings").doc("receipts");
+  // The same defaults as ReceiptSettings.defaults(), for a business that never saved its rules.
+  const defaults = { enabled: false, storeNames: [], merchantIds: [], maxAgeDays: 2, maxAmountDollars: 500, pointsPerDollar: 2, dailyLimit: 3 };
+  const existing = (await ref.get()).data();
+  await ref.set({ ...defaults, ...existing, ...(on ? { enabled: true } : {}), demoMode: on });
+  console.log(`Receipt demo mode is ${on ? "ON" : "OFF"} for "${business.data().name}".`);
 }
 
 if (command === "add-member") {

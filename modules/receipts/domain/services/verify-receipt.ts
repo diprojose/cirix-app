@@ -8,7 +8,7 @@ import {
   type ReceiptField,
 } from "../errors/receipt-errors";
 import type { ReceiptSettings } from "../value-objects/receipt-settings";
-import type { ParsedReceipt } from "./parse-receipt";
+import { largestAmount, type ParsedReceipt } from "./parse-receipt";
 
 /** A receipt that passed every check, with the keys that stop it being used twice. */
 export type VerifiedReceipt = {
@@ -94,6 +94,38 @@ function receiptKeys(parsed: ParsedReceipt, date: string, totalCents: number): s
   if (parsed.authCode !== null) keys.push(`auth|${canonical(parsed.authCode)}|${base}`);
   if (keys.length === 0 && parsed.time !== null) keys.push(`time|${parsed.time}|${base}`);
   return keys;
+}
+
+/** Everything read from a photo, shown on screen in demo mode. */
+export type ReceiptReading = {
+  /** The first line that looks like a name: where a receipt usually prints the store. */
+  store: string | null;
+  totalCents: number | null;
+  date: string | null;
+  time: string | null;
+  transactionId: string | null;
+  authCode: string | null;
+  merchantId: string | null;
+  lines: string[];
+};
+
+const MAX_READING_LINES = 80;
+
+/** Demo mode: reports what the photo says without judging it. No check here protects anything. */
+export function describeReading(parsed: ParsedReceipt, now: Date): ReceiptReading {
+  const tomorrow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + DAY_MS;
+  const sorted = [...parsed.dates].sort();
+  return {
+    store: parsed.lines.find((line) => /[A-Z]{3}/.test(line)) ?? null,
+    totalCents: parsed.totalCents ?? largestAmount(parsed.lines),
+    // `11/01/26` has two readings: the newest that is not in the future.
+    date: sorted.filter((date) => Date.parse(date) <= tomorrow).at(-1) ?? sorted.at(-1) ?? null,
+    time: parsed.time,
+    transactionId: parsed.transactionId,
+    authCode: parsed.authCode,
+    merchantId: parsed.merchantId,
+    lines: parsed.lines.slice(0, MAX_READING_LINES),
+  };
 }
 
 /**

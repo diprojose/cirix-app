@@ -88,6 +88,22 @@ businesses/{businessId}/rewards/{rewardId}      el catálogo
 businesses/{businessId}/redemptions/{code}      un documento por canje
 ```
 
+## Modo demo
+
+Para mostrar el producto a posibles clientes con cualquier recibo a mano. **Quita todas las protecciones**, así que no debe usarse con un negocio real.
+
+```bash
+node scripts/manage-business.mjs receipt-demo --slug super-demo --on --confirm
+node scripts/manage-business.mjs receipt-demo --slug super-demo --off --confirm
+```
+
+- Se acepta cualquier tienda y fecha, el mismo recibo puede usarse varias veces, y no hay tope de monto, límite diario ni de intentos.
+- Solo se exige leer un monto, porque los puntos salen de él. Si ninguna línea se reconoce como el total, se usa el monto más alto del recibo.
+- La pantalla muestra lo leído: comercio, total, fecha, hora, transacción, autorización, Merchant ID y el texto completo. Lo que no se pudo leer sale como "No se leyó", también cuando la foto no sirve. Si el OCR se equivoca, se ve tal cual.
+- En restaurantes, la espera entre sellos sigue aplicando, pero los datos leídos se muestran igual.
+- Nada de la lectura se guarda fuera del registro normal del recibo.
+- El dueño no puede activarlo ni apagarlo: el formulario conserva el valor guardado, y el panel avisa si está activo.
+
 ## Cambiar de lector
 
 El lector está detrás del puerto `ReceiptReader`: recibe la imagen y devuelve texto. Para pasar a un servicio de IA con visión, basta otra implementación de ese puerto en `modules/receipts/infrastructure/` y cambiarla en `receipts-container.ts`.

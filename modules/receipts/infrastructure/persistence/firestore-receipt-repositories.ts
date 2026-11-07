@@ -62,6 +62,7 @@ export class FirestoreReceiptSettingsRepository implements ReceiptSettingsReposi
       maxAmountDollars: settings.maxAmountDollars,
       pointsPerDollar: settings.pointsPerDollar,
       dailyLimit: settings.dailyLimit,
+      demoMode: settings.demoMode,
     } satisfies ReceiptSettingsInput);
   }
 }
