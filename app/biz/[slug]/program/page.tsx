@@ -24,12 +24,12 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
     <main className="flex flex-col gap-5 md:max-w-md">
       <header className="flex flex-col gap-1">
         <h1 className="text-display font-bold tracking-tight text-text">
-          {pick(locale, { es: "Programa de sellos", en: "Stamp program" })}
+          {pick(locale, { es: "Programa de visitas", en: "Visit program" })}
         </h1>
         <p className="text-label text-text-muted">
           {pick(locale, {
-            es: "Los cambios aplican a los próximos sellos. Las tarjetas en curso conservan lo que ya juntaron.",
-            en: "Changes apply to future stamps. Cards in progress keep what they already collected.",
+            es: "Los cambios aplican a las próximas visitas. Las tarjetas en curso conservan lo que ya juntaron.",
+            en: "Changes apply to future visits. Cards in progress keep what they already collected.",
           })}
         </p>
       </header>

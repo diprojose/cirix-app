@@ -9,7 +9,7 @@ Plataforma interna de Cirix (agencia de marketing, Fort Myers, FL), publicada en
 El cliente aprobó la "Propuesta Ecosistema Cirix (CX)": tres pilares sobre un CRM central compartido.
 
 1. **Supermercado Loyalty (PWA):** registro con bono, recibos leídos por IA, puntos por monto, campañas dinámicas por calendario, catálogo de premios y canje con código único.
-2. **Restaurant Loyalty:** tarjeta de sellos digital/wallet. La visita se sella de dos formas: el personal escanea el QR personal del cliente, o (si el dueño lo activa, por pedido del cliente) el comensal escanea el QR impreso en la mesa.
+2. **Restaurant Loyalty:** tarjeta de sellos digital/wallet. Por pedido del cliente (nov 2026), la interfaz llama **visitas** a los sellos: cada recibo, escaneo del personal o QR de mesa suma una visita, y al llegar a la meta se canjea el premio. El código y los datos siguen usando `stamp`. La visita se sella de dos formas: el personal escanea el QR personal del cliente, o (si el dueño lo activa, por pedido del cliente) el comensal escanea el QR impreso en la mesa.
 3. **Automatización omnicanal:** chatbot de texto, voicebot, CRM, landing/SEO y gestor de reputación (Google Reviews).
 
 E-commerce es fase futura (la tienda `loyalty` heredada encaja ahí, con los pagos a rehacer).

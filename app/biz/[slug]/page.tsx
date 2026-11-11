@@ -44,8 +44,8 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
         <p className="text-body text-text-muted">
           {showsStamps
             ? pick(locale, {
-                es: "Tu rol valida visitas de clientes: escanea su código QR para sellar su tarjeta.",
-                en: "Your role validates customer visits: scan their QR code to stamp their card.",
+                es: "Tu rol valida visitas de clientes: escanea su código QR para registrar su visita.",
+                en: "Your role validates customer visits: scan their QR code to record their visit.",
               })
             : pick(locale, {
                 es: "Tu rol entrega premios: en Escanear, lee el código de premio del cliente y confirma la entrega.",
@@ -73,8 +73,8 @@ export default async function BusinessDashboardPage({ params }: { params: Promis
                     <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Teléfono", en: "Phone" })}</th>
                     {showsStamps && (
                       <>
-                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Sellos", en: "Stamps" })}</th>
-                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Último sello", en: "Last stamp" })}</th>
+                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Visitas", en: "Visits" })}</th>
+                        <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Última visita", en: "Last visit" })}</th>
                       </>
                     )}
                     {!showsStamps && (

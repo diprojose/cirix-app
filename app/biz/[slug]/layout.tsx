@@ -38,7 +38,7 @@ export default async function BusinessLayout({
     ...(stamps && roleCan(role, "customers:read") ? [{ href: `${home}/activity`, label: pick(locale, { es: "Actividad", en: "Activity" }) }] : []),
     ...(stamps && roleCan(role, "program:manage")
       ? [
-          { href: `${home}/program`, label: pick(locale, { es: "Programa de sellos", en: "Stamp program" }) },
+          { href: `${home}/program`, label: pick(locale, { es: "Programa de visitas", en: "Visit program" }) },
           { href: `${home}/qr`, label: pick(locale, { es: "QR de mesa", en: "Table QR" }) },
         ]
       : []),

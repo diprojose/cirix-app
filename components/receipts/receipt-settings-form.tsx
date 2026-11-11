@@ -80,7 +80,7 @@ export function ReceiptSettingsForm({
         <input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} disabled={saving} className="size-5" />
         {earnsPoints
           ? pick(locale, { es: "El cliente gana puntos escaneando su recibo", en: "Customers earn points by scanning their receipt" })
-          : pick(locale, { es: "El cliente gana un sello escaneando su recibo", en: "Customers earn a stamp by scanning their receipt" })}
+          : pick(locale, { es: "Cada recibo escaneado cuenta como una visita", en: "Each scanned receipt counts as a visit" })}
       </label>
 
       <label htmlFor="receipt-names" className={LABEL}>

@@ -78,7 +78,7 @@ export default async function MePage() {
                   <LocalizedLink href={`/me/cards/${business.slug}`} className={LINK_CARD}>
                     <span className="text-body font-medium text-text">{business.name}</span>
                     <span className="text-caption text-text-muted">
-                      {pick(locale, { es: "Ver mi tarjeta de sellos", en: "View my stamp card" })}
+                      {pick(locale, { es: "Ver mis visitas", en: "View my visits" })}
                     </span>
                   </LocalizedLink>
                 )}

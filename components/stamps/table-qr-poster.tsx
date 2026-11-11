@@ -57,8 +57,8 @@ export function TableQrPoster({
   async function rotate() {
     const confirmed = window.confirm(
       pick(locale, {
-        es: "Los QR que ya imprimiste dejarán de dar sellos (para registrarse siguen sirviendo). Tendrás que imprimir y poner los nuevos. ¿Continuar?",
-        en: "QR codes you already printed will stop giving stamps (they still work for signing up). You'll need to print and place the new ones. Continue?",
+        es: "Los QR que ya imprimiste dejarán de registrar visitas (para registrarse siguen sirviendo). Tendrás que imprimir y poner los nuevos. ¿Continuar?",
+        en: "QR codes you already printed will stop recording visits (they still work for signing up). You'll need to print and place the new ones. Continue?",
       })
     );
     if (!confirmed) return;
@@ -88,7 +88,7 @@ export function TableQrPoster({
           <span className="text-display font-bold tracking-tight text-[#1c1917]">{businessName}</span>
           <span className="text-body text-[#44403c]">
             {tableStamps
-              ? pick(locale, { es: "Escanea para sumar tu sello", en: "Scan to collect your stamp" })
+              ? pick(locale, { es: "Escanea para registrar tu visita", en: "Scan to record your visit" })
               : pick(locale, { es: "Escanea para unirte a nuestro programa", en: "Scan to join our program" })}
           </span>
         </figcaption>

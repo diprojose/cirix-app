@@ -115,11 +115,11 @@ function errorText(locale: Locale, error: ScanError | undefined): string {
       return pick(locale, { es: "Este negocio no está recibiendo recibos por ahora.", en: "This business isn't accepting receipts right now." });
     case "stamps/too-soon":
       return pick(locale, {
-        es: `Ya sumaste un sello hace poco. El próximo estará disponible en ${Math.ceil((error.retryAfterSeconds ?? 60) / 60)} min.`,
-        en: `You got a stamp recently. The next one will be available in ${Math.ceil((error.retryAfterSeconds ?? 60) / 60)} min.`,
+        es: `Ya registraste una visita hace poco. La próxima estará disponible en ${Math.ceil((error.retryAfterSeconds ?? 60) / 60)} min.`,
+        en: `You recorded a visit recently. The next one will be available in ${Math.ceil((error.retryAfterSeconds ?? 60) / 60)} min.`,
       });
     case "stamps/reward-pending":
-      return pick(locale, { es: "Tu premio ya está listo: canjéalo antes de sumar más sellos.", en: "Your reward is ready: redeem it before collecting more stamps." });
+      return pick(locale, { es: "Tu premio ya está listo: canjéalo antes de sumar más visitas.", en: "Your reward is ready: redeem it before collecting more visits." });
     case "stamps/inactive":
       return pick(locale, { es: "El programa está en pausa por ahora.", en: "The program is paused for now." });
     default:
@@ -205,8 +205,8 @@ export function ReceiptScanner({ slug, onScanned }: { slug: string; onScanned?: 
                 en: `Done! ${money.format(state.result.totalCents / 100)} receipt: you earned ${state.result.reward.earned} points.`,
               })
             : pick(locale, {
-                es: `¡Sello sumado! Recibo de ${money.format(state.result.totalCents / 100)}.`,
-                en: `Stamp added! ${money.format(state.result.totalCents / 100)} receipt.`,
+                es: `¡Visita registrada! Recibo de ${money.format(state.result.totalCents / 100)}.`,
+                en: `Visit recorded! ${money.format(state.result.totalCents / 100)} receipt.`,
               })}
         </p>
       )}

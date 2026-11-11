@@ -24,7 +24,7 @@ const COPY: { es: { heading: string; updated: string; sections: Section[] }; en:
       {
         title: "Quiénes somos",
         paragraphs: [
-          "Cirix (Fort Myers, Florida) opera esta plataforma de fidelización. Cada restaurante o supermercado administra su propio programa de sellos o puntos dentro de ella.",
+          "Cirix (Fort Myers, Florida) opera esta plataforma de fidelización. Cada restaurante o supermercado administra su propio programa de visitas o puntos dentro de ella.",
         ],
       },
       {
@@ -32,7 +32,7 @@ const COPY: { es: { heading: string; updated: string; sections: Section[] }; en:
         items: [
           "Tu cuenta: el correo con el que inicias sesión y, si entras con Google, el nombre y la foto de tu perfil.",
           "Tu registro en cada negocio: nombre, teléfono si decides darlo, la fecha y cómo te registraste.",
-          "Tu actividad en el programa: sellos, puntos, premios canjeados y sus fechas.",
+          "Tu actividad en el programa: visitas, puntos, premios canjeados y sus fechas.",
           "De cada recibo aceptado: total, fecha, números de transacción y de comercio, y lo que ganaste.",
         ],
       },
@@ -66,7 +66,7 @@ const COPY: { es: { heading: string; updated: string; sections: Section[] }; en:
       {
         title: "Cuánto tiempo y tus derechos",
         paragraphs: [
-          `Conservamos tus datos mientras participes en un programa. Puedes pedirnos una copia, corregirlos o borrarlos escribiendo a ${CONTACT}. Si los borramos, pierdes tus sellos y puntos.`,
+          `Conservamos tus datos mientras participes en un programa. Puedes pedirnos una copia, corregirlos o borrarlos escribiendo a ${CONTACT}. Si los borramos, pierdes tus visitas y puntos.`,
         ],
       },
       {
@@ -86,7 +86,7 @@ const COPY: { es: { heading: string; updated: string; sections: Section[] }; en:
       {
         title: "Who we are",
         paragraphs: [
-          "Cirix (Fort Myers, Florida) runs this loyalty platform. Each restaurant or supermarket manages its own stamp or points program on it.",
+          "Cirix (Fort Myers, Florida) runs this loyalty platform. Each restaurant or supermarket manages its own visits or points program on it.",
         ],
       },
       {
@@ -94,7 +94,7 @@ const COPY: { es: { heading: string; updated: string; sections: Section[] }; en:
         items: [
           "Your account: the email you sign in with and, if you use Google, your profile name and photo.",
           "Your signup at each business: your name, your phone if you choose to give it, the date and how you signed up.",
-          "Your program activity: stamps, points, redeemed rewards and their dates.",
+          "Your program activity: visits, points, redeemed rewards and their dates.",
           "For each accepted receipt: the total, date, transaction and merchant numbers, and what you earned.",
         ],
       },
@@ -128,7 +128,7 @@ const COPY: { es: { heading: string; updated: string; sections: Section[] }; en:
       {
         title: "How long, and your rights",
         paragraphs: [
-          `We keep your data while you take part in a program. You can ask for a copy, correct it or delete it by writing to ${CONTACT}. If we delete it, you lose your stamps and points.`,
+          `We keep your data while you take part in a program. You can ask for a copy, correct it or delete it by writing to ${CONTACT}. If we delete it, you lose your visits and points.`,
         ],
       },
       {

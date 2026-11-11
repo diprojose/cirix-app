@@ -63,8 +63,8 @@ export default async function ActivityPage({
         <h1 className="text-display font-bold tracking-tight text-text">{pick(locale, { es: "Actividad", en: "Activity" })}</h1>
         <p className="text-label text-text-muted">
           {pick(locale, {
-            es: "Sellos y premios de los últimos días, incluido hoy.",
-            en: "Stamps and rewards over the last few days, today included.",
+            es: "Visitas y premios de los últimos días, incluido hoy.",
+            en: "Visits and rewards over the last few days, today included.",
           })}
         </p>
       </header>
@@ -84,7 +84,7 @@ export default async function ActivityPage({
 
       <section aria-label={pick(locale, { es: "Resumen", en: "Summary" })} className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className={TILE}>
-          <span className="text-caption text-text-muted">{pick(locale, { es: "Sellos", en: "Stamps" })}</span>
+          <span className="text-caption text-text-muted">{pick(locale, { es: "Visitas", en: "Visits" })}</span>
           <span className="text-title font-bold text-text">{number.format(activity.totalStamps)}</span>
         </div>
         <div className={TILE}>
@@ -112,7 +112,7 @@ export default async function ActivityPage({
         <h2 id="staff-title" className="text-body font-medium text-text">{pick(locale, { es: "Por empleado", en: "By employee" })}</h2>
         {activity.byStaff.length === 0 ? (
           <p className="text-label text-text-muted">
-            {pick(locale, { es: "Nadie del equipo selló ni entregó premios en este periodo.", en: "Nobody on the team stamped or handed over rewards in this period." })}
+            {pick(locale, { es: "Nadie del equipo registró visitas ni entregó premios en este periodo.", en: "Nobody on the team recorded visits or handed over rewards in this period." })}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-border">
@@ -120,7 +120,7 @@ export default async function ActivityPage({
               <thead className="bg-surface text-text-muted">
                 <tr>
                   <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Empleado", en: "Employee" })}</th>
-                  <th scope="col" className="px-4 py-2 text-right font-medium">{pick(locale, { es: "Sellos", en: "Stamps" })}</th>
+                  <th scope="col" className="px-4 py-2 text-right font-medium">{pick(locale, { es: "Visitas", en: "Visits" })}</th>
                   <th scope="col" className="px-4 py-2 text-right font-medium">{pick(locale, { es: "Premios", en: "Rewards" })}</th>
                 </tr>
               </thead>
@@ -150,7 +150,7 @@ export default async function ActivityPage({
         </p>
         {tableUsers.length === 0 ? (
           <p className="text-label text-text-muted">
-            {pick(locale, { es: "Nadie selló con el QR de mesa en este periodo.", en: "Nobody stamped with the table QR in this period." })}
+            {pick(locale, { es: "Nadie registró visitas con el QR de mesa en este periodo.", en: "Nobody recorded visits with the table QR in this period." })}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-border">
@@ -159,7 +159,7 @@ export default async function ActivityPage({
                 <tr>
                   <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Cliente", en: "Customer" })}</th>
                   <th scope="col" className="px-4 py-2 font-medium">{pick(locale, { es: "Correo", en: "Email" })}</th>
-                  <th scope="col" className="px-4 py-2 text-right font-medium">{pick(locale, { es: "Sellos con QR", en: "QR stamps" })}</th>
+                  <th scope="col" className="px-4 py-2 text-right font-medium">{pick(locale, { es: "Visitas con QR", en: "QR visits" })}</th>
                 </tr>
               </thead>
               <tbody>

@@ -156,8 +156,8 @@ export function TeamManager({
             onChange={(event) => setEmail(event.target.value)} disabled={busy !== null} aria-describedby="team-email-help" className={INPUT} />
           <p id="team-email-help" className="text-caption text-text-muted">
             {pick(locale, {
-              es: "Usa el correo con el que va a entrar (su cuenta de Google o uno donde reciba el enlace). El personal solo puede escanear y sellar; no ve la lista de clientes.",
-              en: "Use the email they will sign in with (their Google account, or one where they get the link). Staff can only scan and stamp; they do not see the customer list.",
+              es: "Usa el correo con el que va a entrar (su cuenta de Google o uno donde reciba el enlace). El personal solo puede escanear y registrar visitas; no ve la lista de clientes.",
+              en: "Use the email they will sign in with (their Google account, or one where they get the link). Staff can only scan and record visits; they do not see the customer list.",
             })}
           </p>
           {manageable.length > 1 && (

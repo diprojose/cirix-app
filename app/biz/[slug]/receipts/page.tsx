@@ -49,8 +49,8 @@ export default async function ReceiptsPage({ params }: { params: Promise<{ slug:
                   en: "Customers photograph their receipt and earn points based on the total, without going to the counter.",
                 })
               : pick(locale, {
-                  es: "El cliente le toma una foto a su recibo y gana un sello, sin pasar por caja. Se aplica la misma espera entre sellos de tu programa.",
-                  en: "Customers photograph their receipt and earn a stamp, without going to the counter. Your program's wait between stamps applies.",
+                  es: "El cliente le toma una foto a su recibo y cuenta como una visita, sin pasar por caja. Se aplica la misma espera entre visitas de tu programa.",
+                  en: "Customers photograph their receipt and it counts as a visit, without going to the counter. Your program's wait between visits applies.",
                 })}
           </p>
         </header>
@@ -88,7 +88,7 @@ export default async function ReceiptsPage({ params }: { params: Promise<{ slug:
                     <td className="whitespace-nowrap px-4 py-2 tabular-nums">{money.format(receipt.totalCents / 100)}</td>
                     <td className="whitespace-nowrap px-4 py-2">
                       {receipt.points === null
-                        ? pick(locale, { es: "1 sello", en: "1 stamp" })
+                        ? pick(locale, { es: "1 visita", en: "1 visit" })
                         : pick(locale, { es: `${receipt.points} puntos`, en: `${receipt.points} points` })}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 tabular-nums">{receipt.transactionId ?? "—"}</td>

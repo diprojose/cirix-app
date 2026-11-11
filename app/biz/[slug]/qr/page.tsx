@@ -31,17 +31,17 @@ export default async function TableQrPage({ params }: { params: Promise<{ slug: 
         <p className="text-label text-text-muted">
           {program.value.tableStamps
             ? pick(locale, {
-                es: "Imprímelo y ponlo en cada mesa. Quien lo escanea se registra la primera vez y, en cada visita, suma su sello.",
-                en: "Print it and place it on every table. Scanning it signs people up the first time and stamps each visit.",
+                es: "Imprímelo y ponlo en cada mesa. Quien lo escanea se registra la primera vez y, después, registra cada visita.",
+                en: "Print it and place it on every table. Scanning it signs people up the first time and records each visit after that.",
               })
             : pick(locale, {
-                es: "Imprímelo y ponlo en cada mesa para que los clientes se registren. Hoy los sellos los da el personal; puedes activar que el cliente selle con este QR en el programa de sellos.",
-                en: "Print it and place it on every table so customers can sign up. Right now staff give the stamps; you can let customers stamp with this QR in the stamp program.",
+                es: "Imprímelo y ponlo en cada mesa para que los clientes se registren. Hoy las visitas las registra el personal; puedes activar que el cliente registre su visita con este QR en el programa de visitas.",
+                en: "Print it and place it on every table so customers can sign up. Right now staff record visits; you can let customers record their visit with this QR in the visit program.",
               })}
         </p>
         {!program.value.tableStamps && (
           <LocalizedLink href={`/biz/${access.business.slug}/program`} className="text-label text-accent underline underline-offset-4">
-            {pick(locale, { es: "Ir al programa de sellos", en: "Go to the stamp program" })}
+            {pick(locale, { es: "Ir al programa de visitas", en: "Go to the visit program" })}
           </LocalizedLink>
         )}
       </header>

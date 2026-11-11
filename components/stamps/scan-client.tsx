@@ -33,16 +33,16 @@ function explain(error: ApiError | undefined, locale: Locale): string {
       return pick(locale, { es: "Esta persona no está registrada en tu negocio.", en: "This person isn't registered at your business." });
     case "stamps/too-soon": {
       const minutes = Math.max(1, Math.ceil((error.retryAfterSeconds ?? 60) / 60));
-      return pick(locale, { es: `Ya se selló hace poco. Próximo sello en ${minutes} min.`, en: `Already stamped a moment ago. Next stamp in ${minutes} min.` });
+      return pick(locale, { es: `Ya se registró una visita hace poco. Próxima en ${minutes} min.`, en: `A visit was already recorded a moment ago. Next one in ${minutes} min.` });
     }
     case "stamps/reward-pending":
-      return pick(locale, { es: "La tarjeta está completa: canjea el premio antes de añadir más sellos.", en: "The card is complete: redeem the reward before adding more stamps." });
+      return pick(locale, { es: "La tarjeta está completa: canjea el premio antes de registrar más visitas.", en: "The card is complete: redeem the reward before recording more visits." });
     case "stamps/no-reward":
       return pick(locale, { es: "Esta tarjeta no tiene un premio por canjear.", en: "This card has no reward to redeem." });
     case "stamps/inactive":
-      return pick(locale, { es: "El programa de sellos está en pausa.", en: "The stamp program is paused." });
+      return pick(locale, { es: "El programa de visitas está en pausa.", en: "The visit program is paused." });
     case "stamps/misconfigured":
-      return pick(locale, { es: "El servicio de sellos no está configurado. Avisa al administrador.", en: "The stamp service isn't configured. Tell your administrator." });
+      return pick(locale, { es: "El servicio de visitas no está configurado. Avisa al administrador.", en: "The visit service isn't configured. Tell your administrator." });
     default:
       return pick(locale, { es: "No se pudo completar la acción. Intenta de nuevo.", en: "The action couldn't be completed. Please try again." });
   }
@@ -106,7 +106,7 @@ export function ScanClient({ slug }: { slug: string }) {
           ? pick(locale, { es: `Premio entregado a ${firstName}. Su tarjeta volvió a empezar.`, en: `Reward given to ${firstName}. Their card started over.` })
           : unlocked
             ? pick(locale, { es: `¡Tarjeta completa! ${firstName} ganó: ${card.rewardName}. Canjéalo ahora.`, en: `Card complete! ${firstName} earned: ${card.rewardName}. Redeem it now.` })
-            : pick(locale, { es: `Sello añadido a ${firstName}: ${card.stamps} de ${card.required}.`, en: `Stamp added for ${firstName}: ${card.stamps} of ${card.required}.` }),
+            : pick(locale, { es: `Visita registrada para ${firstName}: ${card.stamps} de ${card.required}.`, en: `Visit recorded for ${firstName}: ${card.stamps} of ${card.required}.` }),
     });
   }
 
@@ -142,13 +142,13 @@ export function ScanClient({ slug }: { slug: string }) {
             <p className="text-body text-text-muted">
               {phase.scanned.card.rewardReady
                 ? pick(locale, { es: `Premio listo: ${phase.scanned.card.rewardName}`, en: `Reward ready: ${phase.scanned.card.rewardName}` })
-                : pick(locale, { es: `${phase.scanned.card.stamps} de ${phase.scanned.card.required} sellos`, en: `${phase.scanned.card.stamps} of ${phase.scanned.card.required} stamps` })}
+                : pick(locale, { es: `${phase.scanned.card.stamps} de ${phase.scanned.card.required} visitas`, en: `${phase.scanned.card.stamps} of ${phase.scanned.card.required} visits` })}
             </p>
             {!phase.scanned.card.canStamp && !phase.scanned.card.rewardReady && phase.scanned.card.retryAfterSeconds > 0 && (
               <p className="text-label text-text-muted">
                 {pick(locale, {
-                  es: `Ya se selló hace poco. Próximo sello en ${Math.ceil(phase.scanned.card.retryAfterSeconds / 60)} min.`,
-                  en: `Already stamped a moment ago. Next stamp in ${Math.ceil(phase.scanned.card.retryAfterSeconds / 60)} min.`,
+                  es: `Ya se registró una visita hace poco. Próxima en ${Math.ceil(phase.scanned.card.retryAfterSeconds / 60)} min.`,
+                  en: `A visit was already recorded a moment ago. Next one in ${Math.ceil(phase.scanned.card.retryAfterSeconds / 60)} min.`,
                 })}
               </p>
             )}
@@ -162,7 +162,7 @@ export function ScanClient({ slug }: { slug: string }) {
             disabled={!phase.scanned.card.canStamp}
             className={`${BUTTON} bg-accent-fill text-on-accent hover:bg-accent-fill-strong`}
           >
-            {pick(locale, { es: "Añadir sello", en: "Add stamp" })}
+            {pick(locale, { es: "Registrar visita", en: "Record visit" })}
           </button>
           <button
             type="button"

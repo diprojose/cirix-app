@@ -25,8 +25,8 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         <h1 className="text-display font-bold tracking-tight text-text">{pick(locale, { es: "Equipo", en: "Team" })}</h1>
         <p className="text-label text-text-muted">
           {pick(locale, {
-            es: "Las personas que pueden sellar tarjetas en tu negocio. Si alguien deja de trabajar contigo, quítalo y pierde el acceso al momento.",
-            en: "The people who can stamp cards at your business. When someone stops working with you, remove them and they lose access at once.",
+            es: "Las personas que pueden registrar visitas en tu negocio. Si alguien deja de trabajar contigo, quítalo y pierde el acceso al momento.",
+            en: "The people who can record visits at your business. When someone stops working with you, remove them and they lose access at once.",
           })}
         </p>
       </header>

@@ -15,8 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Cirix",
     short_name: "Cirix",
     description: pick(DEFAULT_LOCALE, {
-      es: "Tus tarjetas de sellos y tus puntos, en un solo lugar.",
-      en: "Your stamp cards and points, all in one place.",
+      es: "Tus visitas y tus puntos, en un solo lugar.",
+      en: "Your visits and points, all in one place.",
     }),
     lang: DEFAULT_LOCALE,
     start_url: "/me",

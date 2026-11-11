@@ -138,19 +138,19 @@ export function StampCardView({
     switch (code) {
       case "stamps/too-soon":
         return pick(locale, {
-          es: `Ya sumaste un sello hace poco. El próximo estará disponible en ${Math.ceil((retryAfterSeconds ?? 60) / 60)} min.`,
-          en: `You got a stamp recently. The next one will be available in ${Math.ceil((retryAfterSeconds ?? 60) / 60)} min.`,
+          es: `Ya registraste una visita hace poco. La próxima estará disponible en ${Math.ceil((retryAfterSeconds ?? 60) / 60)} min.`,
+          en: `You recorded a visit recently. The next one will be available in ${Math.ceil((retryAfterSeconds ?? 60) / 60)} min.`,
         });
       case "stamps/reward-pending":
-        return pick(locale, { es: "Tu premio ya está listo: canjéalo antes de sumar más sellos.", en: "Your reward is ready: redeem it before collecting more stamps." });
+        return pick(locale, { es: "Tu premio ya está listo: canjéalo antes de sumar más visitas.", en: "Your reward is ready: redeem it before collecting more visits." });
       case "stamps/invalid-table-code":
-        return pick(locale, { es: "Este QR ya no es válido. Pide al personal que selle tu visita.", en: "This QR is no longer valid. Ask the staff to stamp your visit." });
+        return pick(locale, { es: "Este QR ya no es válido. Pide al personal que registre tu visita.", en: "This QR is no longer valid. Ask the staff to record your visit." });
       case "stamps/table-disabled":
-        return pick(locale, { es: "Aquí los sellos se dan en caja: muestra tu código al personal.", en: "Stamps are given at the counter here: show your code to the staff." });
+        return pick(locale, { es: "Aquí las visitas se registran en caja: muestra tu código al personal.", en: "Visits are recorded at the counter here: show your code to the staff." });
       case "stamps/inactive":
         return pick(locale, { es: "El programa está en pausa por ahora.", en: "The program is paused for now." });
       default:
-        return pick(locale, { es: "No pudimos sumar el sello. Intenta de nuevo.", en: "We couldn't add the stamp. Please try again." });
+        return pick(locale, { es: "No pudimos registrar la visita. Intenta de nuevo.", en: "We couldn't record the visit. Please try again." });
     }
   }
 
@@ -171,7 +171,7 @@ export function StampCardView({
       </header>
 
       {offerTableStamp && (
-        <section aria-label={pick(locale, { es: "Sellar esta visita", en: "Stamp this visit" })} className="flex flex-col gap-2">
+        <section aria-label={pick(locale, { es: "Registrar esta visita", en: "Record this visit" })} className="flex flex-col gap-2">
           {(claim.kind !== "error" || claim.retry) && (
             <button
               type="button"
@@ -181,7 +181,7 @@ export function StampCardView({
             >
               {claim.kind === "loading"
                 ? pick(locale, { es: "Sumando...", en: "Adding..." })
-                : pick(locale, { es: "Sumar el sello de esta visita", en: "Stamp this visit" })}
+                : pick(locale, { es: "Registrar esta visita", en: "Record this visit" })}
             </button>
           )}
           {claim.kind === "error" && (
@@ -218,16 +218,16 @@ export function StampCardView({
       )}
       {claim.kind === "done" && (
         <p role="status" className="rounded-2xl bg-accent-soft px-4 py-3 text-center text-body font-medium text-accent-strong">
-          {pick(locale, { es: "¡Sello sumado! Gracias por tu visita.", en: "Stamp added! Thanks for your visit." })}
+          {pick(locale, { es: "¡Visita registrada! Gracias por venir.", en: "Visit recorded! Thanks for coming." })}
         </p>
       )}
 
       <section
-        aria-label={pick(locale, { es: "Tu tarjeta de sellos", en: "Your stamp card" })}
+        aria-label={pick(locale, { es: "Tu tarjeta de visitas", en: "Your visit card" })}
         className={`flex flex-col gap-4 rounded-3xl border border-border bg-surface p-5 ${celebrating ? s.celebrate : ""}`}
       >
         <div className="flex items-baseline justify-between">
-          <span className="text-label font-medium text-text">{pick(locale, { es: "Sellos", en: "Stamps" })}</span>
+          <span className="text-label font-medium text-text">{pick(locale, { es: "Visitas", en: "Visits" })}</span>
           <span className="text-body font-bold text-text">
             {card.stamps} / {card.required}
           </span>
@@ -254,8 +254,8 @@ export function StampCardView({
         {/* Screen readers hear changes without having to find them. */}
         <p className="sr-only" role="status" aria-live="polite">
           {pick(locale, {
-            es: `${card.stamps} de ${card.required} sellos.${card.rewardReady ? " Premio listo." : ""}`,
-            en: `${card.stamps} of ${card.required} stamps.${card.rewardReady ? " Reward ready." : ""}`,
+            es: `${card.stamps} de ${card.required} visitas.${card.rewardReady ? " Premio listo." : ""}`,
+            en: `${card.stamps} of ${card.required} visits.${card.rewardReady ? " Reward ready." : ""}`,
           })}
         </p>
 
@@ -280,8 +280,8 @@ export function StampCardView({
         {card.active && !card.rewardReady && waitMinutes > 0 && (
           <p className="text-center text-caption text-text-muted">
             {pick(locale, {
-              es: `Tu próximo sello estará disponible en ${waitMinutes} min.`,
-              en: `Your next stamp will be available in ${waitMinutes} min.`,
+              es: `Tu próxima visita se podrá registrar en ${waitMinutes} min.`,
+              en: `Your next visit can be recorded in ${waitMinutes} min.`,
             })}
           </p>
         )}
@@ -292,7 +292,7 @@ export function StampCardView({
           <h2 className="text-body font-medium text-text">
             {card.rewardReady
               ? pick(locale, { es: "Muéstralo para canjear tu premio", en: "Show it to redeem your reward" })
-              : pick(locale, { es: "Muéstralo en caja para sellar tu visita", en: "Show it at the counter to stamp your visit" })}
+              : pick(locale, { es: "Muéstralo en caja para registrar tu visita", en: "Show it at the counter to record your visit" })}
           </h2>
           <RotatingQr slug={slug} />
         </section>
