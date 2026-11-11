@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LocalizedLink } from "@/components/localized-link";
+import { MEMBER_LOGIN_PATH } from "@/lib/auth/route-access";
 import { localizeHref, pick, type Locale } from "@/lib/locale";
 import s from "./landing.module.css";
 
@@ -36,7 +37,7 @@ export function LandingHeader({ locale }: { locale: Locale }) {
   return <header ref={header} className={s.header}><div className={`${s.container} ${s.headerInner}`}>
     <a href="#top" aria-label={t("CIRIX — inicio", "CIRIX — home")}><Image src="/brand/logo-white.svg" alt="CIRIX" width={128} height={46} className={s.logo} /></a>
     <nav className={s.desktopNav} aria-label={t("Navegación principal", "Main navigation")}>{links.map(([href, label]) => <a href={href} key={href}>{label}</a>)}</nav>
-    <div className={s.headerActions}><LanguageSwitcher /><LocalizedLink href="/login" className={s.signIn}>{t("Ingresar", "Sign in")} <span aria-hidden="true">↗</span></LocalizedLink><button ref={toggle} type="button" className={s.menuToggle} aria-label={open ? t("Cerrar menú", "Close menu") : t("Abrir menú", "Open menu")} aria-expanded={open} aria-controls="landing-mobile-menu" onClick={() => setOpen(!open)}><span aria-hidden="true">{open ? "×" : "☰"}</span></button></div>
+    <div className={s.headerActions}><LanguageSwitcher /><LocalizedLink href={MEMBER_LOGIN_PATH} className={s.signIn}>{t("Ingresar", "Sign in")} <span aria-hidden="true">↗</span></LocalizedLink><button ref={toggle} type="button" className={s.menuToggle} aria-label={open ? t("Cerrar menú", "Close menu") : t("Abrir menú", "Open menu")} aria-expanded={open} aria-controls="landing-mobile-menu" onClick={() => setOpen(!open)}><span aria-hidden="true">{open ? "×" : "☰"}</span></button></div>
     <nav id="landing-mobile-menu" className={s.mobileNav} hidden={!open} aria-label={t("Navegación móvil", "Mobile navigation")}>{links.map(([href, label]) => <a href={href} key={href} onClick={() => setOpen(false)}>{label}<span aria-hidden="true">↗</span></a>)}<a href="#contacto" onClick={() => setOpen(false)}>{t("Contacto", "Contact")} ↗</a></nav>
   </div></header>;
 }
