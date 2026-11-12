@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/toast-provider";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { useLocale } from "@/components/locale-provider";
@@ -18,10 +18,13 @@ import {
 export function SignOutButton({
   className,
   redirectTo,
+  leading,
 }: {
   className?: string;
   /** Where to land afterwards. By default, the public home page. */
   redirectTo?: string;
+  /** Shown before the words, such as a menu row's icon. */
+  leading?: ReactNode;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -59,6 +62,7 @@ export function SignOutButton({
         "min-h-11 rounded-pill px-4 py-2 text-label font-medium text-text-muted underline-offset-4 transition-colors hover:text-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:text-stone-400 disabled:no-underline"
       }
     >
+      {leading}
       {loading
         ? pick(locale, { es: "Saliendo...", en: "Signing out..." })
         : pick(locale, { es: "Cerrar sesión", en: "Sign out" })}
