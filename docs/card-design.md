@@ -17,7 +17,7 @@ Sin diseño guardado, la tarjeta es azul Cirix con estrellas.
 
 En la tarjeta de visitas (`/me/cards/<slug>`), la de puntos (`/me/points/<slug>`) y el registro (`/b/<slug>`), los botones, enlaces, barras de progreso, bordes de foco y el aviso de "Instalar app" usan el color del negocio, no el azul Cirix. `brandPalette` (en el dominio) calcula los tonos y `<BrandTheme>` los aplica a la pantalla mientras esa página está abierta; al salir, la app vuelve al azul.
 
-- **Los botones** llevan el color exacto, con texto blanco o casi negro según el que se lea mejor.
+- **Los botones** llevan el color exacto, con texto blanco o casi negro según el que se lea mejor. Si el color es tan claro que se confunde con el fondo (crema, beige), los botones y barras usan un tono más oscuro del mismo color (contraste 3:1); la tarjeta conserva el color exacto.
 - **Los enlaces y bordes** sobre el fondo claro se oscurecen lo justo para pasar WCAG AA (4,5:1). Así una marca amarilla sigue teniendo enlaces legibles.
 - **El panel del negocio** sigue en azul Cirix: es la herramienta del dueño, no la cara de su marca. El editor muestra un botón de ejemplo bajo la vista previa.
 

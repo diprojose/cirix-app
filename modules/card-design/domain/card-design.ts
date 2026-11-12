@@ -145,9 +145,11 @@ function darkenedTo(color: string, ratio: number): string {
 
 /**
  * The app's accent colours taken from a business's card, so its buttons, links
- * and highlights match its brand. Buttons keep the exact colour; text and
- * outlines on the light background are darkened until they pass WCAG AA, so a
- * yellow brand still gives readable links.
+ * and highlights match its brand. Buttons keep the exact colour unless it is so
+ * pale (cream, beige) that it melts into the light background: then they take a
+ * deeper shade of it, enough to stand out as a control (3:1). Text and outlines
+ * are darkened until they pass WCAG AA, so a yellow brand still gives readable
+ * links.
  */
 export type BrandPalette = {
   fill: string;
@@ -159,12 +161,17 @@ export type BrandPalette = {
   subtle: string;
 };
 
+/** Below this contrast with white a colour reads as background, not as a button. */
+const PALE_BELOW = 1.5;
+
 export function brandPalette(color: string): BrandPalette {
   const text = darkenedTo(color, 4.5);
+  const exact = mix(color, "#000000", 0);
+  const fill = contrast(exact, "#ffffff") < PALE_BELOW ? darkenedTo(exact, 3) : exact;
   return {
-    fill: mix(color, "#000000", 0),
-    fillStrong: mix(color, "#000000", 0.14),
-    onFill: cardInk(color),
+    fill,
+    fillStrong: mix(fill, "#000000", 0.14),
+    onFill: cardInk(fill),
     text,
     textStrong: darkenedTo(text, 7),
     soft: mix(color, "#ffffff", 0.84),

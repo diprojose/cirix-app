@@ -86,13 +86,22 @@ describe("a card design", () => {
 
   it.each(["#c62828", "#f9a825", "#f4ead5", "#1c5aae", "#2e7d32"])("lends %s to the app's buttons and readable links", (color) => {
     const palette = brandPalette(color);
-    // Buttons keep the exact brand colour, with the ink that reads best on it.
-    expect(palette.fill).toBe(color);
-    expect(palette.onFill).toBe(cardInk(color));
+    // Buttons stand out from the white page, with the ink that reads best on them.
+    expect(contrastOf(palette.fill, "#ffffff")).toBeGreaterThanOrEqual(1.5);
+    expect(palette.onFill).toBe(cardInk(palette.fill));
     expect(contrastOf(palette.onFill, palette.fill)).toBeGreaterThanOrEqual(4.5);
     // Links and outlines on the white background pass WCAG AA, even for a yellow brand.
     expect(contrastOf(palette.text, "#ffffff")).toBeGreaterThanOrEqual(4.5);
     expect(contrastOf(palette.textStrong, "#ffffff")).toBeGreaterThanOrEqual(7);
+  });
+
+  it("keeps a brand's exact colour on buttons unless it would melt into the page", () => {
+    expect(brandPalette("#c62828").fill).toBe("#c62828");
+    expect(brandPalette("#f9a825").fill).toBe("#f9a825");
+    // Cream would vanish on the light background: buttons take a deeper shade of it.
+    const cream = brandPalette("#f4ead5");
+    expect(cream.fill).not.toBe("#f4ead5");
+    expect(contrastOf(cream.fill, "#ffffff")).toBeGreaterThanOrEqual(3);
   });
 
   it("keeps a dark brand's links in its own colour", () => {
