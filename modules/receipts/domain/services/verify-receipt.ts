@@ -8,7 +8,7 @@ import {
   type ReceiptField,
 } from "../errors/receipt-errors";
 import type { ReceiptSettings } from "../value-objects/receipt-settings";
-import { largestAmount, type ParsedReceipt } from "./parse-receipt";
+import type { ParsedReceipt } from "./parse-receipt";
 
 /** A receipt that passed every check, with the keys that stop it being used twice. */
 export type VerifiedReceipt = {
@@ -117,7 +117,7 @@ export function describeReading(parsed: ParsedReceipt, now: Date): ReceiptReadin
   const sorted = [...parsed.dates].sort();
   return {
     store: parsed.lines.find((line) => /[A-Z]{3}/.test(line)) ?? null,
-    totalCents: parsed.totalCents ?? largestAmount(parsed.lines),
+    totalCents: parsed.fallbackTotalCents,
     // `11/01/26` has two readings: the newest that is not in the future.
     date: sorted.filter((date) => Date.parse(date) <= tomorrow).at(-1) ?? sorted.at(-1) ?? null,
     time: parsed.time,

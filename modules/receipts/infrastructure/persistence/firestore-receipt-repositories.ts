@@ -9,6 +9,7 @@ import { Redemption, type RedemptionSnapshot } from "../../domain/entities/redem
 import type { Reward } from "../../domain/entities/reward";
 import type {
   PointsRepository,
+  ReceiptDemoLog,
   ReceiptLedger,
   ReceiptRecord,
   ReceiptSettingsRepository,
@@ -269,5 +270,15 @@ export class FirestorePointsRepository implements PointsRepository {
       transaction.create(customerRef(this.firestore, businessId, userId).collection("points_ledger").doc(entry.id), entry);
       return result;
     });
+  }
+}
+
+/** Demo mode's readings, at businesses/{businessId}/receipt_demo_reads/{auto id}. */
+export class FirestoreReceiptDemoLog implements ReceiptDemoLog {
+  constructor(private readonly firestore: Firestore) {}
+
+  async save(entry: Parameters<ReceiptDemoLog["save"]>[0]): Promise<void> {
+    const { businessId, ...rest } = entry;
+    await businessRef(this.firestore, businessId).collection("receipt_demo_reads").add(rest);
   }
 }

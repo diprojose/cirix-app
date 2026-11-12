@@ -29,12 +29,22 @@ export type ScanRewardDto =
   /** Demo mode only: the receipt was read, but the card could not take a stamp right now. */
   | { kind: "none"; code: string; retryAfterSeconds: number | null };
 
+/** What a photo said, for the customer to confirm before anything is earned. */
+export type ReceiptPreviewDto = {
+  totalCents: number;
+  date: string;
+  /** What confirming gives: points, worked out from the total, or a visit. */
+  earns: { kind: "points"; points: number } | { kind: "stamp" };
+  /** The signed reading, sent back to confirm it. */
+  token: string;
+  /** Demo mode only: everything that was read from the photo. */
+  read?: ReceiptReading;
+};
+
 export type ScanReceiptDto = {
   totalCents: number;
   date: string;
   reward: ScanRewardDto;
-  /** Demo mode only: everything that was read from the photo. */
-  read?: ReceiptReading;
 };
 
 export type PointsSummaryDto = {

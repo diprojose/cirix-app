@@ -5,12 +5,13 @@ El cliente le toma una foto a su recibo y gana sin pasar por caja: **un sello** 
 ## Cómo funciona
 
 1. **El cliente toca "Escanear mi recibo"** en su tarjeta (`/me/cards/<slug>`) o en sus puntos (`/me/points/<slug>`). Se abre la cámara del teléfono; en un computador, el selector de archivos.
-2. **El navegador reduce la foto** (lado mayor de 2400 px, JPEG) y la envía a `POST /api/member/businesses/<slug>/receipts`. No envía nada más.
+2. **El navegador reduce la foto** (lado mayor de 2400 px, JPEG) y mide su brillo. Si la foto salió muy oscura (brillo medio por debajo de 60 de 255), pide otra con más luz o con flash, y deja enviarla igual. Luego la envía a `POST /api/member/businesses/<slug>/receipts`, sin nada más.
 3. **Antes de leer**, el servidor comprueba lo que rechazaría el premio de todos modos: módulo activo, que sea cliente del negocio, espera entre sellos o límite diario, y el tope de intentos.
-4. **El servidor lee la foto:** corrige la rotación, la lleva a 1200 px de ancho, a gris y con contraste normalizado, y aplica Tesseract.
-5. **`parseReceipt`** saca del texto el total, las fechas, la hora, el número de transacción, la autorización y el Merchant ID. Tolera errores típicos del OCR ("Merchant 10", "T0TAL", "©" como separador).
+4. **El servidor lee la foto:** corrige la rotación, la lleva a 1200 px de ancho, a gris y con contraste normalizado, y aplica Tesseract. Si esa lectura no basta (no se leyó el total, la tienda o el monto pasa el tope), hace **una segunda pasada para poca luz**: 1600 px y un filtro de mediana que quita el grano antes de estirar el contraste. Cada pasada tiene 20 s como máximo; si se pasa, cuenta como sin texto.
+5. **`parseReceipt`** saca del texto el total, las fechas, la hora, el número de transacción, la autorización y el Merchant ID. Tolera errores típicos del OCR ("Merchant 10", "T0TAL", "©" como separador). Para el total ignora el efectivo entregado y el cambio ("EFECTIVO", "CASH", "CAMBIO", "CHANGE"…) y la tabla de propinas sugeridas.
 6. **`verifyReceipt`** decide si cuenta: que sea de este negocio, que la fecha esté en la ventana y que el total no pase el tope.
-7. **Se reserva el recibo** de forma atómica y se da el premio. Si el premio no se puede dar, la reserva se deshace y el recibo sigue libre.
+7. **El cliente confirma.** La pantalla muestra el total y la fecha leídos, y lo que ganará ("¿Es correcto?"). Si dice que no, toma otra foto y nada se guarda. La lectura viaja al navegador firmada con HMAC (`STAMP_QR_SECRET`, con su propio prefijo), con validez de 10 minutos. Así el servidor no guarda nada mientras tanto y el cliente no puede cambiar el monto: solo aceptarlo o descartarlo.
+8. **`POST .../receipts/confirm`** recibe esa firma, comprueba que sea de esta persona y este negocio, reserva el recibo de forma atómica y da el premio. Si el premio no se puede dar, la reserva se deshace y el recibo sigue libre.
 
 El total y los identificadores **siempre salen de la foto en el servidor**. Si el navegador mandara esos datos, cualquiera podría inventarse un recibo. Por eso el OCR no corre en el teléfono.
 
@@ -45,11 +46,11 @@ Un sello de recibo y uno del QR de mesa en la misma visita no se suman: comparte
 
 - **Recibos ajenos reales.** Un recibo recogido del piso, o el de un amigo que no lo escaneó, vale una vez. Quien llegue primero se queda con él.
 - **Recibos falsificados.** Quien edite una imagen con un número nuevo puede pasar la lectura, porque nada confirma el recibo contra la caja del negocio. Eso solo se resuelve conectándose al punto de venta. El tope de monto y el límite diario acotan el daño, y `/biz/<slug>/receipts` lista los recibos aceptados para revisarlos.
-- **Fotos muy malas.** El OCR gratuito falla con recibos muy arrugados, borrosos, muy inclinados o de lado. El cliente recibe un mensaje que dice qué no se pudo leer y le pide otra foto.
+- **Fotos muy malas.** El OCR gratuito falla con recibos muy arrugados, borrosos, muy inclinados o de lado. El cliente recibe un mensaje que dice qué no se pudo leer y le pide otra foto. Si se lee un total equivocado, el cliente lo ve antes de confirmar y puede descartarlo.
 
 ## Qué se guarda
 
-De un recibo usado se guarda el total, la fecha, el número de transacción, el Merchant ID, el premio y el momento. **No se guardan** la foto, el texto leído, la lista de productos ni nada de la tarjeta: el analizador nunca lee el número de tarjeta.
+De un recibo usado se guarda el total, la fecha, el número de transacción, el Merchant ID, el premio y el momento. **No se guardan** la foto, el texto leído, la lista de productos ni nada de la tarjeta: el analizador nunca lee el número de tarjeta. La única excepción es el modo demo (ver abajo).
 
 ```
 businesses/{businessId}/settings/receipts                        reglas del dueño
@@ -58,6 +59,7 @@ businesses/{businessId}/receipt_keys/{sha256}                    identificadores
 businesses/{businessId}/customers/{userId}/programs/points       saldo de puntos
 businesses/{businessId}/customers/{userId}/programs/receipt_use  intentos del día
 businesses/{businessId}/customers/{userId}/points_ledger/{id}    un registro inmutable por movimiento
+businesses/{businessId}/receipt_demo_reads/{id}                  solo en modo demo: cada lectura, con su texto
 ```
 
 Todo se lee con índices automáticos de un solo campo; no hace falta ningún índice compuesto ni facturación.
@@ -98,10 +100,10 @@ node scripts/manage-business.mjs receipt-demo --slug super-demo --off --confirm
 ```
 
 - Se acepta cualquier tienda y fecha, el mismo recibo puede usarse varias veces, y no hay tope de monto, límite diario ni de intentos.
-- Solo se exige leer un monto, porque los puntos salen de él. Si ninguna línea se reconoce como el total, se usa el monto más alto del recibo.
-- La pantalla muestra lo leído: comercio, total, fecha, hora, transacción, autorización, Merchant ID y el texto completo. Lo que no se pudo leer sale como "No se leyó", también cuando la foto no sirve. Si el OCR se equivoca, se ve tal cual.
+- Solo se exige leer un monto, porque los puntos salen de él. Si ninguna línea se reconoce como el total, se estima, en este orden: subtotal más impuesto, el pago con tarjeta, el efectivo entregado menos el cambio, y por último el monto más alto que no sea un pago. **Nunca el efectivo entregado**: antes, una cuenta de $7.99 pagada con $10 se leía como $10.
+- La pantalla muestra lo leído: comercio, total, fecha, hora, transacción, autorización, Merchant ID y el texto completo. Lo que no se pudo leer sale como "No se leyó", también cuando la foto no sirve. Si el OCR se equivoca, se ve tal cual. El cliente confirma el total como en el modo normal.
 - En restaurantes, la espera entre sellos sigue aplicando, pero los datos leídos se muestran igual.
-- Nada de la lectura se guarda fuera del registro normal del recibo.
+- **Cada lectura queda en `businesses/{id}/receipt_demo_reads`**, también las fallidas, con el usuario, la hora, el total leído y el texto (hasta 80 líneas), para revisar después qué falló. Ese texto puede incluir los últimos dígitos enmascarados de una tarjeta. Solo se escribe en modo demo; al apagarlo, conviene borrar esa colección.
 - El dueño no puede activarlo ni apagarlo: el formulario conserva el valor guardado, y el panel avisa si está activo.
 
 ## Cambiar de lector

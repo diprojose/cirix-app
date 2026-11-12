@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { err, ok } from "@/shared/domain/result";
-import { ScanReceipt } from "@/modules/receipts/application/use-cases/scan-receipt";
+import { ConfirmReceipt, ScanReceipt } from "@/modules/receipts/application/use-cases/scan-receipt";
+import { HmacPendingReceiptSigner } from "@/modules/receipts/infrastructure/crypto/hmac-pending-receipt-signer";
 import { SaveReceiptSettings } from "@/modules/receipts/application/use-cases/receipt-queries";
 import { toReceiptSettingsDto } from "@/modules/receipts/application/dtos/receipt-dtos";
 import { ReceiptSettings } from "@/modules/receipts/domain/value-objects/receipt-settings";
@@ -9,6 +10,7 @@ import { describeReading } from "@/modules/receipts/domain/services/verify-recei
 import { StampTooSoonError } from "@/modules/stamp-card/domain/errors/stamp-card-errors";
 import {
   InMemoryPointsRepository,
+  InMemoryReceiptDemoLog,
   InMemoryReceiptLedger,
   InMemoryReceiptSettingsRepository,
 } from "@/modules/receipts/infrastructure/persistence/in-memory-receipt-repositories";
@@ -26,17 +28,26 @@ let points: InMemoryPointsRepository;
 let text: string | null;
 let stampResult: () => ReturnType<typeof ok> | ReturnType<typeof err>;
 
-const scan = (business = SUPER) =>
-  new ScanReceipt(
-    settings,
-    { exists: async (_business, userId) => userId !== "stranger" },
-    { read: async () => text },
-    ledger,
-    points,
-    { check: async () => err(new StampTooSoonError(600)), grant: async () => stampResult() as never },
-    { pointsEarned: async () => undefined },
-    () => NOW
-  ).execute({ business, userId: "ana", image: IMAGE });
+let demoLog: InMemoryReceiptDemoLog;
+const SIGNER = new HmacPendingReceiptSigner("a-test-secret-of-at-least-32-characters");
+
+/** Scans and confirms, as a customer who agrees with the total; `read` is what the preview showed. */
+const scan = async (business = SUPER) => {
+  const customers = { exists: async (_business: string, userId: string) => userId !== "stranger" };
+  const stamps = { check: async () => err(new StampTooSoonError(600)), grant: async () => stampResult() as never };
+  const preview = await new ScanReceipt(settings, customers, { read: async () => text }, ledger, points, stamps, SIGNER, demoLog, () => NOW).execute({
+    business,
+    userId: "ana",
+    image: IMAGE,
+  });
+  if (!preview.ok) return preview;
+  const confirmed = await new ConfirmReceipt(settings, customers, ledger, points, stamps, { pointsEarned: async () => undefined }, SIGNER, () => NOW).execute({
+    business,
+    userId: "ana",
+    token: preview.value.token,
+  });
+  return confirmed.ok ? ok({ ...confirmed.value, read: preview.value.read }) : confirmed;
+};
 
 async function configure(businessId: string, demoMode: boolean) {
   const created = ReceiptSettings.create({ ...RULES, demoMode });
@@ -48,6 +59,7 @@ beforeEach(() => {
   settings = new InMemoryReceiptSettingsRepository();
   ledger = new InMemoryReceiptLedger();
   points = new InMemoryPointsRepository();
+  demoLog = new InMemoryReceiptDemoLog();
   text = OTHER_STORE_OLD;
   stampResult = () => ok({ stamps: 1, required: 10, rewardUnlocked: false });
 });
@@ -72,13 +84,28 @@ describe("receipts with demo mode on", () => {
       const result = await scan();
       expect(result.ok && result.value.reward).toMatchObject({ balance: 41 * round });
     }
-    expect(ledger.keys.size).toBe(0);
+    // One key per reading: each confirmation counts once, never the receipt itself.
+    expect(ledger.keys.size).toBe(3);
   });
 
   it("uses the largest amount when no line was read as the total", async () => {
     text = "TIENDA\nCAFE 3.50\nPAN 12.25\nTOTOL 15.75";
     const result = await scan();
     expect(result.ok && result.value.totalCents).toBe(1575);
+  });
+
+  it("does not take the cash handed over for the total", async () => {
+    text = "TIENDA\nTOTOL 7.99\nEFECTIVO 10.00\nCAMBIO 2.01";
+    const result = await scan();
+    expect(result.ok && result.value.totalCents).toBe(799);
+  });
+
+  it("keeps every reading, also the failed ones, to look into them later", async () => {
+    await scan();
+    text = "UN GATO\nSIN NUMEROS";
+    await scan();
+    expect(demoLog.entries.map((entry) => entry.totalCents)).toEqual([2050, null]);
+    expect(demoLog.entries[1].lines).toEqual(["UN GATO", "SIN NUMEROS"]);
   });
 
   it("falls back to today when no date was read, and says it was not read", async () => {
@@ -142,6 +169,7 @@ describe("demo mode never leaks into a real business", () => {
     text = "SUPER DEMO\n11/06/26 10:00\nTRX# 1\nTOTAL 5.00";
     const first = await scan();
     expect(first.ok && first.value.read).toBeUndefined();
+    expect(demoLog.entries).toHaveLength(0);
     const repeated = await scan();
     expect(!repeated.ok).toBe(true);
   });

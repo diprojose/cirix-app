@@ -176,3 +176,21 @@ export class RedemptionExpiredError extends DomainError {
     super("This reward code expired and the points went back.");
   }
 }
+
+/** The confirmation is not one this server issued for this person and business. */
+export class InvalidReceiptConfirmationError extends DomainError {
+  readonly code = "receipts/confirmation-invalid";
+
+  constructor() {
+    super("This receipt confirmation is not valid.");
+  }
+}
+
+/** The customer took too long to confirm what was read, or the rules changed meanwhile. */
+export class ReceiptConfirmationExpiredError extends DomainError {
+  readonly code = "receipts/confirmation-expired";
+
+  constructor() {
+    super("This receipt confirmation expired. Scan the receipt again.");
+  }
+}

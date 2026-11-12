@@ -6,6 +6,14 @@ import type { ReceiptReader } from "../../domain/ports/receipt-ports";
 
 /** Thermal print reads best at about this width: smaller loses letters, larger only costs time. */
 const TARGET_WIDTH = 1200;
+/** The low-light pass: denoising blurs letters, so they need more pixels to survive it. */
+const LOW_LIGHT_WIDTH = 1600;
+/**
+ * A clear receipt reads in about a second; a photo of mostly noise can keep the
+ * engine busy for most of a minute and still yield nothing. Past this, the pass
+ * counts as having read nothing, which keeps two passes inside the request's 60 s.
+ */
+const PASS_TIMEOUT_MS = 20_000;
 /** Refuses image bombs before decoding them. A phone photo is well under this. */
 const MAX_INPUT_PIXELS = 50_000_000;
 
@@ -37,13 +45,21 @@ function startWorker(): Promise<Worker> {
  * faded thermal paper. Nothing is stored: the photo lives only for this call.
  */
 export class TesseractReceiptReader implements ReceiptReader {
-  async read(image: Uint8Array): Promise<string | null> {
+  /**
+   * The second pass is for photos taken in poor light: larger, so small print
+   * keeps its shape, and with the grain of a dark photo smoothed away before the
+   * contrast is stretched. Tried only when the first read was not enough.
+   */
+  readonly passes = 2;
+
+  async read(image: Uint8Array, pass = 0): Promise<string | null> {
     let prepared: Buffer;
     try {
-      prepared = await sharp(image, { limitInputPixels: MAX_INPUT_PIXELS })
-        .rotate()
-        .resize({ width: TARGET_WIDTH })
-        .grayscale()
+      const photo = sharp(image, { limitInputPixels: MAX_INPUT_PIXELS }).rotate();
+      prepared = await (pass === 0
+        ? photo.resize({ width: TARGET_WIDTH }).grayscale()
+        : photo.resize({ width: LOW_LIGHT_WIDTH }).grayscale().median(3)
+      )
         .normalize()
         .png()
         .toBuffer();
@@ -54,7 +70,20 @@ export class TesseractReceiptReader implements ReceiptReader {
     // One engine reads one image at a time, so concurrent calls wait their turn.
     const run = queue.then(async () => {
       const engine = await startWorker();
-      return (await engine.recognize(prepared)).data.text;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timedOut = new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), PASS_TIMEOUT_MS);
+      });
+      const reading = engine.recognize(prepared).then((result) => result.data.text);
+      // Once abandoned, its rejection when the engine is stopped must not go unhandled.
+      reading.catch(() => undefined);
+      const text = await Promise.race([reading, timedOut]);
+      clearTimeout(timer);
+      if (text !== null) return text;
+      // The engine cannot drop one job, so it goes; the next photo starts a fresh one.
+      worker = null;
+      await engine.terminate().catch(() => undefined);
+      return "";
     });
     queue = run.catch(() => undefined);
     return run;

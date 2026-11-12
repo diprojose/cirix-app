@@ -14,17 +14,21 @@ import {
 } from "@/modules/stamp-card/infrastructure/persistence/in-memory-stamp-repositories";
 import { PointsAccount } from "@/modules/receipts/domain/entities/points-account";
 import { ReceiptDailyLimitError } from "@/modules/receipts/domain/errors/receipt-errors";
-import type { ReceiptReader, StampRewards } from "@/modules/receipts/domain/ports/receipt-ports";
+import type { ReceiptActivityLog, ReceiptReader, StampRewards } from "@/modules/receipts/domain/ports/receipt-ports";
+import { HmacPendingReceiptSigner } from "@/modules/receipts/infrastructure/crypto/hmac-pending-receipt-signer";
 import { parseReceipt } from "@/modules/receipts/domain/services/parse-receipt";
 import { verifyReceipt } from "@/modules/receipts/domain/services/verify-receipt";
 import { ReceiptSettings, type ReceiptSettingsInput } from "@/modules/receipts/domain/value-objects/receipt-settings";
-import { MAX_ATTEMPTS_PER_DAY, ScanReceipt } from "@/modules/receipts/application/use-cases/scan-receipt";
+import { ConfirmReceipt, MAX_ATTEMPTS_PER_DAY, ScanReceipt } from "@/modules/receipts/application/use-cases/scan-receipt";
 import { GetPointsSummary, ListPointsBalances, ListRecentReceipts } from "@/modules/receipts/application/use-cases/receipt-queries";
 import {
   InMemoryPointsRepository,
+  InMemoryReceiptDemoLog,
   InMemoryReceiptLedger,
   InMemoryReceiptSettingsRepository,
 } from "@/modules/receipts/infrastructure/persistence/in-memory-receipt-repositories";
+
+const SIGNER = new HmacPendingReceiptSigner("a-test-secret-of-at-least-32-characters");
 import { TesseractReceiptReader } from "@/modules/receipts/infrastructure/ocr/tesseract-receipt-reader";
 import { statusForReceiptError } from "@/lib/receipts/http";
 import { isMemberPage } from "@/lib/auth/route-access";
@@ -159,6 +163,26 @@ describe("reading a receipt's text", () => {
     const parsed = parseReceipt("Trx Response : APPROVED\nTrx Type : sale\nRefunds only w/original Receipt");
     expect(parsed.transactionId).toBeNull();
     expect(parsed.authCode).toBeNull();
+  });
+
+  it("never takes the cash handed over for the total", () => {
+    // A $7.99 bill paid with $10, whose TOTAL line came out garbled.
+    const parsed = parseReceipt("CAFE LUNA\nTOTOL 7.99\nEFECTIVO 10.00\nCAMBIO 2.01");
+    expect(parsed.totalCents).toBeNull();
+    expect(parsed.fallbackTotalCents).toBe(799);
+    expect(parseReceipt("TOTAL 79.99\nTOTAL EFECTIVO 80.00").totalCents).toBe(7999);
+    expect(parseReceipt("TOTAL 79.99\nCASH TENDERED 80.00\nCHANGE 0.01").totalConfirmed).toBe(true);
+  });
+
+  it("skips the table of suggested tips", () => {
+    const parsed = parseReceipt("TOTAL 27.00\nSUGGESTED TIP\n15% TIP 4.05 TOTAL 31.05\n20% = 5.40 TOTAL 32.40\nPROPINA SUGERIDA TOTAL 29.70");
+    expect(parsed.totalCents).toBe(2700);
+  });
+
+  it("guesses from subtotal and tax, then the card payment, before any other amount", () => {
+    expect(parseReceipt("SUBTOTAL 7.50\nITBMS 0.49\nPAN 12.00").fallbackTotalCents).toBe(799);
+    expect(parseReceipt("PAN 12.00\nCREDIT CARD 7.99").fallbackTotalCents).toBe(799);
+    expect(parseReceipt("CAFE 3.50\nPAN 12.25").fallbackTotalCents).toBe(1225);
   });
 
   it("never picks up the card number", () => {
@@ -332,7 +356,9 @@ describe("scanning a receipt", () => {
     };
   };
 
-  const scanner = (stamps = stampRewards()) =>
+  const timelineLog: ReceiptActivityLog = { pointsEarned: async (entry) => void timeline.push({ type: "points_earned", data: entry }) };
+
+  const reading = (stamps = stampRewards()) =>
     new ScanReceipt(
       rules,
       { exists: async (_business, userId) => customers.has(userId) },
@@ -340,9 +366,22 @@ describe("scanning a receipt", () => {
       ledger,
       points,
       stamps,
-      { pointsEarned: async (entry) => void timeline.push({ type: "points_earned", data: entry }) },
+      SIGNER,
+      new InMemoryReceiptDemoLog(),
       () => now
     );
+
+  const confirming = (stamps = stampRewards(), activity = timelineLog) =>
+    new ConfirmReceipt(rules, { exists: async (_business, userId) => customers.has(userId) }, ledger, points, stamps, activity, SIGNER, () => now);
+
+  /** A scan the customer confirms straight away, as most do. */
+  const scanner = (stamps = stampRewards(), activity = timelineLog) => ({
+    execute: async (input: { business: typeof BIZ; userId: string; image: Uint8Array }) => {
+      const preview = await reading(stamps).execute(input);
+      if (!preview.ok) return preview;
+      return confirming(stamps, activity).execute({ business: input.business, userId: input.userId, token: preview.value.token });
+    },
+  });
 
   const scan = (userId = "ana", business = BIZ) => scanner().execute({ business, userId, image: new Uint8Array([1]) });
   const codeOf = (result: Awaited<ReturnType<typeof scan>>) => (result.ok ? "ok" : result.error.code);
@@ -472,7 +511,7 @@ describe("scanning a receipt", () => {
   });
 
   it("keeps the points when the timeline fails", async () => {
-    const failing = new ScanReceipt(rules, { exists: async () => true }, { read }, ledger, points, stampRewards(), { pointsEarned: async () => { throw new Error("crm down"); } }, () => now);
+    const failing = scanner(stampRewards(), { pointsEarned: async () => { throw new Error("crm down"); } });
     const result = await failing.execute({ business: BIZ, userId: "ana", image: new Uint8Array([1]) });
     expect(result.ok).toBe(true);
     expect((await points.find(BIZ.id, "ana"))?.balance).toBe(6);
@@ -492,6 +531,49 @@ describe("scanning a receipt", () => {
     expect(codeOf(await scan("luis"))).toBe("receipts/wrong-store");
     now = new Date(NOW.getTime() + 86_400_000);
     expect(codeOf(await scan())).toBe("receipts/wrong-store");
+  });
+
+  it("earns nothing until the customer confirms the total read", async () => {
+    const preview = await reading().execute({ business: BIZ, userId: "ana", image: new Uint8Array([1]) });
+    expect(preview.ok && { ...preview.value, token: "…" }).toEqual({ totalCents: 311, date: "2026-11-01", earns: { kind: "points", points: 6 }, token: "…" });
+    expect(ledger.records).toHaveLength(0);
+    expect(await points.find(BIZ.id, "ana")).toBeNull();
+  });
+
+  it("counts a confirmed reading once", async () => {
+    const preview = await reading().execute({ business: BIZ, userId: "ana", image: new Uint8Array([1]) });
+    const token = preview.ok ? preview.value.token : "";
+    expect(codeOf(await confirming().execute({ business: BIZ, userId: "ana", token }))).toBe("ok");
+    expect(codeOf(await confirming().execute({ business: BIZ, userId: "ana", token }))).toBe("receipts/already-used");
+    expect((await points.find(BIZ.id, "ana"))?.balance).toBe(6);
+  });
+
+  it("refuses a confirmation that was changed, belongs to someone else, or came too late", async () => {
+    const preview = await reading().execute({ business: BIZ, userId: "ana", image: new Uint8Array([1]) });
+    const token = preview.ok ? preview.value.token : "";
+    const [version, payload, signature] = token.split(".");
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    const richer = Buffer.from(JSON.stringify({ ...data, totalCents: 31_100 })).toString("base64url");
+    expect(codeOf(await confirming().execute({ business: BIZ, userId: "ana", token: `${version}.${richer}.${signature}` }))).toBe("receipts/confirmation-invalid");
+    expect(codeOf(await confirming().execute({ business: BIZ, userId: "luis", token }))).toBe("receipts/confirmation-invalid");
+    expect(codeOf(await confirming().execute({ business: { ...BIZ, id: "biz-3" }, userId: "ana", token }))).toBe("receipts/confirmation-invalid");
+    now = new Date(NOW.getTime() + 11 * 60_000);
+    expect(codeOf(await confirming().execute({ business: BIZ, userId: "ana", token }))).toBe("receipts/confirmation-expired");
+    expect(ledger.records).toHaveLength(0);
+  });
+
+  it("tries the low-light pass only when the first read is not enough", async () => {
+    const passes: number[] = [];
+    const twoPasses = (first: string) =>
+      new ScanReceipt(rules, { exists: async () => true }, { passes: 2, read: async (_image, pass = 0) => (passes.push(pass), pass === 0 ? first : SUPERMARKET) }, ledger, points, stampRewards(), SIGNER, new InMemoryReceiptDemoLog(), () => now);
+
+    const rescued = await twoPasses("BRAVO SUPERMARKET\nblurred beyond reading").execute({ business: BIZ, userId: "ana", image: new Uint8Array([1]) });
+    expect(rescued.ok && rescued.value.totalCents).toBe(311);
+    expect(passes).toEqual([0, 1]);
+
+    passes.length = 0;
+    await twoPasses(SUPERMARKET).execute({ business: BIZ, userId: "ana", image: new Uint8Array([1]) });
+    expect(passes).toEqual([0]);
   });
 
   it("stores no card data and no OCR text", async () => {
@@ -551,6 +633,14 @@ describe("the OCR engine", () => {
     const reader = new TesseractReceiptReader();
     const photo = await drawReceipt(lines).rotate(2, { background: "#555" }).linear(0.6, 30).blur(0.6).jpeg({ quality: 70 }).toBuffer();
     const result = verifyReceipt(parseReceipt((await reader.read(photo)) ?? ""), settings(), BIZ.name, NOW);
+    expect(result.ok && result.value.totalCents).toBe(311);
+  }, 60_000);
+
+  it("reads a dark photo on its low-light pass too", async () => {
+    const reader = new TesseractReceiptReader();
+    expect(reader.passes).toBe(2);
+    const photo = await drawReceipt(lines).rotate(1, { background: "#333" }).linear(0.35, 0).blur(0.5).jpeg({ quality: 70 }).toBuffer();
+    const result = verifyReceipt(parseReceipt((await reader.read(photo, 1)) ?? ""), settings(), BIZ.name, NOW);
     expect(result.ok && result.value.totalCents).toBe(311);
   }, 60_000);
 

@@ -10,8 +10,13 @@ import type { ReceiptSettings } from "../value-objects/receipt-settings";
  * server; a paid vision service can replace it by implementing this alone.
  */
 export interface ReceiptReader {
+  /**
+   * How many ways of preparing a photo it can try, 1 when unset. A later pass
+   * costs as much as the first, so it is asked for only when the first read failed.
+   */
+  readonly passes?: number;
   /** The text on the image. Resolves to `null` when the file is not a readable image. */
-  read(image: Uint8Array): Promise<string | null>;
+  read(image: Uint8Array, pass?: number): Promise<string | null>;
 }
 
 export interface ReceiptSettingsRepository {
@@ -124,4 +129,37 @@ export interface CustomerNames {
 /** Best-effort copy on the customer's timeline. */
 export interface RedemptionActivityLog {
   rewardRedeemed(input: { businessId: string; userId: string; eventId: string; rewardName: string; points: number }): Promise<void>;
+}
+
+/**
+ * A receipt read and checked, waiting for the customer to confirm the total on
+ * screen. Nothing is stored meanwhile: the browser holds it, signed by the server,
+ * so it can be neither changed nor made up.
+ */
+export type PendingReceipt = {
+  businessId: string;
+  userId: string;
+  totalCents: number;
+  date: string;
+  transactionId: string | null;
+  merchantId: string | null;
+  /** The keys that stop the receipt being used twice. */
+  keys: string[];
+  /** Read under demo mode, so confirmed under its rules. */
+  demo: boolean;
+  /** Makes each reading single-use even when the receipt itself yields no key. */
+  nonce: string;
+};
+
+export interface PendingReceiptSigner {
+  sign(pending: PendingReceipt, now: Date): string;
+  verify(token: string, now: Date): Result<PendingReceipt, DomainError>;
+}
+
+/**
+ * Demo mode only: what each photo produced, kept so a failed or odd reading can
+ * be looked at afterwards. Real businesses never write here.
+ */
+export interface ReceiptDemoLog {
+  save(entry: { businessId: string; userId: string; at: string; totalCents: number | null; lines: string[] }): Promise<void>;
 }

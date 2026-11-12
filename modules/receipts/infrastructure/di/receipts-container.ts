@@ -1,14 +1,23 @@
 import { adminFirestore } from "@/shared/infrastructure/firebase-admin";
-import type { PointsRepository, ReceiptLedger, ReceiptSettingsRepository, RedemptionRepository, RewardCatalog } from "../../domain/ports/receipt-ports";
+import type {
+  PendingReceiptSigner,
+  PointsRepository,
+  ReceiptLedger,
+  ReceiptSettingsRepository,
+  RedemptionRepository,
+  RewardCatalog,
+} from "../../domain/ports/receipt-ports";
 import {
   FirestorePointsRepository,
+  FirestoreReceiptDemoLog,
   FirestoreReceiptLedger,
   FirestoreReceiptSettingsRepository,
   FirestoreRedemptionRepository,
   FirestoreRewardCatalog,
 } from "../persistence/firestore-receipt-repositories";
 import { CrmCustomerNames, CrmReceiptActivityLog, CrmReceiptCustomers, CrmRedemptionActivityLog, StampCardRewards } from "../adapters/module-adapters";
-import { ScanReceipt } from "../../application/use-cases/scan-receipt";
+import { HmacPendingReceiptSigner } from "../crypto/hmac-pending-receipt-signer";
+import { ConfirmReceipt, ScanReceipt } from "../../application/use-cases/scan-receipt";
 import {
   CancelRedemption,
   DeleteReward,
@@ -41,6 +50,9 @@ let catalog: RewardCatalog | null = null;
 let redemptions: RedemptionRepository | null = null;
 const rewardCatalog = () => (catalog ??= new FirestoreRewardCatalog(adminFirestore()));
 const redemptionRepository = () => (redemptions ??= new FirestoreRedemptionRepository(adminFirestore()));
+let signer: PendingReceiptSigner | null = null;
+/** Shares STAMP_QR_SECRET with the customer QR codes; each signs under its own prefix. */
+const pendingSigner = () => (signer ??= new HmacPendingReceiptSigner(process.env.STAMP_QR_SECRET ?? ""));
 
 /**
  * Builds the "scan my receipt" use case (customer action). The OCR engine is
@@ -56,9 +68,22 @@ export const makeScanReceipt = async (): Promise<ScanReceipt> => {
     receiptLedger(),
     pointsRepository(),
     new StampCardRewards(),
-    new CrmReceiptActivityLog()
+    pendingSigner(),
+    new FirestoreReceiptDemoLog(adminFirestore())
   );
 };
+
+/** The customer confirms the total a scan read. Needs no OCR. */
+export const makeConfirmReceipt = (): ConfirmReceipt =>
+  new ConfirmReceipt(
+    settingsRepository(),
+    new CrmReceiptCustomers(),
+    receiptLedger(),
+    pointsRepository(),
+    new StampCardRewards(),
+    new CrmReceiptActivityLog(),
+    pendingSigner()
+  );
 
 export const makeGetReceiptSettings = (): GetReceiptSettings => new GetReceiptSettings(settingsRepository());
 export const makeSaveReceiptSettings = (): SaveReceiptSettings => new SaveReceiptSettings(settingsRepository());

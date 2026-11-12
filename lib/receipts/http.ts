@@ -11,6 +11,7 @@ export function statusForReceiptError(code: string): number {
     case "receipts/too-many-attempts":
       return 429;
     case "receipts/invalid-image":
+    case "receipts/confirmation-invalid":
     case "receipts/invalid-settings":
     case "rewards/invalid":
     case "rewards/invalid-code":

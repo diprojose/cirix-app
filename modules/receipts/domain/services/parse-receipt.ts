@@ -9,7 +9,14 @@
 
 export type ParsedReceipt = {
   lines: string[];
+  /** The amount on a line labelled as the total. */
   totalCents: number | null;
+  /**
+   * The best guess when no total line was read: subtotal plus tax, the card
+   * payment, or the cash handed over minus the change. Never the cash itself: a
+   * $7.99 bill paid with a $10 note would read as $10.
+   */
+  fallbackTotalCents: number | null;
   /** The total also showed up elsewhere on the slip, or subtotal plus tax add up to it. */
   totalConfirmed: boolean;
   /** Every date on the slip as `YYYY-MM-DD`. `11/01/26` yields both readings: nothing on it says which one it is. */
@@ -29,6 +36,12 @@ const GRAND_TOTAL = new RegExp(`(?:GRAND|GENERAL)\\s*${TOTAL_WORD}|${TOTAL_WORD}
 const TOTAL = new RegExp(`\\b${TOTAL_WORD}\\b`);
 const SECONDARY_AMOUNT = /\b(?:AMOUNT|MONTO|IMPORTE|CREDIT CARD|DEBIT|TARJETA)\b/;
 const TAX = /\b(?:TAX|IVA|ITBMS|IMPUESTO)\w*/;
+// Restaurant slips print a table of suggested tips, each row with its own "total".
+const TIP = /\b(?:TIPS?|PROPINAS?|GRATUITY|GRATUIDAD|SUGGESTED|SUGERID[AO]S?)\b/;
+const PERCENT_ROW = /^\W*\d{1,2}(?:[.,]\d+)?\s?%/;
+// What the customer handed over and got back, never the amount of the sale.
+const CHANGE = /\b(?:CHANGE|CAMBIO|VUELTO|VUELTA)\b/;
+const TENDERED = /\b(?:CASH|EFECTIVO|TENDER(?:ED)?|RECIBIDO)\b/;
 
 // OCR turns the separator after a label into almost anything (":", "©", "~"), so anything goes.
 const ID_SUFFIX = "[\\s.]*(?:#|NO\\b\\.?|NUM(?:BER|ERO)?\\b\\.?|NBR\\b\\.?|ID\\b)?[^A-Z0-9]*";
@@ -97,14 +110,33 @@ function firstMatch(lines: string[], pattern: RegExp): string | null {
   return null;
 }
 
-function readTotal(lines: string[]): { totalCents: number | null; totalConfirmed: boolean } {
+/** The amount seen most often, the larger on a tie, so one misread line cannot outvote the others. */
+function mostRepeated(amounts: readonly number[]): number | null {
+  if (amounts.length === 0) return null;
+  const count = (value: number) => amounts.filter((amount) => amount === value).length;
+  return [...amounts].sort((a, b) => count(b) - count(a) || b - a)[0];
+}
+
+function readTotal(lines: string[]): Pick<ParsedReceipt, "totalCents" | "totalConfirmed" | "fallbackTotalCents"> {
   const grand: number[] = [];
   const totals: number[] = [];
   const secondary: number[] = [];
+  const unlabelled: number[] = [];
   let subtotal: number | null = null;
   let tax: number | null = null;
+  let tendered: number | null = null;
+  let change: number | null = null;
 
   lines.forEach((line, index) => {
+    if (TIP.test(line) || PERCENT_ROW.test(line)) return;
+    if (CHANGE.test(line)) {
+      change ??= amountFor(lines, index);
+      return;
+    }
+    if (TENDERED.test(line)) {
+      tendered ??= amountFor(lines, index);
+      return;
+    }
     if (SUBTOTAL.test(line)) {
       subtotal ??= amountFor(lines, index);
       return;
@@ -114,28 +146,28 @@ function readTotal(lines: string[]): { totalCents: number | null; totalConfirmed
       return;
     }
     if (NOT_THE_TOTAL.test(line)) return;
+    const labelled = GRAND_TOTAL.test(line) ? grand : TOTAL.test(line) ? totals : SECONDARY_AMOUNT.test(line) ? secondary : null;
+    if (labelled === null) {
+      unlabelled.push(...amountsIn(line));
+      return;
+    }
     const amount = amountFor(lines, index);
-    if (amount === null) return;
-    if (GRAND_TOTAL.test(line)) grand.push(amount);
-    else if (TOTAL.test(line)) totals.push(amount);
-    else if (SECONDARY_AMOUNT.test(line)) secondary.push(amount);
+    if (amount !== null) labelled.push(amount);
   });
 
-  const candidates = grand.length > 0 ? grand : totals;
-  if (candidates.length === 0) return { totalCents: null, totalConfirmed: false };
-  // The most repeated labelled total, so one misread line cannot outvote the others; the larger on a tie.
-  const totalCents = [...candidates].sort(
-    (a, b) => candidates.filter((value) => value === b).length - candidates.filter((value) => value === a).length || b - a
-  )[0];
-  const seen = [...grand, ...totals, ...secondary].filter((amount) => amount === totalCents).length;
-  const adds = subtotal !== null && tax !== null && subtotal + tax === totalCents;
-  return { totalCents, totalConfirmed: seen >= 2 || adds };
-}
+  const totalCents = mostRepeated(grand.length > 0 ? grand : totals);
+  const sum = subtotal !== null && tax !== null ? subtotal + tax : null;
+  const paidInCash = tendered !== null && change !== null && tendered > change ? tendered - change : null;
+  const fallbackTotalCents =
+    totalCents ??
+    (sum !== null && sum > 0 ? sum : null) ??
+    mostRepeated(secondary) ??
+    paidInCash ??
+    (unlabelled.length > 0 ? Math.max(...unlabelled) : null);
 
-/** The largest amount printed anywhere, for when no line was read as the total. */
-export function largestAmount(lines: readonly string[]): number | null {
-  const amounts = lines.flatMap(amountsIn);
-  return amounts.length > 0 ? Math.max(...amounts) : null;
+  if (totalCents === null) return { totalCents, totalConfirmed: false, fallbackTotalCents };
+  const seen = [...grand, ...totals, ...secondary].filter((amount) => amount === totalCents).length;
+  return { totalCents, totalConfirmed: seen >= 2 || sum === totalCents || paidInCash === totalCents, fallbackTotalCents };
 }
 
 export function parseReceipt(text: string): ParsedReceipt {

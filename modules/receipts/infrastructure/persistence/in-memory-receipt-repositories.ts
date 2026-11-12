@@ -6,6 +6,7 @@ import type { Redemption } from "../../domain/entities/redemption";
 import type { Reward } from "../../domain/entities/reward";
 import type {
   PointsRepository,
+  ReceiptDemoLog,
   ReceiptLedger,
   ReceiptRecord,
   ReceiptSettingsRepository,
@@ -177,5 +178,13 @@ export class InMemoryPointsRepository implements PointsRepository {
       this.ledger.push(result.value.entry);
     }
     return result;
+  }
+}
+
+export class InMemoryReceiptDemoLog implements ReceiptDemoLog {
+  readonly entries: Parameters<ReceiptDemoLog["save"]>[0][] = [];
+
+  async save(entry: Parameters<ReceiptDemoLog["save"]>[0]): Promise<void> {
+    this.entries.push(entry);
   }
 }
