@@ -9,7 +9,7 @@ import { ToastProvider } from "@/components/toast-provider";
 import { getCurrentLocale } from "@/lib/i18n";
 import { headers } from "next/headers";
 import { requirePlatformUser } from "@/lib/auth/dal";
-import { requiresPlatformAccess } from "@/lib/auth/route-access";
+import { isLoyaltyAppScreen, requiresPlatformAccess } from "@/lib/auth/route-access";
 
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site-metadata";
 
@@ -49,10 +49,11 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#051934",
-  viewportFit: "cover",
-};
+/** The phone's status bar matches the page: light on the loyalty app, navy elsewhere. */
+export async function generateViewport(): Promise<Viewport> {
+  const pathname = (await headers()).get("x-mixmag-pathname") ?? "/";
+  return { themeColor: isLoyaltyAppScreen(pathname) ? "#f3f5f7" : "#051934", viewportFit: "cover" };
+}
 
 export default async function RootLayout({
   children,
@@ -68,6 +69,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
+      data-theme={isLoyaltyAppScreen(pathname) ? "light" : undefined}
       className={`h-full antialiased ${inter.variable} ${outfit.variable}`}
       style={{
         ["--font-geist-mono" as string]:

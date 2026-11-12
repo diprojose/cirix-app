@@ -129,6 +129,55 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+/*
+ * Light theme for the loyalty app (customers, staff, owners), set on <html> by the
+ * root layout. Its users are often not used to apps and read it at a counter or
+ * outdoors, so it trades the brand's navy for a light ground with dark ink and
+ * keeps the Cirix blue for actions. Every text colour holds 4.5:1 on its surface.
+ */
+html[data-theme="light"] {
+  --color-bg: #f3f5f7;
+  --color-surface: #ffffff;
+  --color-border: #dfe3e8;
+  --color-text: #1b1d1f;
+  --color-text-muted: #5c6064;
+  --color-ink: #1c5aae;
+
+  --color-accent: #1c5aae;
+  --color-accent-strong: #0a3a80;
+  --color-accent-fill: #1c5aae;
+  --color-accent-fill-strong: #16498f;
+  --color-accent-soft: #dcecfb;
+  --color-accent-subtle: #f2f8fd;
+  --color-on-accent: #ffffff;
+
+  --color-action: #b3001f;
+  --color-action-strong: #850019;
+  --color-action-soft: #ffedea;
+  --color-action-soft-strong: #ffcbd5;
+  --color-action-subtle: #fff5f6;
+  --color-danger: #c41c29;
+
+  --color-stone-0: #ffffff;
+  --color-stone-50: #f8f9fa;
+  --color-stone-100: #eef1f4;
+  --color-stone-200: #e3e6ea;
+  --color-stone-300: #cdd2d8;
+  --color-stone-400: #8a9099;
+  --color-stone-500: #5c6064;
+  --color-stone-600: #474b50;
+  --color-stone-700: #33363a;
+  --color-stone-800: #232528;
+  --color-stone-900: #1b1d1f;
+  --color-stone-950: #111213;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-float: 0 8px 24px -8px rgb(16 24 40 / 0.18);
+  --shadow-accent: 0 6px 16px -8px rgb(28 90 174 / 0.4);
+
+  color-scheme: light;
+}
+
 @utility field {
   min-height: 2.75rem;
   width: 100%;

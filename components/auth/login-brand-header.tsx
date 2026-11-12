@@ -13,7 +13,7 @@ export function LoginBrandHeader({ audience = "platform" }: { audience?: Session
 
   return (
     <header className="flex flex-col items-center gap-3 text-center">
-      <Image src="/brand/logo-white.svg" alt="CIRIX" width={160} height={57} className="mb-5 h-auto w-40" />
+      <Image src="/brand/logo-dark.svg" alt="CIRIX" width={160} height={57} className="mb-5 h-auto w-40" />
       <h1 className="text-display font-bold tracking-tight text-text">
         {reviewLogin
           ? pick(locale, { es: "Comparte tu experiencia", en: "Share your experience" })

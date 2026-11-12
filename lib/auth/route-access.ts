@@ -29,6 +29,15 @@ export function isMemberPage(pathname: string): boolean {
 }
 
 /**
+ * Screens of the loyalty app (customers, staff and owners, plus sign-in and the
+ * privacy notice they link to). They use the light theme; the landing and the
+ * legacy admin keep the dark one.
+ */
+export function isLoyaltyAppScreen(pathname: string): boolean {
+  return isMemberPage(pathname) || pathname === "/login" || pathname === "/privacy";
+}
+
+/**
  * True for pages that need an administrator-admitted (platform) account. The
  * root layout enforces this as a second barrier behind the proxy, so both must
  * agree on which pages are open to other kinds of verified accounts.
@@ -50,7 +59,13 @@ export function isMemberApi(pathname: string): boolean {
 
 /** Public build/brand assets are explicit; module URLs with extensions stay private. */
 export function isPublicAsset(pathname: string): boolean {
-  return PUBLIC_ASSETS.has(pathname) || pathname.startsWith("/brand/") || pathname.startsWith("/products/");
+  return (
+    PUBLIC_ASSETS.has(pathname) ||
+    pathname.startsWith("/brand/") ||
+    pathname.startsWith("/products/") ||
+    // A business's card logo, cover and stamp: shown on its signup page before anyone signs in.
+    pathname.startsWith("/api/card-images/")
+  );
 }
 
 /** These endpoints enforce session exchange, signed service calls or public marketing intake validation. */
