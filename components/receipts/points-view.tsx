@@ -6,6 +6,8 @@ import { pick, type Locale } from "@/lib/locale";
 import type { PointsSummaryDto } from "@/modules/receipts/application/dtos/receipt-dtos";
 import type { RedemptionDto, RewardDto } from "@/modules/receipts/application/dtos/reward-dtos";
 import { ReceiptScanner } from "./receipt-scanner";
+import { CardFace } from "@/components/card-design/card-face";
+import type { CardLook } from "@/modules/card-design/application/card-design-use-cases";
 import { RewardsSection } from "./rewards-section";
 
 function movementLabel(reason: PointsSummaryDto["entries"][number]["reason"], locale: Locale): string {
@@ -28,7 +30,13 @@ export function PointsView({
   summary,
   rewards,
   redemptions,
+  look,
+  customerName = null,
 }: {
+  /** The card in the business's colours and logo. */
+  look: CardLook;
+  /** The customer's first name, printed on the card. */
+  customerName?: string | null;
   slug: string;
   businessName: string;
   pointsPerDollar: number;
@@ -44,19 +52,20 @@ export function PointsView({
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1 text-center">
-        <h1 className="text-display font-bold tracking-tight text-text">{businessName}</h1>
-        {receipts && (
-          <p className="text-body text-text-muted">
-            {pick(locale, { es: `Ganas ${pointsPerDollar} puntos por cada dólar`, en: `You earn ${pointsPerDollar} points per dollar` })}
-          </p>
-        )}
-      </header>
-
-      <section aria-label={pick(locale, { es: "Tus puntos", en: "Your points" })} className="flex flex-col items-center gap-1 rounded-3xl border border-border bg-surface p-6">
-        <span className="text-label font-medium text-text">{pick(locale, { es: "Tus puntos", en: "Your points" })}</span>
-        <span className="text-display font-bold tabular-nums text-text">{number.format(summary.balance)}</span>
-      </section>
+      <h1 className="sr-only">{businessName}</h1>
+      <CardFace
+        look={look}
+        businessName={businessName}
+        ariaLabel={pick(locale, { es: "Tu tarjeta de puntos", en: "Your points card" })}
+        label={pick(locale, { es: "Tus puntos", en: "Your points" })}
+        value={number.format(summary.balance)}
+        fields={[
+          ...(receipts
+            ? [{ label: pick(locale, { es: "Ganas", en: "You earn" }), value: pick(locale, { es: `${pointsPerDollar} puntos por dólar`, en: `${pointsPerDollar} points per dollar` }) }]
+            : []),
+          ...(customerName ? [{ label: pick(locale, { es: "Nombre", en: "Name" }), value: customerName }] : []),
+        ]}
+      />
 
       {receipts ? (
         <ReceiptScanner slug={slug} onScanned={() => router.refresh()} />

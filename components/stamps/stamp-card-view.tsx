@@ -6,6 +6,8 @@ import { pick } from "@/lib/locale";
 import { readScannedTableQr } from "@/lib/stamps/table-qr";
 import type { StampCardDto } from "@/modules/stamp-card/application/dtos/stamp-card-dto";
 import { ReceiptScanner } from "@/components/receipts/receipt-scanner";
+import { CardFace, StampGrid } from "@/components/card-design/card-face";
+import type { CardLook } from "@/modules/card-design/application/card-design-use-cases";
 import { QrScanner } from "./qr-scanner";
 import { RotatingQr } from "./rotating-qr";
 import s from "./stamp-card.module.css";
@@ -33,6 +35,8 @@ export function StampCardView({
   initial,
   tableCode = null,
   receipts = false,
+  look,
+  customerName = null,
 }: {
   slug: string;
   businessName: string;
@@ -40,6 +44,10 @@ export function StampCardView({
   tableCode?: string | null;
   /** The business earns stamps from receipts. */
   receipts?: boolean;
+  /** The card in the business's colours, logo and visit icon. */
+  look: CardLook;
+  /** The customer's first name, printed on the card. */
+  customerName?: string | null;
 }) {
   const locale = useLocale();
   const [card, setCard] = useState(initial);
@@ -162,13 +170,29 @@ export function StampCardView({
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1 text-center">
-        <h1 className="text-display font-bold tracking-tight text-text">{businessName}</h1>
-        <p className="text-body text-text-muted">
-          {pick(locale, { es: "Premio: ", en: "Reward: " })}
-          <strong className="font-medium text-text">{card.rewardName}</strong>
-        </p>
-      </header>
+      <h1 className="sr-only">{businessName}</h1>
+      <CardFace
+        look={look}
+        businessName={businessName}
+        ariaLabel={pick(locale, { es: "Tu tarjeta de visitas", en: "Your visit card" })}
+        className={celebrating ? s.celebrate : ""}
+        label={pick(locale, { es: "Visitas", en: "Visits" })}
+        value={`${card.stamps} / ${card.required}`}
+        fields={[
+          {
+            label: card.rewardReady
+              ? pick(locale, { es: "Premio listo", en: "Reward ready" })
+              : pick(locale, {
+                  es: `Te ${card.required - card.stamps === 1 ? "falta 1 visita" : `faltan ${card.required - card.stamps} visitas`} para`,
+                  en: `${card.required - card.stamps} more ${card.required - card.stamps === 1 ? "visit" : "visits"} for`,
+                }),
+            value: card.rewardName,
+          },
+          ...(customerName ? [{ label: pick(locale, { es: "Nombre", en: "Name" }), value: customerName }] : []),
+        ]}
+      >
+        {(ink) => <StampGrid look={look} ink={ink} required={card.required} stamps={card.stamps} popIndex={popIndex} popClassName={s.pop} />}
+      </CardFace>
 
       {offerTableStamp && (
         <section aria-label={pick(locale, { es: "Registrar esta visita", en: "Record this visit" })} className="flex flex-col gap-2">
@@ -222,35 +246,7 @@ export function StampCardView({
         </p>
       )}
 
-      <section
-        aria-label={pick(locale, { es: "Tu tarjeta de visitas", en: "Your visit card" })}
-        className={`flex flex-col gap-4 rounded-3xl border border-border bg-surface p-5 ${celebrating ? s.celebrate : ""}`}
-      >
-        <div className="flex items-baseline justify-between">
-          <span className="text-label font-medium text-text">{pick(locale, { es: "Visitas", en: "Visits" })}</span>
-          <span className="text-body font-bold text-text">
-            {card.stamps} / {card.required}
-          </span>
-        </div>
-
-        <ol className="flex flex-wrap justify-center gap-3" aria-hidden="true">
-          {Array.from({ length: card.required }, (_, index) => {
-            const filled = index < card.stamps;
-            return (
-              <li
-                key={index}
-                className={`flex size-11 items-center justify-center rounded-full border-2 text-lg font-bold ${
-                  filled
-                    ? `border-accent-fill bg-accent-fill text-on-accent ${popIndex === index ? s.pop : ""}`
-                    : "border-dashed border-border text-text-muted"
-                }`}
-              >
-                {filled ? "★" : index + 1}
-              </li>
-            );
-          })}
-        </ol>
-
+      <section aria-label={pick(locale, { es: "Estado de tu tarjeta", en: "Your card's status" })} className="flex flex-col gap-3 empty:hidden">
         {/* Screen readers hear changes without having to find them. */}
         <p className="sr-only" role="status" aria-live="polite">
           {pick(locale, {

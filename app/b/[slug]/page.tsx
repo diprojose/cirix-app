@@ -3,12 +3,16 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { JoinForm } from "@/components/member/join-form";
 import { LocalizedLink } from "@/components/localized-link";
+import { BrandTheme } from "@/components/card-design/brand-style";
 import { COLUMN } from "@/components/store/layout";
 import { getMemberViewer } from "@/lib/auth/dal";
 import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
 import { cardPath, readTableCodeParam } from "@/lib/stamps/table-qr";
 import { makeGetBusinessBySlug } from "@/core/tenancy/infrastructure/di/tenancy-container";
 import { makeListMyCustomerBusinesses } from "@/modules/crm/infrastructure/di/crm-core-container";
+import { makeGetCardDesign } from "@/modules/card-design/infrastructure/card-design-container";
+import { toCardLook } from "@/modules/card-design/application/card-design-use-cases";
+import { DEFAULT_CARD_DESIGN } from "@/modules/card-design/domain/card-design";
 
 // A signup page is for people holding the QR code, not for search engines.
 export const metadata: Metadata = {
@@ -44,6 +48,8 @@ export default async function JoinBusinessPage({
       ? await makeListMyCustomerBusinesses().execute(viewer.uid)
       : null;
   const alreadyMember = joined?.ok === true && joined.value.includes(business.value.id);
+  const design = await makeGetCardDesign().execute(business.value.id);
+  const look = design.ok ? design.value.look : toCardLook(business.value.id, DEFAULT_CARD_DESIGN);
   // Restaurants land on their stamp card after joining; supermarkets on their points.
   const nextPath =
     business.value.kind === "supermarket" ? `/me/points/${business.value.slug}` : cardPath(business.value.slug, readTableCodeParam(t));
@@ -53,9 +59,19 @@ export default async function JoinBusinessPage({
   const signupSource = (Array.isArray(source) ? source[0] : source) === "table_qr" ? "table_qr" : "web";
 
   return (
+    // The signup already wears the business's colour: buttons and links match its card.
     <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col justify-center gap-8 py-10 md:max-w-md`}>
+      <BrandTheme color={look.color} />
       <header className="flex flex-col items-center gap-3 text-center">
-        <Image src="/brand/logo-white.svg" alt="CIRIX" width={160} height={57} className="mb-5 h-auto w-40" />
+        {look.logoUrl ? (
+          // The business's own card colours and logo: what the QR's owner put on their tables.
+          <div style={{ backgroundColor: look.color }} className="mb-4 flex h-28 w-full max-w-xs items-center justify-center rounded-3xl px-8 shadow-[0_1px_3px_rgb(16_24_40/0.14)]">
+            {/* eslint-disable-next-line @next/next/no-img-element -- served by our own API, already sized. */}
+            <img src={look.logoUrl} alt="" className="max-h-16 max-w-full object-contain" />
+          </div>
+        ) : (
+          <Image src="/brand/logo-dark.svg" alt="CIRIX" width={160} height={57} className="mb-5 h-auto w-40" />
+        )}
         <h1 className="text-display font-bold tracking-tight text-text">{business.value.name}</h1>
         <p className="max-w-sm text-body text-text-muted">
           {alreadyMember

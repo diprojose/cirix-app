@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { LocalizedLink } from "@/components/localized-link";
 import { StampCardView } from "@/components/stamps/stamp-card-view";
+import { BrandTheme } from "@/components/card-design/brand-style";
 import { COLUMN } from "@/components/store/layout";
 import { getMemberViewer } from "@/lib/auth/dal";
 import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
@@ -9,6 +10,10 @@ import { cardPath, readTableCodeParam, tableQrPath } from "@/lib/stamps/table-qr
 import { makeGetBusinessBySlug } from "@/core/tenancy/infrastructure/di/tenancy-container";
 import { makeGetStampCard } from "@/modules/stamp-card/infrastructure/di/stamp-card-container";
 import { makeGetReceiptSettings } from "@/modules/receipts/infrastructure/di/receipts-container";
+import { makeGetCardDesign } from "@/modules/card-design/infrastructure/card-design-container";
+import { toCardLook } from "@/modules/card-design/application/card-design-use-cases";
+import { DEFAULT_CARD_DESIGN, firstName } from "@/modules/card-design/domain/card-design";
+import { makeGetCustomer } from "@/modules/crm/infrastructure/di/crm-core-container";
 
 export const metadata: Metadata = {
   title: "My card",
@@ -36,9 +41,11 @@ export default async function StampCardPage({
   // Supermarkets earn points, not stamps; for them there is no stamp card.
   if (!business.ok || business.value.kind === "supermarket") notFound();
 
-  const [card, receipts] = await Promise.all([
+  const [card, receipts, design, customer] = await Promise.all([
     makeGetStampCard().execute({ businessId: business.value.id, userId: viewer.uid }),
     makeGetReceiptSettings().execute(business.value.id),
+    makeGetCardDesign().execute(business.value.id),
+    makeGetCustomer().execute({ businessId: business.value.id, userId: viewer.uid }),
   ]);
   if (!card.ok) {
     // Not registered yet: send the person to the signup for this business, keeping the table code.
@@ -48,8 +55,12 @@ export default async function StampCardPage({
     notFound();
   }
 
+  const look = design.ok ? design.value.look : toCardLook(business.value.id, DEFAULT_CARD_DESIGN);
+
   return (
+    // The whole page wears the business's colour, not just the card.
     <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-6 py-8 md:max-w-md`}>
+      <BrandTheme color={look.color} />
       <LocalizedLink href="/me" className="text-label text-accent underline underline-offset-4">
         {pick(locale, { es: "← Mi cuenta", en: "← My account" })}
       </LocalizedLink>
@@ -59,6 +70,8 @@ export default async function StampCardPage({
         initial={card.value}
         tableCode={card.value.tableStamps ? tableCode : null}
         receipts={receipts.ok && receipts.value.enabled}
+        look={look}
+        customerName={customer.ok ? firstName(customer.value.name) : null}
       />
     </main>
   );

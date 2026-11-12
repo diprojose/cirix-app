@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { LocalizedLink } from "@/components/localized-link";
 import { PointsView } from "@/components/receipts/points-view";
+import { BrandTheme } from "@/components/card-design/brand-style";
 import { COLUMN } from "@/components/store/layout";
 import { getMemberViewer } from "@/lib/auth/dal";
 import { getCurrentLocale, localizeForCurrentRequest, pick } from "@/lib/i18n";
@@ -13,6 +14,9 @@ import {
   makeListMyRedemptions,
   makeListRewards,
 } from "@/modules/receipts/infrastructure/di/receipts-container";
+import { makeGetCardDesign } from "@/modules/card-design/infrastructure/card-design-container";
+import { toCardLook } from "@/modules/card-design/application/card-design-use-cases";
+import { DEFAULT_CARD_DESIGN, firstName } from "@/modules/card-design/domain/card-design";
 
 export const metadata: Metadata = {
   title: "My points",
@@ -36,15 +40,20 @@ export default async function PointsPage({ params }: { params: Promise<{ slug: s
 
   // First, because it returns the points of expired codes: the balance below must include them.
   const redemptions = await makeListMyRedemptions().execute({ businessId: business.value.id, userId: viewer.uid });
-  const [summary, settings, rewards] = await Promise.all([
+  const [summary, settings, rewards, design] = await Promise.all([
     makeGetPointsSummary().execute({ businessId: business.value.id, userId: viewer.uid }),
     makeGetReceiptSettings().execute(business.value.id),
     makeListRewards().execute({ businessId: business.value.id, activeOnly: true }),
+    makeGetCardDesign().execute(business.value.id),
   ]);
   if (!summary.ok || !settings.ok || !rewards.ok || !redemptions.ok) notFound();
 
+  const look = design.ok ? design.value.look : toCardLook(business.value.id, DEFAULT_CARD_DESIGN);
+
   return (
+    // The whole page wears the business's colour, not just the card.
     <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-6 py-8 md:max-w-md`}>
+      <BrandTheme color={look.color} />
       <LocalizedLink href="/me" className="text-label text-accent underline underline-offset-4">
         {pick(locale, { es: "← Mi cuenta", en: "← My account" })}
       </LocalizedLink>
@@ -56,6 +65,8 @@ export default async function PointsPage({ params }: { params: Promise<{ slug: s
         summary={summary.value}
         rewards={rewards.value}
         redemptions={redemptions.value}
+        look={look}
+        customerName={firstName(customer.value.name)}
       />
     </main>
   );

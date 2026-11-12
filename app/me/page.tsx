@@ -12,6 +12,9 @@ import {
 } from "@/core/tenancy/infrastructure/di/tenancy-container";
 import { makeListMyCustomerBusinesses } from "@/modules/crm/infrastructure/di/crm-core-container";
 import type { BusinessDto } from "@/core/tenancy/application/dtos/business-dto";
+import { makeGetCardDesign } from "@/modules/card-design/infrastructure/card-design-container";
+import { toCardLook } from "@/modules/card-design/application/card-design-use-cases";
+import { DEFAULT_CARD_DESIGN } from "@/modules/card-design/domain/card-design";
 
 export const metadata: Metadata = {
   title: "My account",
@@ -39,6 +42,14 @@ export default async function MePage() {
     ? await makeListBusinessesByIds().execute(cardIds.value).then((result) => (result.ok ? result.value : []))
     : [];
   const managed = roles.ok ? roles.value : [];
+  // Each program shows as its own card, in the business's colours: easy to tell apart at a glance.
+  const looks = await Promise.all(
+    cardBusinesses.map((business) =>
+      makeGetCardDesign()
+        .execute(business.id)
+        .then((design) => (design.ok ? design.value.look : toCardLook(business.id, DEFAULT_CARD_DESIGN)))
+    )
+  );
 
   return (
     <main className={`${COLUMN} flex min-h-dvh flex-1 flex-col gap-8 py-10 md:max-w-md`}>
@@ -64,26 +75,30 @@ export default async function MePage() {
             })}
           </p>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {cardBusinesses.map((business) => (
-              <li key={business.id}>
-                {business.kind === "supermarket" ? (
-                  <LocalizedLink href={`/me/points/${business.slug}`} className={LINK_CARD}>
-                    <span className="text-body font-medium text-text">{business.name}</span>
-                    <span className="text-caption text-text-muted">
-                      {pick(locale, { es: "Ver mis puntos", en: "View my points" })}
+          <ul className="flex flex-col gap-3">
+            {cardBusinesses.map((business, index) => {
+              const look = looks[index];
+              const points = business.kind === "supermarket";
+              return (
+                <li key={business.id}>
+                  <LocalizedLink
+                    href={points ? `/me/points/${business.slug}` : `/me/cards/${business.slug}`}
+                    style={{ backgroundColor: look.color, color: look.ink }}
+                    className="flex min-h-20 items-center justify-between gap-4 rounded-2xl px-5 py-4 shadow-[0_1px_3px_rgb(16_24_40/0.14)] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg active:scale-[0.99]"
+                  >
+                    {look.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- served by our own API, already sized.
+                      <img src={look.logoUrl} alt={business.name} className="h-10 max-w-[55%] object-contain object-left" />
+                    ) : (
+                      <span className="min-w-0 truncate text-title font-bold">{business.name}</span>
+                    )}
+                    <span className="shrink-0 text-label font-semibold">
+                      {points ? pick(locale, { es: "Ver mis puntos →", en: "View my points →" }) : pick(locale, { es: "Ver mis visitas →", en: "View my visits →" })}
                     </span>
                   </LocalizedLink>
-                ) : (
-                  <LocalizedLink href={`/me/cards/${business.slug}`} className={LINK_CARD}>
-                    <span className="text-body font-medium text-text">{business.name}</span>
-                    <span className="text-caption text-text-muted">
-                      {pick(locale, { es: "Ver mis visitas", en: "View my visits" })}
-                    </span>
-                  </LocalizedLink>
-                )}
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
