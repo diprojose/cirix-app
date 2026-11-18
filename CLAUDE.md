@@ -62,7 +62,7 @@ Prueba de integración contra el Firestore real (omitida por defecto; escribe da
 FIRESTORE_INTEGRATION=1 npx vitest run test/firestore-tenancy-crm.integration.test.ts test/firestore-stamp-card.integration.test.ts
 ```
 
-Negocios y personal (escribe en el Firebase de `.env.local`):
+Negocios y personal: los administradores de Cirix los manejan en `/businesses` (crear, suspender, modo demo de recibos; ver `docs/tenancy.md#operación`). El script hace lo mismo desde la terminal y escribe en el Firebase de `.env.local`:
 
 ```bash
 node scripts/manage-business.mjs create --name "Cafe Luna" --slug cafe-luna --kind restaurant --owner dueno@correo.com --confirm
@@ -92,7 +92,7 @@ El proyecto Firebase de desarrollo (`cirixadv-cae9c`) está **sin plan Blaze**. 
 
 | Módulo | Qué hace | Rutas principales | Externos |
 |---|---|---|---|
-| `core/tenancy` | **Multi-negocio**: negocios (tenants), roles por negocio (dueño, personal) y la puerta de autorización | `/biz/[slug]`, `/biz/[slug]/team`, `/api/member/biz/*` | — |
+| `core/tenancy` | **Multi-negocio**: negocios (tenants), roles por negocio (dueño, personal), la puerta de autorización y la administración de Cirix (crear, suspender, modo demo) | `/biz/[slug]`, `/biz/[slug]/team`, `/businesses`, `/api/member/biz/*`, `/api/admin/businesses` | — |
 | `crm` | **Núcleo CRM propio**: clientes por negocio y su línea de tiempo de eventos. Es el sistema de registro; Zoho es opcional | `/b/[slug]`, `/me`, `/api/member/*` | — |
 | `stamp-card` | **Tarjeta de sellos** para restaurantes: QR personal rotativo y firmado, escaneo del personal, premio y reinicio | `/me/cards/[slug]`, `/biz/[slug]/scan`, `/biz/[slug]/program`, `/biz/[slug]/qr`, `/biz/[slug]/activity`, `/api/member/*` | — |
 | `receipts` | **Escaneo de recibos y puntos de supermercado**: OCR gratuito detrás del puerto `ReceiptReader`, verificación, uso único, catálogo de premios y canje con código | `/me/points/[slug]`, `/biz/[slug]/receipts`, `/biz/[slug]/rewards`, `/biz/[slug]/scan`, `/api/member/businesses/[slug]/{receipts,redemptions}`, `/api/member/biz/[slug]/{receipts,rewards,redemptions}` | — |

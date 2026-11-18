@@ -62,7 +62,21 @@ Errores (`error.code`): `tenancy/team-change-denied` (403), `tenancy/last-owner`
 
 ## Operación
 
-Aún no hay interfaz para crear negocios ni nombrar dueños; se hace con un script de administrador (escribe en el Firebase de `.env.local`):
+Los administradores de Cirix (cuentas con el claim `operator`) manejan los negocios desde **`/businesses`**:
+
+| Pantalla | Qué hace |
+| --- | --- |
+| `/businesses` | Todos los negocios, del más nuevo al más viejo: tipo, dirección, dueños, cuánto personal tiene, si está suspendido y si sus recibos están en modo demo. |
+| `/businesses/new` | Crear un negocio: nombre, dirección del QR (se propone desde el nombre y no se puede cambiar después), restaurante o supermercado, y el correo del dueño. El dueño no necesita cuenta: se le reserva una sin contraseña y la reclama al entrar con ese correo. |
+| `/businesses/<slug>` | La ficha: datos, dueños y personal (los dueños se cambian en `/biz/<slug>/team`, donde el administrador puede nombrar y quitar dueños), el modo demo de recibos y suspender o reactivar el negocio. Cada cambio pide una segunda confirmación. |
+
+- **Suspender** no borra nada: los clientes dejan de ver la página de registro y el equipo pierde el panel, pero Cirix sigue entrando. Al reactivar, todo vuelve como estaba.
+- **Modo demo de recibos:** al encenderlo también se activan los recibos; al apagarlo se conserva lo demás que el dueño configuró. Ver [recibos](receipts.md#modo-demo).
+- Cada acción queda en `audit_log`: `tenancy.business_created`, `tenancy.business_status_changed` y `receipts.demo_mode_changed`, con quién la hizo.
+- Se llega desde `/me` ("Administración de Cirix") y, dentro del panel de un negocio, desde "Todos los negocios". Las APIs son `POST /api/admin/businesses` y `PATCH /api/admin/businesses/<slug>`; ambas exigen el claim `operator` y el mismo origen.
+- Las direcciones `new` y `businesses` están reservadas, porque `/businesses/new` es el formulario.
+
+El script de administrador sigue sirviendo para lo mismo desde una terminal (escribe en el Firebase de `.env.local`):
 
 ```bash
 # Crear un negocio y su dueño (la cuenta se reconoce al iniciar sesión con ese correo)
@@ -94,7 +108,7 @@ La dirección pública del negocio es `/b/<slug>`. El QR de mesa no se arma a ma
 
 ## Límites conocidos
 
-- No hay interfaz para crear negocios ni cambiar dueños; se usa el script. El personal sí se administra desde el panel.
+- El nombre y el tipo de un negocio no se pueden cambiar desde la interfaz, y un negocio no se puede borrar (solo suspender).
 - La lista de clientes muestra los 50 más recientes (la API pagina con `before`; la página aún no).
 - El teléfono es un dato de contacto sin verificar. La identidad la prueba el correo verificado.
 - Las políticas TTL y los índices compuestos de otras colecciones requieren plan de pago de Firebase; este módulo no los necesita.

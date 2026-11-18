@@ -94,6 +94,8 @@ businesses/{businessId}/redemptions/{code}      un documento por canje
 
 Para mostrar el producto a posibles clientes con cualquier recibo a mano. **Quita todas las protecciones**, así que no debe usarse con un negocio real.
 
+Un administrador de Cirix lo enciende o apaga en `/businesses/<slug>` ("Recibos: modo demostración"), o con el script:
+
 ```bash
 node scripts/manage-business.mjs receipt-demo --slug super-demo --on --confirm
 node scripts/manage-business.mjs receipt-demo --slug super-demo --off --confirm
@@ -105,6 +107,7 @@ node scripts/manage-business.mjs receipt-demo --slug super-demo --off --confirm
 - En restaurantes, la espera entre sellos sigue aplicando, pero los datos leídos se muestran igual.
 - **Cada lectura queda en `businesses/{id}/receipt_demo_reads`**, también las fallidas, con el usuario, la hora, el total leído y el texto (hasta 80 líneas), para revisar después qué falló. Ese texto puede incluir los últimos dígitos enmascarados de una tarjeta. Solo se escribe en modo demo; al apagarlo, conviene borrar esa colección.
 - El dueño no puede activarlo ni apagarlo: el formulario conserva el valor guardado, y el panel avisa si está activo.
+- Encenderlo también activa los recibos. Apagarlo conserva el resto de la configuración del dueño; si no escribió cómo aparece su negocio en el recibo, se busca el nombre del negocio.
 
 ## Cambiar de lector
 
