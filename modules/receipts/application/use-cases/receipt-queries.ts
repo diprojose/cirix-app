@@ -1,4 +1,5 @@
 import type { UseCase } from "@/shared/application/use-case";
+import type { AuditTrail } from "@/shared/application/audit-trail";
 import { ok, type Result } from "@/shared/domain/result";
 import type { DomainError } from "@/shared/domain/domain-error";
 import type { PointsRepository, ReceiptLedger, ReceiptRecord, ReceiptSettingsRepository } from "../../domain/ports/receipt-ports";
@@ -25,6 +26,40 @@ export class SaveReceiptSettings implements UseCase<ReceiptSettingsInput & { bus
     if (!settings.ok) return settings;
     await this.settings.save(businessId, settings.value);
     return ok(toReceiptSettingsDto(settings.value));
+  }
+}
+
+export type SetReceiptDemoModeInput = { businessId: string; on: boolean; actorUserId: string };
+
+/**
+ * A Cirix administrator turns demo mode on for a sales demo, or off before a
+ * business uses receipts for real. Turning it on also turns receipts on, so the
+ * demo works at once; turning it off leaves the owner's own on/off untouched.
+ * Every other rule stays as the owner left it.
+ */
+export class SetReceiptDemoMode implements UseCase<SetReceiptDemoModeInput, ReceiptSettingsDto> {
+  constructor(
+    private readonly settings: ReceiptSettingsRepository,
+    private readonly audit: AuditTrail
+  ) {}
+
+  async execute({ businessId, on, actorUserId }: SetReceiptDemoModeInput): Promise<Result<ReceiptSettingsDto, DomainError>> {
+    const current = await this.settings.get(businessId);
+    if (current.demoMode === on) return ok(toReceiptSettingsDto(current));
+    const next = ReceiptSettings.create({
+      ...toReceiptSettingsDto(current),
+      enabled: on ? true : current.enabled,
+      demoMode: on,
+    });
+    if (!next.ok) return next;
+    await this.settings.save(businessId, next.value);
+    await this.audit.record({
+      actorId: actorUserId,
+      action: "receipts.demo_mode_changed",
+      before: { businessId, demoMode: current.demoMode, enabled: current.enabled },
+      after: { businessId, demoMode: next.value.demoMode, enabled: next.value.enabled },
+    });
+    return ok(toReceiptSettingsDto(next.value));
   }
 }
 

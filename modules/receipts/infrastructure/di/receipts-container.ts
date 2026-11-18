@@ -35,7 +35,9 @@ import {
   ListPointsBalances,
   ListRecentReceipts,
   SaveReceiptSettings,
+  SetReceiptDemoMode,
 } from "../../application/use-cases/receipt-queries";
+import { getAuditTrail } from "@/core/audit/infrastructure/di/audit-container";
 
 /* Composition root for receipts: the only place that knows the concrete adapters. Server-only. */
 
@@ -87,6 +89,8 @@ export const makeConfirmReceipt = (): ConfirmReceipt =>
 
 export const makeGetReceiptSettings = (): GetReceiptSettings => new GetReceiptSettings(settingsRepository());
 export const makeSaveReceiptSettings = (): SaveReceiptSettings => new SaveReceiptSettings(settingsRepository());
+/** Cirix administrators only: demo mode turns every check against fraud off. */
+export const makeSetReceiptDemoMode = (): SetReceiptDemoMode => new SetReceiptDemoMode(settingsRepository(), getAuditTrail());
 export const makeListRecentReceipts = (): ListRecentReceipts => new ListRecentReceipts(receiptLedger());
 export const makeGetPointsSummary = (): GetPointsSummary => new GetPointsSummary(pointsRepository());
 export const makeListPointsBalances = (): ListPointsBalances => new ListPointsBalances(pointsRepository());
