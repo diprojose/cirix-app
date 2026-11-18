@@ -10,6 +10,12 @@ import { AddMember } from "../../application/use-cases/add-member";
 import { ResolveBusinessAccess } from "../../application/use-cases/resolve-business-access";
 import { ListMyBusinesses } from "../../application/use-cases/list-my-businesses";
 import { AddTeamMember, ListTeam, RemoveTeamMember } from "../../application/use-cases/manage-team";
+import {
+  GetBusinessForAdmin,
+  ListAllBusinesses,
+  RegisterBusiness,
+  SetBusinessStatus,
+} from "../../application/use-cases/administer-businesses";
 import { FirebaseAccountDirectory } from "../firebase/firebase-account-directory";
 import { getAuditTrail } from "@/core/audit/infrastructure/di/audit-container";
 
@@ -60,3 +66,16 @@ export const makeAddTeamMember = (): AddTeamMember =>
 
 /** Builds the "remove a team member" use case (owner or Cirix administrator). */
 export const makeRemoveTeamMember = (): RemoveTeamMember => new RemoveTeamMember(memberships(), getAuditTrail());
+
+/** Builds the "every business" list (Cirix administrators). */
+export const makeListAllBusinesses = (): ListAllBusinesses => new ListAllBusinesses(businesses(), memberships());
+
+/** Builds the "one business, suspended or not" read (Cirix administrators). */
+export const makeGetBusinessForAdmin = (): GetBusinessForAdmin => new GetBusinessForAdmin(businesses(), memberships());
+
+/** Builds the "open a business with its owner" use case (Cirix administrators). */
+export const makeRegisterBusiness = (): RegisterBusiness =>
+  new RegisterBusiness(businesses(), memberships(), new FirebaseAccountDirectory(), getAuditTrail());
+
+/** Builds the "suspend or reopen a business" use case (Cirix administrators). */
+export const makeSetBusinessStatus = (): SetBusinessStatus => new SetBusinessStatus(businesses(), getAuditTrail());

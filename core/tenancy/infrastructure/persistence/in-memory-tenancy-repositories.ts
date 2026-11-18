@@ -1,6 +1,7 @@
-import type { Business } from "../../domain/entities/business";
+import { Business } from "../../domain/entities/business";
 import type { Membership } from "../../domain/entities/membership";
 import type { BusinessId } from "../../domain/value-objects/business-id";
+import type { BusinessStatus } from "../../domain/value-objects/business-kind";
 import type { BusinessRepository } from "../../domain/repositories/business-repository";
 import type { MembershipRepository } from "../../domain/repositories/membership-repository";
 import { BusinessSlugTakenError } from "../../domain/errors/tenancy-errors";
@@ -31,6 +32,25 @@ export class InMemoryBusinessRepository implements BusinessRepository {
   async create(business: Business): Promise<void> {
     if (await this.findBySlug(business.slug.value)) throw new BusinessSlugTakenError(business.slug.value);
     this.items.set(business.id.value, business);
+  }
+
+  async listAll(): Promise<Business[]> {
+    return [...this.items.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
+  async updateStatus(id: BusinessId, status: BusinessStatus): Promise<void> {
+    const current = this.items.get(id.value);
+    if (!current) throw new Error(`Business ${id.value} does not exist.`);
+    const updated = Business.restore({
+      id: current.id.value,
+      slug: current.slug.value,
+      name: current.name,
+      kind: current.kind,
+      status,
+      createdAt: current.createdAt,
+    });
+    if (!updated.ok) throw updated.error;
+    this.items.set(id.value, updated.value);
   }
 }
 

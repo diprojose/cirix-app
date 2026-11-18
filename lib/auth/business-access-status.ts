@@ -9,7 +9,9 @@ export function statusForTenancyError(code: string): number {
     case "tenancy/member-not-found":
       return 404;
     case "tenancy/invalid-membership":
+    case "tenancy/invalid-business":
       return 400;
+    case "tenancy/slug-taken":
     case "tenancy/last-owner":
     case "tenancy/team-full":
     case "tenancy/account-disabled":

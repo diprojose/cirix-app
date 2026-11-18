@@ -1,5 +1,6 @@
 import type { Business } from "../entities/business";
 import type { BusinessId } from "../value-objects/business-id";
+import type { BusinessStatus } from "../value-objects/business-kind";
 
 /**
  * BusinessRepository is the persistence port for the business aggregate. The
@@ -27,4 +28,10 @@ export interface BusinessRepository {
    * @throws BusinessSlugTakenError when the slug already belongs to another business.
    */
   create(business: Business): Promise<void>;
+
+  /** Every business, newest first. For Cirix administrators, who look after all of them. */
+  listAll(): Promise<Business[]>;
+
+  /** Opens or closes a business. Nothing it owns is deleted. */
+  updateStatus(id: BusinessId, status: BusinessStatus): Promise<void>;
 }

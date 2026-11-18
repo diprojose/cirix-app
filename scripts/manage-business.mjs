@@ -29,6 +29,7 @@ const RESERVED = [
   "admin", "api", "app", "b", "biz", "me", "login", "logout", "es", "en", "www",
   "demo", "zoho", "pixels", "reviews", "review", "make-a-review", "calls", "n8n",
   "loyalty", "cart", "checkout", "orders", "ai-support", "static", "assets",
+  "new", "businesses",
 ];
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

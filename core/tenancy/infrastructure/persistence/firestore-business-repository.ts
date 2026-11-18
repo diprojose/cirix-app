@@ -1,6 +1,7 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { Business } from "../../domain/entities/business";
 import type { BusinessId } from "../../domain/value-objects/business-id";
+import type { BusinessStatus } from "../../domain/value-objects/business-kind";
 import type { BusinessRepository } from "../../domain/repositories/business-repository";
 import { BusinessSlugTakenError, CorruptBusinessSnapshotError } from "../../domain/errors/tenancy-errors";
 
@@ -83,6 +84,17 @@ export class FirestoreBusinessRepository implements BusinessRepository {
         createdAt: business.createdAt,
       } satisfies BusinessDocument);
     });
+  }
+
+  async listAll(): Promise<Business[]> {
+    // A single-field order: served by Firestore's automatic index, no composite index needed.
+    const snapshot = await this.firestore.collection(BUSINESSES).orderBy("createdAt", "desc").get();
+    return snapshot.docs.map((doc) => restore(doc.id, doc.data() as BusinessDocument));
+  }
+
+  async updateStatus(id: BusinessId, status: BusinessStatus): Promise<void> {
+    // update() fails on a missing document instead of creating a half-empty one.
+    await this.firestore.collection(BUSINESSES).doc(id.value).update({ status });
   }
 }
 

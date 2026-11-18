@@ -12,9 +12,28 @@ export const RESERVED_SLUGS: readonly string[] = [
   "admin", "api", "app", "b", "biz", "me", "login", "logout", "es", "en", "www",
   "demo", "zoho", "pixels", "reviews", "review", "make-a-review", "calls", "n8n",
   "loyalty", "cart", "checkout", "orders", "ai-support", "static", "assets",
+  // /businesses/new is the form that creates a business, so no business can be called that.
+  "new", "businesses",
 ];
 
 const RESERVED = new Set<string>(RESERVED_SLUGS);
+
+/**
+ * A slug made from a business name, to prefill the form: "Café Luna & Bar"
+ * becomes "cafe-luna-bar". Accents are dropped, anything else that is not a
+ * letter or digit becomes a hyphen. The result may still be too short or
+ * reserved; {@link BusinessSlug.create} has the final word.
+ */
+export function suggestSlug(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_LENGTH)
+    .replace(/-+$/, "");
+}
 
 type BusinessSlugProps = { value: string };
 
