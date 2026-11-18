@@ -45,6 +45,8 @@ export default async function BusinessLayout({
     ...(roleCan(role, "program:manage") ? [{ href: `${home}/design`, label: pick(locale, { es: "Diseño de la tarjeta", en: "Card design" }), icon: "palette" as const }] : []),
     ...(roleCan(role, "program:manage") ? [{ href: `${home}/receipts`, label: pick(locale, { es: "Recibos", en: "Receipts" }), icon: "receipt" as const }] : []),
     ...(roleCan(role, "members:manage") ? [{ href: `${home}/team`, label: pick(locale, { es: "Equipo", en: "Team" }), icon: "team" as const }] : []),
+    // Cirix administrators come here from their list of businesses, and go back to it.
+    ...(role === "platform_admin" ? [{ href: "/businesses", label: pick(locale, { es: "Todos los negocios", en: "All businesses" }), icon: "stores" as const }] : []),
   ];
   const roleLabel =
     role === "owner"

@@ -34,7 +34,16 @@ export function isMemberPage(pathname: string): boolean {
  * legacy admin keep the dark one.
  */
 export function isLoyaltyAppScreen(pathname: string): boolean {
-  return isMemberPage(pathname) || pathname === "/login" || pathname === "/privacy";
+  return isMemberPage(pathname) || pathname === "/login" || pathname === "/privacy" || isBusinessAdminPage(pathname);
+}
+
+/**
+ * Where Cirix administrators look after every business: the list, a new
+ * business and one business's file. They are platform pages (an admitted
+ * account is required) and each page also requires the operator tier.
+ */
+export function isBusinessAdminPage(pathname: string): boolean {
+  return /^\/businesses(?:\/[a-z0-9-]+)?\/?$/i.test(pathname);
 }
 
 /**

@@ -125,6 +125,20 @@ export default async function MePage() {
         </section>
       )}
 
+      {viewer.tier === "operator" && (
+        <section aria-labelledby="cirix-admin" className="flex flex-col gap-3">
+          <h2 id="cirix-admin" className="text-body font-medium text-text">
+            {pick(locale, { es: "Administración de Cirix", en: "Cirix administration" })}
+          </h2>
+          <LocalizedLink href="/businesses" className={LINK_CARD}>
+            <span className="text-body font-medium text-text">{pick(locale, { es: "Negocios", en: "Businesses" })}</span>
+            <span className="text-caption text-text-muted">
+              {pick(locale, { es: "Crear negocios, nombrar dueños y cambiar el modo demostración.", en: "Create businesses, name owners and change demo mode." })}
+            </span>
+          </LocalizedLink>
+        </section>
+      )}
+
       <div className="flex flex-col items-center gap-3">
         <LocalizedLink href="/privacy" className="text-caption text-text-muted underline underline-offset-4">
           {pick(locale, { es: "Política de privacidad", en: "Privacy policy" })}

@@ -25,7 +25,7 @@ function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
   );
 }
 
-export type NavIconName = "home" | "scan" | "activity" | "gift" | "card" | "qr" | "receipt" | "team" | "more" | "account" | "signout" | "palette";
+export type NavIconName = "home" | "scan" | "activity" | "gift" | "card" | "qr" | "receipt" | "team" | "more" | "account" | "signout" | "palette" | "stores";
 
 const PATHS: Record<NavIconName, React.ReactNode> = {
   home: (
@@ -95,6 +95,15 @@ const PATHS: Record<NavIconName, React.ReactNode> = {
   more: (
     <>
       <path d="M4 7h16M4 12h16M4 17h16" />
+    </>
+  ),
+  // A shopfront with an awning: every business Cirix looks after.
+  stores: (
+    <>
+      <path d="M4 9.5 5.5 4.5h13L20 9.5" />
+      <path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.1 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1 2.5 2.6 2.5S20 10.9 20 9.5" />
+      <path d="M5.5 12v7.5h13V12" />
+      <path d="M10 19.5v-4h4v4" />
     </>
   ),
   account: (
