@@ -40,7 +40,7 @@ Hay **dos barreras** que deben coincidir: `proxy.ts` y el layout raíz. Ambas de
 
 | Ruta | Quién | Qué hace |
 | --- | --- | --- |
-| `/b/<slug>?source=table_qr` | Cuenta verificada | Registro como cliente (la abre el QR del negocio). Si no hay sesión, pasa por el login y vuelve. |
+| `/b/<slug>?source=table_qr` | Cuenta verificada | Registro como cliente (la abre el QR del negocio). Si no hay sesión, pasa por el login y vuelve. Ese login lleva el logo, el color y el nombre del negocio (también al volver a `/me/cards/<slug>` o `/me/points/<slug>`); si el negocio no existe, está suspendido o falla la lectura, muestra el de Cirix. Ver `lib/auth/login-business.ts`. |
 | `/me` | Cuenta verificada | Mis programas (negocios donde soy cliente) y mis negocios (donde tengo rol). |
 | `/biz/<slug>` | Miembro del negocio | Panel del negocio. El dueño ve la lista de clientes; el personal, un aviso. |
 | `POST /api/member/businesses/<slug>/join` | Cuenta verificada | Registra al cliente. Idempotente: `201` si lo crea, `200` si ya existía. |

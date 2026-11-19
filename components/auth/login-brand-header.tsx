@@ -4,12 +4,53 @@ import { useLocale } from "@/components/locale-provider";
 import { pick } from "@/lib/locale";
 import Image from "next/image";
 import type { SessionAudience } from "@/lib/auth/audience";
+import type { LoginBusinessBrand } from "@/lib/auth/login-business";
 
 /** The single controlled entry point for every platform module. */
-export function LoginBrandHeader({ audience = "platform" }: { audience?: SessionAudience }) {
+export function LoginBrandHeader({
+  audience = "platform",
+  business = null,
+}: {
+  audience?: SessionAudience;
+  /** The business whose QR brought the person here: the screen wears its brand. */
+  business?: LoginBusinessBrand | null;
+}) {
   const locale = useLocale();
   const reviewLogin = audience === "reviews";
   const memberLogin = audience === "member";
+
+  if (memberLogin && business) {
+    return (
+      <header className="flex flex-col items-center gap-3 text-center">
+        {/* The same plate as the business's signup page and card. */}
+        <div
+          style={{ backgroundColor: business.color, color: business.ink }}
+          className="mb-4 flex h-28 w-full max-w-xs items-center justify-center rounded-3xl px-8 shadow-[0_1px_3px_rgb(16_24_40/0.14)]"
+        >
+          {business.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- served by our own API, already sized.
+            <img src={business.logoUrl} alt="" className="max-h-16 max-w-full object-contain" />
+          ) : (
+            <span aria-hidden="true" className="line-clamp-2 text-price-lg font-bold tracking-tight">
+              {business.name}
+            </span>
+          )}
+        </div>
+        <h1 className="text-display font-bold tracking-tight text-text">{business.name}</h1>
+        <p className="max-w-sm text-body text-text-muted">
+          {business.purpose === "join"
+            ? pick(locale, {
+                es: "Entra con tu correo para unirte a su programa de beneficios. Lo usaremos para guardar tu tarjeta y lo que ganes.",
+                en: "Sign in with your email to join their rewards program. We use it to keep your card and what you earn.",
+              })
+            : pick(locale, {
+                es: "Entra con tu correo para ver tu tarjeta y tus beneficios.",
+                en: "Sign in with your email to see your card and rewards.",
+              })}
+        </p>
+      </header>
+    );
+  }
 
   return (
     <header className="flex flex-col items-center gap-3 text-center">

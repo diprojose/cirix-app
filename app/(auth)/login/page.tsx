@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
+import { BrandTheme } from "@/components/card-design/brand-style";
+import { loadLoginBusinessBrand } from "@/lib/auth/login-business";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { EmailSignInForm } from "@/components/auth/email-sign-in-form";
 import { LoginBrandHeader } from "@/components/auth/login-brand-header";
@@ -38,7 +41,11 @@ export default async function LoginPage({
     fromPath !== null && isReviewPage(fromPath) ? "reviews"
     : fromPath !== null && isMemberPage(fromPath) ? "member"
     : "platform";
-  const viewer = await (audience === "reviews" ? getReviewViewer() : audience === "member" ? getMemberViewer() : getViewer());
+  const [viewer, business] = await Promise.all([
+    audience === "reviews" ? getReviewViewer() : audience === "member" ? getMemberViewer() : getViewer(),
+    // Someone coming from a business's QR signs in under that business's brand.
+    audience === "member" ? loadLoginBusinessBrand(fromPath) : null,
+  ]);
 
   // An email link may belong to another account; only Firebase can validate it.
   // Do not skip its confirmation just because this browser has an older cookie.
@@ -60,7 +67,8 @@ export default async function LoginPage({
         <LanguageSwitcher />
       </div>
 
-      <LoginBrandHeader audience={audience} />
+      {business && <BrandTheme color={business.color} />}
+      <LoginBrandHeader audience={audience} business={business} />
 
       {!completeEmailLink && <GoogleSignInButton redirectTo={redirectTo} audience={audience} />}
       {!completeEmailLink && <div className="flex items-center gap-3 text-caption text-text-muted" aria-hidden="true">
@@ -68,14 +76,20 @@ export default async function LoginPage({
       </div>}
       <EmailSignInForm redirectTo={redirectTo} audience={audience} completeLink={completeEmailLink} />
 
-      <p className="text-center text-caption text-text-muted">
+      {business ? (
+        // The business owns the screen; Cirix signs it quietly, like on the card.
+        <p className="flex items-center justify-center gap-2 text-caption text-text-muted">
+          {pick(locale, { es: "Programa de beneficios con", en: "Rewards program powered by" })}
+          <Image src="/brand/logo-dark.svg" alt="CIRIX" width={160} height={57} className="h-auto w-12" />
+        </p>
+      ) : <p className="text-center text-caption text-text-muted">
         <LocalizedLink
           href="/"
           className="rounded-sm font-medium text-accent underline underline-offset-4 transition-colors hover:text-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           {pick(locale, { es: "Volver a la página principal", en: "Back to the home page" })}
         </LocalizedLink>
-      </p>
+      </p>}
     </main>
   );
 }
