@@ -1,91 +1,226 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Roboto, Roboto_Mono } from "next/font/google";
 import { LocalizedLink } from "@/components/localized-link";
-import { LandingHeader, LandingMotion, MotionToggle, SolutionExplorer } from "@/components/landing/landing-interactions";
-import { getCurrentLocale, localizeHref, pick } from "@/lib/i18n";
-import { getViewer } from "@/lib/auth/dal";
-import { MVP_MODULES } from "@/shared/mvp-modules";
-import s from "@/components/landing/landing.module.css";
+import { homeCopy } from "@/components/home/home-content";
+import { Icon, IconSprite } from "@/components/home/home-icons";
+import { ContactButton, ContactDialog, HomeHeader, Pricing, ProcessSteps, Reveal, StatCounters } from "@/components/home/home-interactive";
+import s from "@/components/home/home.module.css";
+import { getCurrentLocale } from "@/lib/i18n";
 import { homeMetadata, SITE_STRUCTURED_DATA } from "@/lib/site-metadata";
+
+const roboto = Roboto({ subsets: ["latin"], weight: ["300", "400", "500", "700"], variable: "--font-roboto", display: "swap" });
+const robotoMono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-roboto-mono", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   return homeMetadata(await getCurrentLocale());
 }
 
-export default async function ModulesLandingPage() {
-  const [locale, viewer] = await Promise.all([getCurrentLocale(), getViewer()]);
-  const t = (es: string, en: string) => pick(locale, { es, en });
-  const outcomes = [
-    [t("Cada oportunidad, en su lugar.", "Every opportunity, in the right place."), t("Da continuidad a cada conversación y una visión compartida a tu equipo comercial.", "Keep every conversation moving and give your sales team a shared view.")],
-    [t("Una compra es solo el comienzo.", "A purchase is just the beginning."), t("Crea motivos para volver con recompensas, referidos y experiencias de compra conectadas.", "Give customers reasons to return with rewards, referrals, and connected shopping experiences.")],
-    [t("Menos tareas. Más posibilidades.", "Fewer tasks. More possibilities."), t("Explora cómo la automatización y la IA pueden acompañar el trabajo de tu equipo.", "Explore how automation and AI can support your team's work.")],
-  ];
-  const steps = [
-    [t("Entendemos", "Discover"), t("Empezamos por tu operación, tus clientes y la oportunidad que quieres resolver.", "We start with your operation, your customers, and the opportunity you want to address.")],
-    [t("Diseñamos", "Design"), t("Definimos el recorrido, los puntos de contacto y la solución que tiene sentido para tu negocio.", "We define the journey, the touchpoints, and the solution that makes sense for your business.")],
-    [t("Validamos", "Validate"), t("Probamos una experiencia concreta con tu equipo antes de avanzar hacia una implementación.", "We test a tangible experience with your team before moving toward implementation.")],
-    [t("Evolucionamos", "Evolve"), t("Acordamos las integraciones y los indicadores para construir la siguiente etapa.", "We agree on integrations and success measures to build the next stage.")],
-  ];
-  const faqs = [
-    [t("¿Quién puede acceder a las demos y módulos?", "Who can access the demos and modules?"), t("La solicitud de reseñas de Google es pública. Para los demás módulos, solo pueden acceder las cuentas creadas y habilitadas previamente por un administrador. Inicia sesión con la cuenta de Google autorizada. No hay registro público; si necesitas acceso, contacta a CIRIX.", "Google review requests are public. Other modules are available only to accounts previously created and enabled by an administrator. Sign in with your authorized Google account. Public registration is not available; contact CIRIX if you need access.")],
-    [t("¿Qué puedo explorar en esta plataforma?", "What can I explore on this platform?"), t("Siete soluciones: Google Reviews, Pixel Hub, Zoho CRM, Loyalty Commerce, n8n Automation Studio, AI Customer Support y Call Tracking. Cada una permite conocer sus capacidades y conversar sobre su aplicación en tu negocio.", "Seven solutions: Google Reviews, Pixel Hub, Zoho CRM, Loyalty Commerce, n8n Automation Studio, AI Customer Support, and Call Tracking. Each lets you explore its capabilities and discuss how they could apply to your business.")],
-    [t("¿Las demos son implementaciones finales?", "Are the demos final implementations?"), t("Son puntos de partida para evaluar la experiencia. Los módulos indican si son MVPs activos o demos visuales. Las integraciones, los datos reales y el alcance de producción se definen para cada proyecto.", "They are starting points for evaluating the experience. Modules indicate whether they are active MVPs or visual demos. Integrations, real data, and production scope are defined for each project.")],
-    [t("¿Puedo empezar con una sola solución?", "Can I start with a single solution?"), t("Sí. Podemos comenzar por una necesidad específica, como seguimiento comercial o recompensas, y evaluar otras capacidades conforme evolucione tu operación.", "Yes. We can start with a specific need, such as sales follow-up or rewards, and evaluate other capabilities as your operation evolves.")],
-    [t("¿Cómo se conectaría con mis herramientas?", "How would it connect to my tools?"), t("Primero revisamos tus herramientas, los datos disponibles y el recorrido que quieres habilitar. A partir de esa revisión definimos las integraciones necesarias; no todas las conexiones están activas en las demos.", "First, we review your tools, available data, and the journey you want to enable. We then define the integrations required; not all connections are active in the demos.")],
-    [t("¿Cómo puedo conversar sobre mi proyecto?", "How can I discuss my project?"), t("Usa el botón de contacto para abrir una conversación con CIRIX por WhatsApp. Cuéntanos qué quieres mejorar y qué herramientas utiliza hoy tu equipo.", "Use the contact button to start a conversation with CIRIX on WhatsApp. Tell us what you want to improve and which tools your team uses today.")],
-  ];
-  const contactHref = `https://wa.me/12393403877?text=${encodeURIComponent(t("Hola CIRIX, me gustaría conocer sus soluciones tecnológicas para mi negocio.", "Hello CIRIX, I'd like to learn about your technology solutions for my business."))}`;
-  return <div className={s.landing} id="top">
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(SITE_STRUCTURED_DATA).replace(/</g, "\\u003c"),
-      }}
-    />
-    <a href="#main-content" className={s.skipLink}>{t("Saltar al contenido", "Skip to content")}</a>
-    <LandingMotion /><LandingHeader locale={locale} />
-    <main id="main-content">
-      <section className={s.hero} aria-labelledby="hero-title">
-        <div className={s.heroGrid} aria-hidden="true" />
-        <div className={`${s.container} ${s.heroInner}`}>
-          <div className={s.heroCopy}>
-            <p className={s.eyebrow}><span className={s.statusDot} /> CIRIX · DIGITAL BUSINESS SOLUTIONS</p>
-            <h1 id="hero-title">{t("Tu próximo", "Your next")}<br />{t("gran paso,", "big move,")}<br /><span>{t("conectado.", "connected.")}</span></h1>
-            <p className={s.heroDescription}>{t("Tecnología que convierte conversaciones en clientes y clientes en relaciones que duran.", "Technology that turns conversations into customers, and customers into lasting relationships.")}</p>
-            <div className={s.actions}><a href="#soluciones" className={s.primaryButton}>{t("Explorar soluciones", "Explore solutions")} <span aria-hidden="true">↗</span></a><a href="#ecosistema" className={s.textButton}>{t("Descubrir el ecosistema", "Discover the ecosystem")} <span aria-hidden="true">↓</span></a></div>
-            <div className={s.heroNote}><span className={s.noteLine} />{t("Explora la oferta. Accede a las demos con una cuenta autorizada.", "Explore our solutions. Access demos with an authorized account.")}</div>
-          </div>
-          <div className={s.ecosystemVisual} aria-label={t("Explora las suites del ecosistema CIRIX", "Explore the suites in the CIRIX ecosystem")}>
-            <div className={s.visualHeading}><span>CIRIX ECOSYSTEM</span><span className={s.visualVersion}>{t("VISTA CONCEPTUAL", "CONCEPT VIEW")}</span></div>
-            <div className={s.orbit}>
-              <div className={s.orbitRing} aria-hidden="true" /><div className={s.orbitRingInner} aria-hidden="true" />
-              <div className={s.orbitCenter}><Image src="/brand/logo-white.svg" alt="CIRIX" width={130} height={47} /><span>{t("TU NEGOCIO, AL CENTRO", "YOUR BUSINESS AT THE CENTER")}</span></div>
-              {MVP_MODULES.filter((module) => module.slug !== "reviews").map((module, index) => <a key={module.slug} href={`#solution-${module.slug}`} className={`${s.orbitNode} ${s[`node${index}`]}`}><span className={s.nodeSymbol} aria-hidden="true">{["◎", "↗", "♡", "⌘", "✳", "↗"][index]}</span><span>{["Pixel Hub", "CRM", "Loyalty", "Automation", "AI Support", "Call Tracking"][index]}</span></a>)}
+/** The public home page: Cirix's loyalty program for local businesses, as the designer drew it. */
+export default async function HomePage() {
+  const locale = await getCurrentLocale();
+  const copy = homeCopy(locale);
+
+  return (
+    <div className={`${s.home} ${roboto.variable} ${robotoMono.variable}`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_STRUCTURED_DATA).replace(/</g, "\\u003c") }}
+      />
+      <a className={s.skipLink} href="#contenido">{copy.skip}</a>
+      <IconSprite />
+      <Reveal />
+      <HomeHeader copy={copy} locale={locale} />
+
+      <main id="contenido">
+        <section className={s.hero} id="inicio" aria-labelledby="hero-title">
+          <div className={s.heroContainer}>
+            <div className={s.heroContent}>
+              <a className={s.announcement} href="#contacto">
+                <strong>CIRIX</strong>
+                <span>{copy.hero.announcement}</span>
+                <Icon name="arrow" className={s.icon} />
+              </a>
+              <h1 id="hero-title">{copy.hero.title}</h1>
+              <p className={s.heroDescription}>{copy.hero.description}</p>
+              <div className={s.heroActions}>
+                <ContactButton className={s.button}>{copy.hero.cta}</ContactButton>
+                <div className={s.heroReview}>
+                  <span className={s.stars} role="img" aria-label={copy.hero.stars}>
+                    {[0, 1, 2, 3, 4].map((star) => <Icon key={star} name="star" />)}
+                  </span>
+                  <span>{copy.hero.review}</span>
+                </div>
+              </div>
             </div>
-            <div className={s.visualFooter}><span className={s.statusDot} /><p>{t("De la primera conversación a la próxima compra.", "From the first conversation to the next purchase.")}</p><span aria-hidden="true">↗</span></div>
+            <div className={s.heroScreens}>
+              <div className={s.heroPhoto}>
+                <Image src="/brand/home/hero.png" alt={copy.hero.photoAlt} width={793} height={440} priority sizes="(max-width: 809px) 100vw, 540px" />
+              </div>
+              {copy.hero.badges.map((badge, index) => (
+                <div key={badge.value} className={`${s.floatingBadge} ${index === 0 ? s.badge1 : s.badge2}`}>
+                  <div className={s.badgeIcon}><Icon name={index === 0 ? "check" : "smile"} /></div>
+                  <div>
+                    <strong>{badge.title}</strong>
+                    <span className={s.badgeText}>{badge.text}</span>
+                  </div>
+                  <span className={s.badgeNumber}>{badge.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={s.mainFeatures} id="ventajas" aria-labelledby="features-title">
+          <div className={s.container}>
+            <div className={s.sectionHeading} data-reveal>
+              <span className={s.eyebrow}>{copy.advantages.eyebrow}</span>
+              <h2 id="features-title">{copy.advantages.title}</h2>
+              <p>{copy.advantages.lead}</p>
+            </div>
+            <div className={s.advantageGrid}>
+              {copy.advantages.items.map((item) => (
+                <article key={item.title} className={s.iconCard} data-reveal>
+                  <div className={s.cardIcon}><Icon name={item.icon} /></div>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={s.cardTypes} id="tarjetas" aria-labelledby="cards-title">
+          <div className={s.container}>
+            <div className={s.sectionHeading} data-reveal>
+              <span className={s.eyebrow}>{copy.cards.eyebrow}</span>
+              <h2 id="cards-title">{copy.cards.title}</h2>
+              <p>{copy.cards.lead}</p>
+            </div>
+            <div className={s.cardGrid}>
+              {copy.cards.items.map((card) => (
+                <article key={card.title} className={s.loyaltyCard} data-reveal>
+                  <div className={s.cardPreview}>
+                    <div className={s.cardScreen}>
+                      <Image src={card.image} alt={card.alt} width={944} height={2048} sizes="(max-width: 480px) 90vw, (max-width: 809px) 45vw, 380px" />
+                    </div>
+                  </div>
+                  <div className={s.cardCopy}>
+                    <h3>{card.title}</h3>
+                    <p>{card.text}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={s.process} id="proceso" aria-labelledby="process-title">
+          <div className={s.container}>
+            <div className={s.sectionHeading} data-reveal>
+              <span className={s.eyebrow}>{copy.process.eyebrow}</span>
+              <h2 id="process-title">{copy.process.title}</h2>
+              <p>{copy.process.lead}</p>
+            </div>
+            <div className={s.processBox} data-reveal>
+              <ProcessSteps copy={copy} />
+              <ContactButton className={`${s.button} ${s.processCta}`}>{copy.hero.cta}</ContactButton>
+            </div>
+          </div>
+        </section>
+
+        <section className={s.statistics} id="resultados" aria-labelledby="statistics-title">
+          <div className={`${s.container} ${s.statisticsInner}`} data-reveal>
+            <h2 id="statistics-title">{copy.stats.title}</h2>
+            <StatCounters copy={copy} />
+          </div>
+        </section>
+
+        <section className={s.benefits} id="beneficios" aria-labelledby="benefits-title">
+          <div className={s.container}>
+            <div className={s.sectionHeading} data-reveal>
+              <span className={s.eyebrow}>{copy.benefits.eyebrow}</span>
+              <h2 id="benefits-title">{copy.benefits.title}</h2>
+              <p>{copy.benefits.lead}</p>
+            </div>
+            <div className={s.benefitGrid} data-reveal>
+              {copy.benefits.items.map((item) => (
+                <article key={item.title} className={s.iconCard}>
+                  <div className={s.cardIcon}><Icon name={item.icon} /></div>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={s.comparison} id="comparativo" aria-labelledby="comparison-title">
+          <div className={s.container}>
+            <div className={s.sectionHeading} data-reveal>
+              <span className={s.eyebrow}>{copy.comparison.eyebrow}</span>
+              <h2 id="comparison-title">{copy.comparison.title}</h2>
+              <p>{copy.comparison.lead}</p>
+            </div>
+            <div className={s.comparisonGrid} data-reveal>
+              {([["before", "sad"], ["after", "smile"]] as const).map(([side, icon]) => (
+                <article key={side} className={`${s.comparisonCard} ${side === "after" ? s.dark : ""}`}>
+                  <h3>{copy.comparison[side].title}</h3>
+                  <ul className={s.comparisonList}>
+                    {copy.comparison[side].items.map((item) => <li key={item}><Icon name={icon} className={s.comparisonIcon} />{item}</li>)}
+                  </ul>
+                  <ContactButton className={s.button}>{copy.comparison[side].cta}</ContactButton>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={s.pricing} id="precios" aria-labelledby="pricing-title">
+          <div className={s.container}>
+            <div className={s.sectionHeading} data-reveal>
+              <span className={s.eyebrow}>{copy.pricing.eyebrow}</span>
+              <h2 id="pricing-title">{copy.pricing.title}</h2>
+              <p>{copy.pricing.lead}</p>
+            </div>
+            <div className={s.pricingInner} data-reveal>
+              <Pricing copy={copy} />
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className={s.siteFooter} id="contacto">
+        <div className={s.footerInner}>
+          <div className={s.footerBrandCol}>
+            <a href="#inicio" className={s.brand} aria-label={copy.nav.homeLabel}>
+              <Image src="/brand/logo-white.svg" alt="" width={160} height={57} className={s.footerLogo} />
+            </a>
+            <p className={s.footerTagline}>{copy.footer.tagline}</p>
+          </div>
+          <div className={s.footerNavCols}>
+            <div className={s.footerColGroup}>
+              <span className={s.footerColTitle}>{copy.footer.social}</span>
+              <a href="https://www.instagram.com/cirix.io" target="_blank" rel="noopener noreferrer">Instagram</a>
+              <a href="https://www.tiktok.com/@cirix.io" target="_blank" rel="noopener noreferrer">TikTok</a>
+            </div>
+            <div className={s.footerColGroup}>
+              <span className={s.footerColTitle}>{copy.footer.legal}</span>
+              <LocalizedLink href="/privacy">{copy.footer.privacy}</LocalizedLink>
+            </div>
+          </div>
+          <div className={s.footerContactCol}>
+            <span className={s.footerColTitle}>{copy.footer.contactTitle}</span>
+            <p>{copy.footer.contactText}</p>
+            <ContactButton className={s.button}>{copy.footer.contactCta}</ContactButton>
           </div>
         </div>
-        <div className={`${s.container} ${s.heroBottom}`}><span>01 — {t("EL FUTURO SE CONSTRUYE", "THE FUTURE IS BUILT")}</span><MotionToggle locale={locale} /><a href="#ecosistema">{t("SIGUE EXPLORANDO", "KEEP EXPLORING")} <span aria-hidden="true">↓</span></a></div>
-      </section>
-      <div className={s.marquee} aria-label="Pixel Hub · CRM · Loyalty · Automation · AI Support · Call Tracking"><div className={s.marqueeTrack} aria-hidden="true">{[0, 1].map((copy) => <div key={copy}>{["PIXEL HUB", "CRM", "LOYALTY", "AUTOMATION", "AI SUPPORT", "CALL TRACKING"].map((name) => <span key={name}>{name}<b>✳</b></span>)}</div>)}</div></div>
-      <section id="ecosistema" className={`${s.container} ${s.section}`} aria-labelledby="ecosystem-title">
-        <div className={s.sectionHeading} data-reveal><p className={s.eyebrow}>02 / {t("UNA VISIÓN CONECTADA", "A CONNECTED VISION")}</p><h2 id="ecosystem-title">{t("Tu negocio no se detiene.", "Your business keeps moving.")}<br /><span>{t("Tu tecnología tampoco debería.", "Your technology should, too.")}</span></h2><p>{t("Desde captar una oportunidad hasta construir lealtad: diseñamos experiencias alrededor de lo que realmente importa. Tus clientes.", "From capturing an opportunity to building loyalty: we design experiences around what truly matters. Your customers.")}</p></div>
-        <div className={s.outcomes}>{outcomes.map(([title, description], index) => <article key={title} data-reveal><span className={s.outcomeNumber}>0{index + 1}<span aria-hidden="true">↗</span></span><h3>{title}</h3><p>{description}</p></article>)}</div>
-        <div className={s.facts} data-reveal><div><strong>0{MVP_MODULES.length}</strong><span>{t("soluciones para explorar", "solutions to explore")}</span></div><div><strong>ES / EN</strong><span>{t("experiencias en dos idiomas", "experiences in two languages")}</span></div><div><strong>01</strong><span>{t("visión: hacer crecer tu negocio", "vision: grow your business")}</span></div></div>
-      </section>
-      <section id="soluciones" className={s.solutionsSection} aria-labelledby="solutions-title"><div className={`${s.container} ${s.section}`}>
-        <div className={s.splitHeading} data-reveal><div><p className={s.eyebrow}>03 / {t("SOLUCIONES CON PROPÓSITO", "PURPOSEFUL SOLUTIONS")}</p><h2 id="solutions-title">{t("La pieza que necesitas.", "The piece you need.")}<br /><span>{t("El potencial que sigue.", "The potential ahead.")}</span></h2></div><p>{t("Explora nuestras suites y descubre cómo pueden formar parte de tu próxima etapa.", "Explore our suites and discover how they could be part of your next chapter.")}</p></div>
-        <div className={s.solutionGrid}>{MVP_MODULES.map((module, index) => <article id={`solution-${module.slug}`} className={s.solutionCard} key={module.slug} data-reveal>
-          <div className={s.cardTop}><span className={s.cardIndex}>/ 0{index + 1}</span><span className={`${s.badge} ${module.status === "preview" ? s.previewBadge : ""}`}><span />{module.badge[locale]}</span></div>
-          <div className={s.cardBody}><p className={s.cardEyebrow}>{module.eyebrow[locale]}</p><h3>{module.title}</h3><p>{module.summary[locale]}</p><ul>{module.capabilities.map((capability) => <li key={capability.en}><span aria-hidden="true">↗</span>{capability[locale]}</li>)}</ul></div>
-          <LocalizedLink href={(viewer.authenticated || module.public) ? module.href : `/login?from=${encodeURIComponent(localizeHref(locale, module.href))}`} className={s.cardLink}>{module.ctaLabel[locale]}<span aria-hidden="true">↗</span></LocalizedLink>
-        </article>)}</div>
-      </div></section>
-      <section id="experiencias" className={`${s.container} ${s.section}`} aria-labelledby="experiences-title"><div className={s.sectionHeading} data-reveal><p className={s.eyebrow}>04 / {t("DE LA IDEA A LA EXPERIENCIA", "FROM IDEA TO EXPERIENCE")}</p><h2 id="experiences-title">{t("Imagina lo que sigue", "Imagine what comes next")}<br /><span>{t("para tu negocio.", "for your business.")}</span></h2><p>{t("Elige un objetivo y descubre un recorrido posible con nuestras soluciones.", "Choose a goal and discover a possible journey with our solutions.")}</p></div><SolutionExplorer locale={locale} authenticated={viewer.authenticated} /></section>
-      <section id="proceso" className={s.processSection} aria-labelledby="process-title"><div className={`${s.container} ${s.section}`}><div className={s.splitHeading} data-reveal><div><p className={s.eyebrow}>05 / {t("ASÍ LO HACEMOS", "HOW WE WORK")}</p><h2 id="process-title">{t("Buenas preguntas.", "Good questions.")}<br /><span>{t("Mejores posibilidades.", "Better possibilities.")}</span></h2></div><p>{t("La tecnología es una parte. Entender tu negocio es el punto de partida.", "Technology is one part. Understanding your business is where we start.")}</p></div><div className={s.processGrid}>{steps.map(([title, description], index) => <article key={title} data-reveal><span className={s.stepNumber}>0{index + 1}</span><h3>{title}</h3><p>{description}</p></article>)}</div></div></section>
-      <section id="preguntas" className={`${s.container} ${s.section} ${s.faqSection}`} aria-labelledby="faq-title"><div data-reveal><p className={s.eyebrow}>06 / FAQ</p><h2 id="faq-title">{t("Claro desde", "Clear from")}<br /><span>{t("el comienzo.", "the start.")}</span></h2><p className={s.faqIntro}>{t("Lo que conviene saber antes de dar el siguiente paso.", "What to know before taking the next step.")}</p></div><div className={s.faqList}>{faqs.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
-      <section id="contacto" className={s.contactSection}><div className={s.container} data-reveal><p className={s.eyebrow}>{t("TU SIGUIENTE CAPÍTULO EMPIEZA AQUÍ", "YOUR NEXT CHAPTER STARTS HERE")}</p><h2>{t("Conectemos", "Let's connect")}<br />{t("lo que sigue.", "what's next.")}<span aria-hidden="true">↗</span></h2><div className={s.contactBottom}><p>{t("Cuéntanos qué quieres transformar. Construyamos juntos el próximo paso.", "Tell us what you want to transform. Let's build the next step together.")}</p><a href={contactHref} target="_blank" rel="noopener noreferrer" className={s.lightButton}>{t("Hablemos por WhatsApp", "Let's talk on WhatsApp")}<span aria-hidden="true">↗</span></a></div></div></section>
-    </main>
-    <footer className={s.footer}><div className={s.container}><div className={s.footerTop}><a href="#top" aria-label={t("CIRIX — volver al inicio", "CIRIX — back to top")}><Image src="/brand/logo-white.svg" alt="CIRIX" width={145} height={52} /></a><p>{t("Estrategia que conecta. Tecnología que impulsa.", "Strategy that connects. Technology that drives.")}</p><a href="#top" className={s.backTop}>{t("Volver arriba", "Back to top")} ↑</a></div><div className={s.footerBottom}><span>© {new Date().getFullYear()} CIRIX. {t("Todos los derechos reservados.", "All rights reserved.")}</span><nav aria-label={t("Navegación del pie de página", "Footer navigation")}><a href="#soluciones">{t("Soluciones", "Solutions")}</a><a href="#contacto">{t("Contacto", "Contact")}</a><LocalizedLink href="/login">{t("Ingresar", "Sign in")}</LocalizedLink></nav></div></div></footer>
-  </div>;
+        <div className={s.footerBottomBar}>
+          <span>&copy; {new Date().getFullYear()} CIRIX. {copy.footer.rights}</span>
+        </div>
+      </footer>
+
+      <ContactDialog copy={copy} />
+    </div>
+  );
 }

@@ -52,7 +52,9 @@ export const metadata: Metadata = {
 /** The phone's status bar matches the page: light on the loyalty app, navy elsewhere. */
 export async function generateViewport(): Promise<Viewport> {
   const pathname = (await headers()).get("x-mixmag-pathname") ?? "/";
-  return { themeColor: isLoyaltyAppScreen(pathname) ? "#f3f5f7" : "#051934", viewportFit: "cover" };
+  // The home page is white since the 2026 redesign.
+  const themeColor = pathname === "/" ? "#ffffff" : isLoyaltyAppScreen(pathname) ? "#f3f5f7" : "#051934";
+  return { themeColor, viewportFit: "cover" };
 }
 
 export default async function RootLayout({

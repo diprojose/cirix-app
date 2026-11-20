@@ -17,12 +17,12 @@ export const SITE_STRUCTURED_DATA = {
 
 export function homeMetadata(locale: Locale): Metadata {
   const title = pick(locale, {
-    en: "Cirix Tech Portal | CRM, Automation & AI",
-    es: "Cirix Tech Portal | CRM, automatización e IA",
+    en: "CIRIX | Digital loyalty program for local businesses",
+    es: "CIRIX | Programa de fidelización digital para negocios locales",
   });
   const description = pick(locale, {
-    en: SITE_DESCRIPTION,
-    es: "Explora el portal tecnológico de Cirix: CRM, programas de fidelización, automatización, soporte con IA y seguimiento de llamadas para hacer crecer tu negocio.",
+    en: "CIRIX builds and runs digital stamp and points cards for restaurants, salons, shops and auto shops, so customers come back on your slow days.",
+    es: "CIRIX crea y administra tarjetas digitales de sellos y puntos para restaurantes, salones, tiendas y talleres, para que tus clientes vuelvan en los días flojos.",
   });
 
   return {
